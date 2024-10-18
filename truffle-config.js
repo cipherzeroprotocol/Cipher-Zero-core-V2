@@ -1,30 +1,32 @@
+const Web3 = require("web3");
 const HDWalletProvider = require("@truffle/hdwallet-provider");
-require('dotenv').config();
 
-console.log("MNEMONIC:", process.env.MNEMONIC); // Debugging: output mnemonic
+Web3.providers.HttpProvider.prototype.sendAsync = Web3.providers.HttpProvider.prototype.send
+
+const provider = new Web3.providers.HttpProvider("https://devnet.neonevm.org");
+
+// Private keys for test accounts
+// NOTE: Replace this private keys by your own and make sure it has non-zero NEON balances
+const privateKeys = [
+  "0x7efe7d68906dd6fb3487f411aafb8e558863bf1d2f60372a47186d151eae625a",
+  "0x09fb68d632c2b227cc6da77696de362fa38cb94e1c62d8a07db82e7d5e754f10"
+];
 
 module.exports = {
   networks: {
-    neonEVM: {
+    neonlabs: {
       provider: () => {
-        const mnemonic = process.env.MNEMONIC;
-        if (!mnemonic) {
-          throw new Error("MNEMONIC not found in environment variables");
-        }
-        console.log("Creating HDWalletProvider with MNEMONIC:", mnemonic); // Debugging
         return new HDWalletProvider(
-          mnemonic,
-          "https://devnet.neonevm.org"
+          privateKeys,
+          provider,
         );
       },
-      network_id: 245022926,
-      gas: 3000000,
-      gasPrice: 10000000000, // 10 gwei
-    },
+      network_id: "*"
+    }
   },
   compilers: {
     solc: {
-      version: "0.8.26",
+      version: "^0.8.0"
     }
-  },
+  }
 };

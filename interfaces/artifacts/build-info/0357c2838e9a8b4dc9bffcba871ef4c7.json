@@ -1,0 +1,1558 @@
+{
+	"id": "0357c2838e9a8b4dc9bffcba871ef4c7",
+	"_format": "hh-sol-build-info-1",
+	"solcVersion": "0.8.26",
+	"solcLongVersion": "0.8.26+commit.8a97fa7a",
+	"input": {
+		"language": "Solidity",
+		"sources": {
+			"interfaces/IStorage.sol": {
+				"content": "// SPDX-License-Identifier: MIT\n\npragma solidity ^0.8.26;\n\n/**\n * @title IStorage\n * @dev Interface for the decentralized storage module of Cipher Zero Protocol\n */\ninterface IStorage {\n    \n    /// @notice Emitted when a new data hash is stored\n    /// @param dataHash Hash of the stored data\n    /// @param sender Address that submitted the data\n    /// @param timestamp Time when data was stored\n    event DataStored(bytes32 indexed dataHash, address indexed sender, uint256 timestamp);\n    \n    /// @notice Emitted when data is retrieved\n    /// @param dataHash Hash of the retrieved data\n    /// @param retriever Address that retrieved the data\n    /// @param timestamp Time of retrieval\n    event DataRetrieved(bytes32 indexed dataHash, address indexed retriever, uint256 timestamp);\n\n    /// @notice Emitted when data is updated\n    /// @param dataHash Hash of the updated data\n    /// @param updater Address that updated the data\n    /// @param timestamp Time when data was updated\n    event DataUpdated(bytes32 indexed dataHash, address indexed updater, uint256 timestamp);\n\n    /// @notice Emitted when data is deleted\n    /// @param dataHash Hash of the deleted data\n    /// @param deleter Address that deleted the data\n    /// @param timestamp Time when data was deleted\n    event DataDeleted(bytes32 indexed dataHash, address indexed deleter, uint256 timestamp);\n\n    /**\n     * @notice Store data on-chain by submitting a hash and off-chain URI\n     * @dev Only the data owner can update or delete stored data\n     * @param dataHash The hash of the data being stored\n     * @param dataUri The URI pointing to the actual data (stored off-chain)\n     */\n    function storeData(bytes32 dataHash, string calldata dataUri) external;\n\n    /**\n     * @notice Retrieve the URI of the data by its hash\n     * @param dataHash The hash of the data to be retrieved\n     * @return The URI where the data can be accessed\n     */\n    function retrieveData(bytes32 dataHash) external view returns (string memory);\n\n    /**\n     * @notice Update existing data's URI\n     * @param dataHash The hash of the data to update\n     * @param newUri The new URI for the data\n     */\n    function updateData(bytes32 dataHash, string calldata newUri) external;\n\n    /**\n     * @notice Permanently delete data by its hash\n     * @dev Can only be called by the original uploader of the data\n     * @param dataHash The hash of the data to delete\n     */\n    function deleteData(bytes32 dataHash) external;\n\n    /**\n     * @notice Check if the data exists on-chain\n     * @param dataHash The hash of the data to check\n     * @return True if the data exists, false otherwise\n     */\n    function dataExists(bytes32 dataHash) external view returns (bool);\n\n    /**\n     * @notice Get the owner of the stored data\n     * @param dataHash The hash of the data to check ownership for\n     * @return Address of the data owner\n     */\n    function getDataOwner(bytes32 dataHash) external view returns (address);\n    \n    /**\n     * @notice Get the metadata associated with the data hash\n     * @param dataHash The hash of the data to fetch metadata for\n     * @return URI string of the data and timestamp when it was stored\n     */\n    function getDataMetadata(bytes32 dataHash) external view returns (string memory, uint256);\n}\n"
+			}
+		},
+		"settings": {
+			"optimizer": {
+				"enabled": false,
+				"runs": 200
+			},
+			"outputSelection": {
+				"*": {
+					"": [
+						"ast"
+					],
+					"*": [
+						"abi",
+						"metadata",
+						"devdoc",
+						"userdoc",
+						"storageLayout",
+						"evm.legacyAssembly",
+						"evm.bytecode",
+						"evm.deployedBytecode",
+						"evm.methodIdentifiers",
+						"evm.gasEstimates",
+						"evm.assembly"
+					]
+				}
+			},
+			"remappings": []
+		}
+	},
+	"output": {
+		"contracts": {
+			"interfaces/IStorage.sol": {
+				"IStorage": {
+					"abi": [
+						{
+							"anonymous": false,
+							"inputs": [
+								{
+									"indexed": true,
+									"internalType": "bytes32",
+									"name": "dataHash",
+									"type": "bytes32"
+								},
+								{
+									"indexed": true,
+									"internalType": "address",
+									"name": "deleter",
+									"type": "address"
+								},
+								{
+									"indexed": false,
+									"internalType": "uint256",
+									"name": "timestamp",
+									"type": "uint256"
+								}
+							],
+							"name": "DataDeleted",
+							"type": "event"
+						},
+						{
+							"anonymous": false,
+							"inputs": [
+								{
+									"indexed": true,
+									"internalType": "bytes32",
+									"name": "dataHash",
+									"type": "bytes32"
+								},
+								{
+									"indexed": true,
+									"internalType": "address",
+									"name": "retriever",
+									"type": "address"
+								},
+								{
+									"indexed": false,
+									"internalType": "uint256",
+									"name": "timestamp",
+									"type": "uint256"
+								}
+							],
+							"name": "DataRetrieved",
+							"type": "event"
+						},
+						{
+							"anonymous": false,
+							"inputs": [
+								{
+									"indexed": true,
+									"internalType": "bytes32",
+									"name": "dataHash",
+									"type": "bytes32"
+								},
+								{
+									"indexed": true,
+									"internalType": "address",
+									"name": "sender",
+									"type": "address"
+								},
+								{
+									"indexed": false,
+									"internalType": "uint256",
+									"name": "timestamp",
+									"type": "uint256"
+								}
+							],
+							"name": "DataStored",
+							"type": "event"
+						},
+						{
+							"anonymous": false,
+							"inputs": [
+								{
+									"indexed": true,
+									"internalType": "bytes32",
+									"name": "dataHash",
+									"type": "bytes32"
+								},
+								{
+									"indexed": true,
+									"internalType": "address",
+									"name": "updater",
+									"type": "address"
+								},
+								{
+									"indexed": false,
+									"internalType": "uint256",
+									"name": "timestamp",
+									"type": "uint256"
+								}
+							],
+							"name": "DataUpdated",
+							"type": "event"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "dataHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "dataExists",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "dataHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "deleteData",
+							"outputs": [],
+							"stateMutability": "nonpayable",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "dataHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "getDataMetadata",
+							"outputs": [
+								{
+									"internalType": "string",
+									"name": "",
+									"type": "string"
+								},
+								{
+									"internalType": "uint256",
+									"name": "",
+									"type": "uint256"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "dataHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "getDataOwner",
+							"outputs": [
+								{
+									"internalType": "address",
+									"name": "",
+									"type": "address"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "dataHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "retrieveData",
+							"outputs": [
+								{
+									"internalType": "string",
+									"name": "",
+									"type": "string"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "dataHash",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "string",
+									"name": "dataUri",
+									"type": "string"
+								}
+							],
+							"name": "storeData",
+							"outputs": [],
+							"stateMutability": "nonpayable",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "dataHash",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "string",
+									"name": "newUri",
+									"type": "string"
+								}
+							],
+							"name": "updateData",
+							"outputs": [],
+							"stateMutability": "nonpayable",
+							"type": "function"
+						}
+					],
+					"devdoc": {
+						"details": "Interface for the decentralized storage module of Cipher Zero Protocol",
+						"events": {
+							"DataDeleted(bytes32,address,uint256)": {
+								"params": {
+									"dataHash": "Hash of the deleted data",
+									"deleter": "Address that deleted the data",
+									"timestamp": "Time when data was deleted"
+								}
+							},
+							"DataRetrieved(bytes32,address,uint256)": {
+								"params": {
+									"dataHash": "Hash of the retrieved data",
+									"retriever": "Address that retrieved the data",
+									"timestamp": "Time of retrieval"
+								}
+							},
+							"DataStored(bytes32,address,uint256)": {
+								"params": {
+									"dataHash": "Hash of the stored data",
+									"sender": "Address that submitted the data",
+									"timestamp": "Time when data was stored"
+								}
+							},
+							"DataUpdated(bytes32,address,uint256)": {
+								"params": {
+									"dataHash": "Hash of the updated data",
+									"timestamp": "Time when data was updated",
+									"updater": "Address that updated the data"
+								}
+							}
+						},
+						"kind": "dev",
+						"methods": {
+							"dataExists(bytes32)": {
+								"params": {
+									"dataHash": "The hash of the data to check"
+								},
+								"returns": {
+									"_0": "True if the data exists, false otherwise"
+								}
+							},
+							"deleteData(bytes32)": {
+								"details": "Can only be called by the original uploader of the data",
+								"params": {
+									"dataHash": "The hash of the data to delete"
+								}
+							},
+							"getDataMetadata(bytes32)": {
+								"params": {
+									"dataHash": "The hash of the data to fetch metadata for"
+								},
+								"returns": {
+									"_0": "URI string of the data and timestamp when it was stored"
+								}
+							},
+							"getDataOwner(bytes32)": {
+								"params": {
+									"dataHash": "The hash of the data to check ownership for"
+								},
+								"returns": {
+									"_0": "Address of the data owner"
+								}
+							},
+							"retrieveData(bytes32)": {
+								"params": {
+									"dataHash": "The hash of the data to be retrieved"
+								},
+								"returns": {
+									"_0": "The URI where the data can be accessed"
+								}
+							},
+							"storeData(bytes32,string)": {
+								"details": "Only the data owner can update or delete stored data",
+								"params": {
+									"dataHash": "The hash of the data being stored",
+									"dataUri": "The URI pointing to the actual data (stored off-chain)"
+								}
+							},
+							"updateData(bytes32,string)": {
+								"params": {
+									"dataHash": "The hash of the data to update",
+									"newUri": "The new URI for the data"
+								}
+							}
+						},
+						"title": "IStorage",
+						"version": 1
+					},
+					"evm": {
+						"assembly": "",
+						"bytecode": {
+							"functionDebugData": {},
+							"generatedSources": [],
+							"linkReferences": {},
+							"object": "",
+							"opcodes": "",
+							"sourceMap": ""
+						},
+						"deployedBytecode": {
+							"functionDebugData": {},
+							"generatedSources": [],
+							"immutableReferences": {},
+							"linkReferences": {},
+							"object": "",
+							"opcodes": "",
+							"sourceMap": ""
+						},
+						"gasEstimates": null,
+						"legacyAssembly": null,
+						"methodIdentifiers": {
+							"dataExists(bytes32)": "1fdc4e73",
+							"deleteData(bytes32)": "86911cde",
+							"getDataMetadata(bytes32)": "ce2ae273",
+							"getDataOwner(bytes32)": "19818821",
+							"retrieveData(bytes32)": "45e12b5d",
+							"storeData(bytes32,string)": "53794a93",
+							"updateData(bytes32,string)": "264c0d4b"
+						}
+					},
+					"metadata": "{\"compiler\":{\"version\":\"0.8.26+commit.8a97fa7a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"dataHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"deleter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"DataDeleted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"dataHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"retriever\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"DataRetrieved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"dataHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"DataStored\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"dataHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"updater\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"DataUpdated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"dataHash\",\"type\":\"bytes32\"}],\"name\":\"dataExists\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"dataHash\",\"type\":\"bytes32\"}],\"name\":\"deleteData\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"dataHash\",\"type\":\"bytes32\"}],\"name\":\"getDataMetadata\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"dataHash\",\"type\":\"bytes32\"}],\"name\":\"getDataOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"dataHash\",\"type\":\"bytes32\"}],\"name\":\"retrieveData\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"dataHash\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"dataUri\",\"type\":\"string\"}],\"name\":\"storeData\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"dataHash\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"newUri\",\"type\":\"string\"}],\"name\":\"updateData\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interface for the decentralized storage module of Cipher Zero Protocol\",\"events\":{\"DataDeleted(bytes32,address,uint256)\":{\"params\":{\"dataHash\":\"Hash of the deleted data\",\"deleter\":\"Address that deleted the data\",\"timestamp\":\"Time when data was deleted\"}},\"DataRetrieved(bytes32,address,uint256)\":{\"params\":{\"dataHash\":\"Hash of the retrieved data\",\"retriever\":\"Address that retrieved the data\",\"timestamp\":\"Time of retrieval\"}},\"DataStored(bytes32,address,uint256)\":{\"params\":{\"dataHash\":\"Hash of the stored data\",\"sender\":\"Address that submitted the data\",\"timestamp\":\"Time when data was stored\"}},\"DataUpdated(bytes32,address,uint256)\":{\"params\":{\"dataHash\":\"Hash of the updated data\",\"timestamp\":\"Time when data was updated\",\"updater\":\"Address that updated the data\"}}},\"kind\":\"dev\",\"methods\":{\"dataExists(bytes32)\":{\"params\":{\"dataHash\":\"The hash of the data to check\"},\"returns\":{\"_0\":\"True if the data exists, false otherwise\"}},\"deleteData(bytes32)\":{\"details\":\"Can only be called by the original uploader of the data\",\"params\":{\"dataHash\":\"The hash of the data to delete\"}},\"getDataMetadata(bytes32)\":{\"params\":{\"dataHash\":\"The hash of the data to fetch metadata for\"},\"returns\":{\"_0\":\"URI string of the data and timestamp when it was stored\"}},\"getDataOwner(bytes32)\":{\"params\":{\"dataHash\":\"The hash of the data to check ownership for\"},\"returns\":{\"_0\":\"Address of the data owner\"}},\"retrieveData(bytes32)\":{\"params\":{\"dataHash\":\"The hash of the data to be retrieved\"},\"returns\":{\"_0\":\"The URI where the data can be accessed\"}},\"storeData(bytes32,string)\":{\"details\":\"Only the data owner can update or delete stored data\",\"params\":{\"dataHash\":\"The hash of the data being stored\",\"dataUri\":\"The URI pointing to the actual data (stored off-chain)\"}},\"updateData(bytes32,string)\":{\"params\":{\"dataHash\":\"The hash of the data to update\",\"newUri\":\"The new URI for the data\"}}},\"title\":\"IStorage\",\"version\":1},\"userdoc\":{\"events\":{\"DataDeleted(bytes32,address,uint256)\":{\"notice\":\"Emitted when data is deleted\"},\"DataRetrieved(bytes32,address,uint256)\":{\"notice\":\"Emitted when data is retrieved\"},\"DataStored(bytes32,address,uint256)\":{\"notice\":\"Emitted when a new data hash is stored\"},\"DataUpdated(bytes32,address,uint256)\":{\"notice\":\"Emitted when data is updated\"}},\"kind\":\"user\",\"methods\":{\"dataExists(bytes32)\":{\"notice\":\"Check if the data exists on-chain\"},\"deleteData(bytes32)\":{\"notice\":\"Permanently delete data by its hash\"},\"getDataMetadata(bytes32)\":{\"notice\":\"Get the metadata associated with the data hash\"},\"getDataOwner(bytes32)\":{\"notice\":\"Get the owner of the stored data\"},\"retrieveData(bytes32)\":{\"notice\":\"Retrieve the URI of the data by its hash\"},\"storeData(bytes32,string)\":{\"notice\":\"Store data on-chain by submitting a hash and off-chain URI\"},\"updateData(bytes32,string)\":{\"notice\":\"Update existing data's URI\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"interfaces/IStorage.sol\":\"IStorage\"},\"evmVersion\":\"cancun\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"interfaces/IStorage.sol\":{\"keccak256\":\"0x893756e3ad2d56f07b030dfcb18f2b7558db32530fe443cfa5aaf12f9fe37fe3\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://92c248096f31d5be1726b7adccdeec1a40748e70f7fd7a55797a58ab66835beb\",\"dweb:/ipfs/QmVwKYK3vbHTqRH3yN8ZBJdurkyY7MTL1rdrLtggYr6qts\"]}},\"version\":1}",
+					"storageLayout": {
+						"storage": [],
+						"types": null
+					},
+					"userdoc": {
+						"events": {
+							"DataDeleted(bytes32,address,uint256)": {
+								"notice": "Emitted when data is deleted"
+							},
+							"DataRetrieved(bytes32,address,uint256)": {
+								"notice": "Emitted when data is retrieved"
+							},
+							"DataStored(bytes32,address,uint256)": {
+								"notice": "Emitted when a new data hash is stored"
+							},
+							"DataUpdated(bytes32,address,uint256)": {
+								"notice": "Emitted when data is updated"
+							}
+						},
+						"kind": "user",
+						"methods": {
+							"dataExists(bytes32)": {
+								"notice": "Check if the data exists on-chain"
+							},
+							"deleteData(bytes32)": {
+								"notice": "Permanently delete data by its hash"
+							},
+							"getDataMetadata(bytes32)": {
+								"notice": "Get the metadata associated with the data hash"
+							},
+							"getDataOwner(bytes32)": {
+								"notice": "Get the owner of the stored data"
+							},
+							"retrieveData(bytes32)": {
+								"notice": "Retrieve the URI of the data by its hash"
+							},
+							"storeData(bytes32,string)": {
+								"notice": "Store data on-chain by submitting a hash and off-chain URI"
+							},
+							"updateData(bytes32,string)": {
+								"notice": "Update existing data's URI"
+							}
+						},
+						"version": 1
+					}
+				}
+			}
+		},
+		"sources": {
+			"interfaces/IStorage.sol": {
+				"ast": {
+					"absolutePath": "interfaces/IStorage.sol",
+					"exportedSymbols": {
+						"IStorage": [
+							95
+						]
+					},
+					"id": 96,
+					"license": "MIT",
+					"nodeType": "SourceUnit",
+					"nodes": [
+						{
+							"id": 1,
+							"literals": [
+								"solidity",
+								"^",
+								"0.8",
+								".26"
+							],
+							"nodeType": "PragmaDirective",
+							"src": "33:24:0"
+						},
+						{
+							"abstract": false,
+							"baseContracts": [],
+							"canonicalName": "IStorage",
+							"contractDependencies": [],
+							"contractKind": "interface",
+							"documentation": {
+								"id": 2,
+								"nodeType": "StructuredDocumentation",
+								"src": "59:105:0",
+								"text": " @title IStorage\n @dev Interface for the decentralized storage module of Cipher Zero Protocol"
+							},
+							"fullyImplemented": false,
+							"id": 95,
+							"linearizedBaseContracts": [
+								95
+							],
+							"name": "IStorage",
+							"nameLocation": "175:8:0",
+							"nodeType": "ContractDefinition",
+							"nodes": [
+								{
+									"anonymous": false,
+									"documentation": {
+										"id": 3,
+										"nodeType": "StructuredDocumentation",
+										"src": "195:203:0",
+										"text": "@notice Emitted when a new data hash is stored\n @param dataHash Hash of the stored data\n @param sender Address that submitted the data\n @param timestamp Time when data was stored"
+									},
+									"eventSelector": "f4a53c8ab0643c31242d1baa180adf580c6fd8b89c6ac3726aedbf3ca5fb82cb",
+									"id": 11,
+									"name": "DataStored",
+									"nameLocation": "409:10:0",
+									"nodeType": "EventDefinition",
+									"parameters": {
+										"id": 10,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 5,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "dataHash",
+												"nameLocation": "436:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 11,
+												"src": "420:24:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 4,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "420:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 7,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "sender",
+												"nameLocation": "462:6:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 11,
+												"src": "446:22:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 6,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "446:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 9,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "timestamp",
+												"nameLocation": "478:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 11,
+												"src": "470:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 8,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "470:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "419:69:0"
+									},
+									"src": "403:86:0"
+								},
+								{
+									"anonymous": false,
+									"documentation": {
+										"id": 12,
+										"nodeType": "StructuredDocumentation",
+										"src": "499:193:0",
+										"text": "@notice Emitted when data is retrieved\n @param dataHash Hash of the retrieved data\n @param retriever Address that retrieved the data\n @param timestamp Time of retrieval"
+									},
+									"eventSelector": "9708cd3b51d7b3a363efd657ced9a1bea826d6aa9c9b78fa480c0336aa50b50e",
+									"id": 20,
+									"name": "DataRetrieved",
+									"nameLocation": "703:13:0",
+									"nodeType": "EventDefinition",
+									"parameters": {
+										"id": 19,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 14,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "dataHash",
+												"nameLocation": "733:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 20,
+												"src": "717:24:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 13,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "717:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 16,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "retriever",
+												"nameLocation": "759:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 20,
+												"src": "743:25:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 15,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "743:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 18,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "timestamp",
+												"nameLocation": "778:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 20,
+												"src": "770:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 17,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "770:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "716:72:0"
+									},
+									"src": "697:92:0"
+								},
+								{
+									"anonymous": false,
+									"documentation": {
+										"id": 21,
+										"nodeType": "StructuredDocumentation",
+										"src": "795:194:0",
+										"text": "@notice Emitted when data is updated\n @param dataHash Hash of the updated data\n @param updater Address that updated the data\n @param timestamp Time when data was updated"
+									},
+									"eventSelector": "f9fc784cf52ed16ca0651b0e1163edf2dfbefd4165a54708eccdc7c6bee30e1e",
+									"id": 29,
+									"name": "DataUpdated",
+									"nameLocation": "1000:11:0",
+									"nodeType": "EventDefinition",
+									"parameters": {
+										"id": 28,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 23,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "dataHash",
+												"nameLocation": "1028:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 29,
+												"src": "1012:24:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 22,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1012:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 25,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "updater",
+												"nameLocation": "1054:7:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 29,
+												"src": "1038:23:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 24,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "1038:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 27,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "timestamp",
+												"nameLocation": "1071:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 29,
+												"src": "1063:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 26,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "1063:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1011:70:0"
+									},
+									"src": "994:88:0"
+								},
+								{
+									"anonymous": false,
+									"documentation": {
+										"id": 30,
+										"nodeType": "StructuredDocumentation",
+										"src": "1088:194:0",
+										"text": "@notice Emitted when data is deleted\n @param dataHash Hash of the deleted data\n @param deleter Address that deleted the data\n @param timestamp Time when data was deleted"
+									},
+									"eventSelector": "626f46e0de6c9d8caca93bb873d9160767bc150c28c8a2669d01c329f368028d",
+									"id": 38,
+									"name": "DataDeleted",
+									"nameLocation": "1293:11:0",
+									"nodeType": "EventDefinition",
+									"parameters": {
+										"id": 37,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 32,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "dataHash",
+												"nameLocation": "1321:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 38,
+												"src": "1305:24:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 31,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1305:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 34,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "deleter",
+												"nameLocation": "1347:7:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 38,
+												"src": "1331:23:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 33,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "1331:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 36,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "timestamp",
+												"nameLocation": "1364:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 38,
+												"src": "1356:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 35,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "1356:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1304:70:0"
+									},
+									"src": "1287:88:0"
+								},
+								{
+									"documentation": {
+										"id": 39,
+										"nodeType": "StructuredDocumentation",
+										"src": "1381:284:0",
+										"text": " @notice Store data on-chain by submitting a hash and off-chain URI\n @dev Only the data owner can update or delete stored data\n @param dataHash The hash of the data being stored\n @param dataUri The URI pointing to the actual data (stored off-chain)"
+									},
+									"functionSelector": "53794a93",
+									"id": 46,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "storeData",
+									"nameLocation": "1679:9:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 44,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 41,
+												"mutability": "mutable",
+												"name": "dataHash",
+												"nameLocation": "1697:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 46,
+												"src": "1689:16:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 40,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1689:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 43,
+												"mutability": "mutable",
+												"name": "dataUri",
+												"nameLocation": "1723:7:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 46,
+												"src": "1707:23:0",
+												"stateVariable": false,
+												"storageLocation": "calldata",
+												"typeDescriptions": {
+													"typeIdentifier": "t_string_calldata_ptr",
+													"typeString": "string"
+												},
+												"typeName": {
+													"id": 42,
+													"name": "string",
+													"nodeType": "ElementaryTypeName",
+													"src": "1707:6:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_string_storage_ptr",
+														"typeString": "string"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1688:43:0"
+									},
+									"returnParameters": {
+										"id": 45,
+										"nodeType": "ParameterList",
+										"parameters": [],
+										"src": "1740:0:0"
+									},
+									"scope": 95,
+									"src": "1670:71:0",
+									"stateMutability": "nonpayable",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 47,
+										"nodeType": "StructuredDocumentation",
+										"src": "1747:181:0",
+										"text": " @notice Retrieve the URI of the data by its hash\n @param dataHash The hash of the data to be retrieved\n @return The URI where the data can be accessed"
+									},
+									"functionSelector": "45e12b5d",
+									"id": 54,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "retrieveData",
+									"nameLocation": "1942:12:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 50,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 49,
+												"mutability": "mutable",
+												"name": "dataHash",
+												"nameLocation": "1963:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 54,
+												"src": "1955:16:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 48,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1955:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1954:18:0"
+									},
+									"returnParameters": {
+										"id": 53,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 52,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 54,
+												"src": "1996:13:0",
+												"stateVariable": false,
+												"storageLocation": "memory",
+												"typeDescriptions": {
+													"typeIdentifier": "t_string_memory_ptr",
+													"typeString": "string"
+												},
+												"typeName": {
+													"id": 51,
+													"name": "string",
+													"nodeType": "ElementaryTypeName",
+													"src": "1996:6:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_string_storage_ptr",
+														"typeString": "string"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1995:15:0"
+									},
+									"scope": 95,
+									"src": "1933:78:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 55,
+										"nodeType": "StructuredDocumentation",
+										"src": "2017:153:0",
+										"text": " @notice Update existing data's URI\n @param dataHash The hash of the data to update\n @param newUri The new URI for the data"
+									},
+									"functionSelector": "264c0d4b",
+									"id": 62,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "updateData",
+									"nameLocation": "2184:10:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 60,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 57,
+												"mutability": "mutable",
+												"name": "dataHash",
+												"nameLocation": "2203:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 62,
+												"src": "2195:16:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 56,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2195:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 59,
+												"mutability": "mutable",
+												"name": "newUri",
+												"nameLocation": "2229:6:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 62,
+												"src": "2213:22:0",
+												"stateVariable": false,
+												"storageLocation": "calldata",
+												"typeDescriptions": {
+													"typeIdentifier": "t_string_calldata_ptr",
+													"typeString": "string"
+												},
+												"typeName": {
+													"id": 58,
+													"name": "string",
+													"nodeType": "ElementaryTypeName",
+													"src": "2213:6:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_string_storage_ptr",
+														"typeString": "string"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2194:42:0"
+									},
+									"returnParameters": {
+										"id": 61,
+										"nodeType": "ParameterList",
+										"parameters": [],
+										"src": "2245:0:0"
+									},
+									"scope": 95,
+									"src": "2175:71:0",
+									"stateMutability": "nonpayable",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 63,
+										"nodeType": "StructuredDocumentation",
+										"src": "2252:184:0",
+										"text": " @notice Permanently delete data by its hash\n @dev Can only be called by the original uploader of the data\n @param dataHash The hash of the data to delete"
+									},
+									"functionSelector": "86911cde",
+									"id": 68,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "deleteData",
+									"nameLocation": "2450:10:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 66,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 65,
+												"mutability": "mutable",
+												"name": "dataHash",
+												"nameLocation": "2469:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 68,
+												"src": "2461:16:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 64,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2461:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2460:18:0"
+									},
+									"returnParameters": {
+										"id": 67,
+										"nodeType": "ParameterList",
+										"parameters": [],
+										"src": "2487:0:0"
+									},
+									"scope": 95,
+									"src": "2441:47:0",
+									"stateMutability": "nonpayable",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 69,
+										"nodeType": "StructuredDocumentation",
+										"src": "2494:169:0",
+										"text": " @notice Check if the data exists on-chain\n @param dataHash The hash of the data to check\n @return True if the data exists, false otherwise"
+									},
+									"functionSelector": "1fdc4e73",
+									"id": 76,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "dataExists",
+									"nameLocation": "2677:10:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 72,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 71,
+												"mutability": "mutable",
+												"name": "dataHash",
+												"nameLocation": "2696:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 76,
+												"src": "2688:16:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 70,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2688:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2687:18:0"
+									},
+									"returnParameters": {
+										"id": 75,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 74,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 76,
+												"src": "2729:4:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 73,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "2729:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2728:6:0"
+									},
+									"scope": 95,
+									"src": "2668:67:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 77,
+										"nodeType": "StructuredDocumentation",
+										"src": "2741:167:0",
+										"text": " @notice Get the owner of the stored data\n @param dataHash The hash of the data to check ownership for\n @return Address of the data owner"
+									},
+									"functionSelector": "19818821",
+									"id": 84,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "getDataOwner",
+									"nameLocation": "2922:12:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 80,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 79,
+												"mutability": "mutable",
+												"name": "dataHash",
+												"nameLocation": "2943:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 84,
+												"src": "2935:16:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 78,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2935:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2934:18:0"
+									},
+									"returnParameters": {
+										"id": 83,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 82,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 84,
+												"src": "2976:7:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 81,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "2976:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2975:9:0"
+									},
+									"scope": 95,
+									"src": "2913:72:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 85,
+										"nodeType": "StructuredDocumentation",
+										"src": "2995:210:0",
+										"text": " @notice Get the metadata associated with the data hash\n @param dataHash The hash of the data to fetch metadata for\n @return URI string of the data and timestamp when it was stored"
+									},
+									"functionSelector": "ce2ae273",
+									"id": 94,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "getDataMetadata",
+									"nameLocation": "3219:15:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 88,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 87,
+												"mutability": "mutable",
+												"name": "dataHash",
+												"nameLocation": "3243:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 94,
+												"src": "3235:16:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 86,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "3235:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "3234:18:0"
+									},
+									"returnParameters": {
+										"id": 93,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 90,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 94,
+												"src": "3276:13:0",
+												"stateVariable": false,
+												"storageLocation": "memory",
+												"typeDescriptions": {
+													"typeIdentifier": "t_string_memory_ptr",
+													"typeString": "string"
+												},
+												"typeName": {
+													"id": 89,
+													"name": "string",
+													"nodeType": "ElementaryTypeName",
+													"src": "3276:6:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_string_storage_ptr",
+														"typeString": "string"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 92,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 94,
+												"src": "3291:7:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 91,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "3291:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "3275:24:0"
+									},
+									"scope": 95,
+									"src": "3210:90:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								}
+							],
+							"scope": 96,
+							"src": "165:3137:0",
+							"usedErrors": [],
+							"usedEvents": [
+								11,
+								20,
+								29,
+								38
+							]
+						}
+					],
+					"src": "33:3270:0"
+				},
+				"id": 0
+			}
+		}
+	}
+}

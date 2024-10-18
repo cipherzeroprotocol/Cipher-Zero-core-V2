@@ -1,0 +1,648 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					}
+				],
+				"name": "OwnableInvalidOwner",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "OwnableUnauthorizedAccount",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "ReentrancyGuardReentrantCall",
+				"type": "error"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "MessageDeleted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "MessageDeleted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "receiver",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "MessageReceived",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "MessageSent",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "receiver",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "MessageSent",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "previousOwner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "OwnershipTransferred",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "decryptionKey",
+						"type": "bytes"
+					}
+				],
+				"name": "decryptMessage",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "_messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "deleteMessage",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "_messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "doesMessageExist",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "getMessageCount",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getMessageSender",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getMessageTimestamp",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "getMessages",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "sender",
+								"type": "address"
+							},
+							{
+								"internalType": "bytes32",
+								"name": "messageHash",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "uint256",
+								"name": "timestamp",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Messaging.Message[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "messageExists",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "renounceOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "retrieveMessage",
+				"outputs": [
+					{
+						"internalType": "bytes",
+						"name": "",
+						"type": "bytes"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_recipient",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "_messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "sendMessage",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "transferOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"details": "Handles encrypted messaging functionality and stores message hashes and recipient information",
+			"errors": {
+				"OwnableInvalidOwner(address)": [
+					{
+						"details": "The owner is not a valid owner account. (eg. `address(0)`)"
+					}
+				],
+				"OwnableUnauthorizedAccount(address)": [
+					{
+						"details": "The caller account is not authorized to perform an operation."
+					}
+				],
+				"ReentrancyGuardReentrantCall()": [
+					{
+						"details": "Unauthorized reentrant call."
+					}
+				]
+			},
+			"events": {
+				"MessageDeleted(bytes32,address,uint256)": {
+					"params": {
+						"messageHash": "Hash of the deleted message",
+						"sender": "Address that deleted the message",
+						"timestamp": "Time when the message was deleted"
+					}
+				},
+				"MessageReceived(address,bytes32,uint256)": {
+					"params": {
+						"messageHash": "Hash of the encrypted message content",
+						"receiver": "Address of the message receiver",
+						"timestamp": "Time when the message was decrypted"
+					}
+				},
+				"MessageSent(address,address,bytes32,uint256)": {
+					"params": {
+						"messageHash": "Hash of the encrypted message content",
+						"receiver": "Address of the message receiver",
+						"sender": "Address of the message sender",
+						"timestamp": "Time when the message was sent"
+					}
+				}
+			},
+			"kind": "dev",
+			"methods": {
+				"decryptMessage(bytes32,bytes)": {
+					"params": {
+						"decryptionKey": "Key used to decrypt the message",
+						"messageHash": "Hash of the encrypted message content"
+					},
+					"returns": {
+						"_0": "The decrypted message content"
+					}
+				},
+				"deleteMessage(bytes32)": {
+					"details": "Deletes a message",
+					"params": {
+						"_messageHash": "Hash of the message to be deleted"
+					}
+				},
+				"doesMessageExist(bytes32)": {
+					"details": "Checks if a message exists",
+					"params": {
+						"_messageHash": "Hash of the message"
+					},
+					"returns": {
+						"_0": "Boolean indicating whether the message exists"
+					}
+				},
+				"getMessageCount(address)": {
+					"details": "Retrieves the total number of messages for a user",
+					"params": {
+						"_user": "Address of the user"
+					},
+					"returns": {
+						"_0": "Number of messages"
+					}
+				},
+				"getMessageSender(bytes32)": {
+					"params": {
+						"messageHash": "Hash of the message"
+					},
+					"returns": {
+						"_0": "The address of the message sender"
+					}
+				},
+				"getMessageTimestamp(bytes32)": {
+					"params": {
+						"messageHash": "Hash of the message"
+					},
+					"returns": {
+						"_0": "The timestamp when the message was sent"
+					}
+				},
+				"getMessages(address)": {
+					"details": "Retrieves all messages for a user",
+					"params": {
+						"_user": "Address of the user"
+					},
+					"returns": {
+						"_0": "Array of Message structs"
+					}
+				},
+				"messageExists(bytes32)": {
+					"params": {
+						"messageHash": "Hash of the message to check"
+					},
+					"returns": {
+						"_0": "True if the message exists, false otherwise"
+					}
+				},
+				"owner()": {
+					"details": "Returns the address of the current owner."
+				},
+				"renounceOwnership()": {
+					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
+				},
+				"retrieveMessage(bytes32)": {
+					"params": {
+						"messageHash": "Hash of the message content"
+					},
+					"returns": {
+						"_0": "Encrypted content of the message"
+					}
+				},
+				"sendMessage(address,bytes32)": {
+					"details": "Sends a message to a recipient",
+					"params": {
+						"_messageHash": "Hash of the encrypted message content",
+						"_recipient": "Address of the message recipient"
+					}
+				},
+				"transferOwnership(address)": {
+					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+				}
+			},
+			"title": "Messaging",
+			"version": 1
+		},
+		"userdoc": {
+			"events": {
+				"MessageDeleted(bytes32,address,uint256)": {
+					"notice": "Emitted when a message is deleted by the sender or receiver"
+				},
+				"MessageReceived(address,bytes32,uint256)": {
+					"notice": "Emitted when a message is received and decrypted"
+				},
+				"MessageSent(address,address,bytes32,uint256)": {
+					"notice": "Emitted when a new message is sent"
+				}
+			},
+			"kind": "user",
+			"methods": {
+				"decryptMessage(bytes32,bytes)": {
+					"notice": "Decrypts the message using a decryption key"
+				},
+				"getMessageSender(bytes32)": {
+					"notice": "Retrieves the address of the sender of the message"
+				},
+				"getMessageTimestamp(bytes32)": {
+					"notice": "Returns the timestamp when the message was sent"
+				},
+				"messageExists(bytes32)": {
+					"notice": "Checks if a message exists in the messaging system"
+				},
+				"retrieveMessage(bytes32)": {
+					"notice": "Retrieves the message's encrypted content using its hash"
+				}
+			},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"core/Messaging.sol": "Messaging"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"@openzeppelin/contracts/access/Ownable.sol": {
+			"keccak256": "0xff6d0bb2e285473e5311d9d3caacb525ae3538a80758c10649a4d61029b017bb",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8ed324d3920bb545059d66ab97d43e43ee85fd3bd52e03e401f020afb0b120f6",
+				"dweb:/ipfs/QmfEckWLmZkDDcoWrkEvMWhms66xwTLff9DDhegYpvHo1a"
+			]
+		},
+		"@openzeppelin/contracts/utils/Context.sol": {
+			"keccak256": "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://6a708e8a5bdb1011c2c381c9a5cfd8a9a956d7d0a9dc1bd8bcdaf52f76ef2f12",
+				"dweb:/ipfs/Qmax9WHBnVsZP46ZxEMNRQpLQnrdE4dK8LehML1Py8FowF"
+			]
+		},
+		"@openzeppelin/contracts/utils/ReentrancyGuard.sol": {
+			"keccak256": "0x11a5a79827df29e915a12740caf62fe21ebe27c08c9ae3e09abe9ee3ba3866d3",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://3cf0c69ab827e3251db9ee6a50647d62c90ba580a4d7bbff21f2bea39e7b2f4a",
+				"dweb:/ipfs/QmZiKwtKU1SBX4RGfQtY7PZfiapbbu6SZ9vizGQD9UHjRA"
+			]
+		},
+		"core/Messaging.sol": {
+			"keccak256": "0x1376e30ac766444f62cebef353dcb36c5ea705c6738de6f3f99ae4fcac1b8c0d",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://a7cc3a0a8e8ba7290e96d2574311a2df52485a28910943a6464c1fa2f11beb8e",
+				"dweb:/ipfs/QmagSCfeeTGBW1RRkU1AP7K723QuXj9urSVmVpRij6ks7D"
+			]
+		},
+		"interfaces/IMessaging.sol": {
+			"keccak256": "0x3a42a6ed447cc9b3c31f376aa2519dd5f9b400f11132eab36948aaca68618eaf",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://b536d196d93ffb95e9b6a41cc867c217e38eea5fe4f66611ab80e6667957d602",
+				"dweb:/ipfs/QmUWKM1GmVhgY3s2dFrSoGpCd6waJmHfLo2QHuFAMKvLKa"
+			]
+		}
+	},
+	"version": 1
+}

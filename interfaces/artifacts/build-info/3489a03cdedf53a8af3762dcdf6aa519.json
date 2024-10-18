@@ -1,0 +1,1354 @@
+{
+	"id": "3489a03cdedf53a8af3762dcdf6aa519",
+	"_format": "hh-sol-build-info-1",
+	"solcVersion": "0.8.26",
+	"solcLongVersion": "0.8.26+commit.8a97fa7a",
+	"input": {
+		"language": "Solidity",
+		"sources": {
+			"interfaces/IBitTorrent.sol": {
+				"content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.26;\n\n/**\n * @title IBitTorrent\n * @dev Interface for BitTorrent integration in Cipher Zero Protocol\n */\ninterface IBitTorrent {\n\n    /// @notice Emitted when a new torrent file is added to the system\n    /// @param torrentHash Hash of the torrent file\n    /// @param uploader Address of the uploader\n    /// @param timestamp Time when the torrent was added\n    event TorrentAdded(bytes32 indexed torrentHash, address indexed uploader, uint256 timestamp);\n\n    /// @notice Emitted when a peer connects to a torrent swarm\n    /// @param torrentHash Hash of the torrent file\n    /// @param peer Address of the peer that joined the swarm\n    /// @param timestamp Time when the peer joined\n    event PeerConnected(bytes32 indexed torrentHash, address indexed peer, uint256 timestamp);\n\n    /// @notice Emitted when a peer disconnects from a torrent swarm\n    /// @param torrentHash Hash of the torrent file\n    /// @param peer Address of the peer that disconnected\n    /// @param timestamp Time when the peer left the swarm\n    event PeerDisconnected(bytes32 indexed torrentHash, address indexed peer, uint256 timestamp);\n\n    /**\n     * @notice Adds a new torrent file to the system\n     * @param torrentHash Hash of the torrent file\n     * @param metadata Metadata associated with the torrent file\n     */\n    function addTorrent(bytes32 torrentHash, bytes memory metadata) external;\n\n    /**\n     * @notice Joins a torrent swarm as a peer\n     * @param torrentHash Hash of the torrent file to join\n     */\n    function joinSwarm(bytes32 torrentHash) external;\n\n    /**\n     * @notice Leaves a torrent swarm as a peer\n     * @param torrentHash Hash of the torrent file to leave\n     */\n    function leaveSwarm(bytes32 torrentHash) external;\n\n    /**\n     * @notice Retrieves the metadata of a torrent file\n     * @param torrentHash Hash of the torrent file\n     * @return Metadata associated with the torrent\n     */\n    function getTorrentMetadata(bytes32 torrentHash) external view returns (bytes memory);\n\n    /**\n     * @notice Gets the list of peers connected to a torrent swarm\n     * @param torrentHash Hash of the torrent file\n     * @return Array of peer addresses connected to the swarm\n     */\n    function getSwarmPeers(bytes32 torrentHash) external view returns (address[] memory);\n\n    /**\n     * @notice Checks if a peer is part of a torrent swarm\n     * @param torrentHash Hash of the torrent file\n     * @param peer Address of the peer\n     * @return True if the peer is part of the swarm, false otherwise\n     */\n    function isPeerInSwarm(bytes32 torrentHash, address peer) external view returns (bool);\n\n    /**\n     * @notice Removes a torrent file from the system\n     * @param torrentHash Hash of the torrent file to remove\n     */\n    function removeTorrent(bytes32 torrentHash) external;\n}\n"
+			}
+		},
+		"settings": {
+			"optimizer": {
+				"enabled": false,
+				"runs": 200
+			},
+			"outputSelection": {
+				"*": {
+					"": [
+						"ast"
+					],
+					"*": [
+						"abi",
+						"metadata",
+						"devdoc",
+						"userdoc",
+						"storageLayout",
+						"evm.legacyAssembly",
+						"evm.bytecode",
+						"evm.deployedBytecode",
+						"evm.methodIdentifiers",
+						"evm.gasEstimates",
+						"evm.assembly"
+					]
+				}
+			},
+			"remappings": []
+		}
+	},
+	"output": {
+		"contracts": {
+			"interfaces/IBitTorrent.sol": {
+				"IBitTorrent": {
+					"abi": [
+						{
+							"anonymous": false,
+							"inputs": [
+								{
+									"indexed": true,
+									"internalType": "bytes32",
+									"name": "torrentHash",
+									"type": "bytes32"
+								},
+								{
+									"indexed": true,
+									"internalType": "address",
+									"name": "peer",
+									"type": "address"
+								},
+								{
+									"indexed": false,
+									"internalType": "uint256",
+									"name": "timestamp",
+									"type": "uint256"
+								}
+							],
+							"name": "PeerConnected",
+							"type": "event"
+						},
+						{
+							"anonymous": false,
+							"inputs": [
+								{
+									"indexed": true,
+									"internalType": "bytes32",
+									"name": "torrentHash",
+									"type": "bytes32"
+								},
+								{
+									"indexed": true,
+									"internalType": "address",
+									"name": "peer",
+									"type": "address"
+								},
+								{
+									"indexed": false,
+									"internalType": "uint256",
+									"name": "timestamp",
+									"type": "uint256"
+								}
+							],
+							"name": "PeerDisconnected",
+							"type": "event"
+						},
+						{
+							"anonymous": false,
+							"inputs": [
+								{
+									"indexed": true,
+									"internalType": "bytes32",
+									"name": "torrentHash",
+									"type": "bytes32"
+								},
+								{
+									"indexed": true,
+									"internalType": "address",
+									"name": "uploader",
+									"type": "address"
+								},
+								{
+									"indexed": false,
+									"internalType": "uint256",
+									"name": "timestamp",
+									"type": "uint256"
+								}
+							],
+							"name": "TorrentAdded",
+							"type": "event"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "torrentHash",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "bytes",
+									"name": "metadata",
+									"type": "bytes"
+								}
+							],
+							"name": "addTorrent",
+							"outputs": [],
+							"stateMutability": "nonpayable",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "torrentHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "getSwarmPeers",
+							"outputs": [
+								{
+									"internalType": "address[]",
+									"name": "",
+									"type": "address[]"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "torrentHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "getTorrentMetadata",
+							"outputs": [
+								{
+									"internalType": "bytes",
+									"name": "",
+									"type": "bytes"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "torrentHash",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "address",
+									"name": "peer",
+									"type": "address"
+								}
+							],
+							"name": "isPeerInSwarm",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "torrentHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "joinSwarm",
+							"outputs": [],
+							"stateMutability": "nonpayable",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "torrentHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "leaveSwarm",
+							"outputs": [],
+							"stateMutability": "nonpayable",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "torrentHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "removeTorrent",
+							"outputs": [],
+							"stateMutability": "nonpayable",
+							"type": "function"
+						}
+					],
+					"devdoc": {
+						"details": "Interface for BitTorrent integration in Cipher Zero Protocol",
+						"events": {
+							"PeerConnected(bytes32,address,uint256)": {
+								"params": {
+									"peer": "Address of the peer that joined the swarm",
+									"timestamp": "Time when the peer joined",
+									"torrentHash": "Hash of the torrent file"
+								}
+							},
+							"PeerDisconnected(bytes32,address,uint256)": {
+								"params": {
+									"peer": "Address of the peer that disconnected",
+									"timestamp": "Time when the peer left the swarm",
+									"torrentHash": "Hash of the torrent file"
+								}
+							},
+							"TorrentAdded(bytes32,address,uint256)": {
+								"params": {
+									"timestamp": "Time when the torrent was added",
+									"torrentHash": "Hash of the torrent file",
+									"uploader": "Address of the uploader"
+								}
+							}
+						},
+						"kind": "dev",
+						"methods": {
+							"addTorrent(bytes32,bytes)": {
+								"params": {
+									"metadata": "Metadata associated with the torrent file",
+									"torrentHash": "Hash of the torrent file"
+								}
+							},
+							"getSwarmPeers(bytes32)": {
+								"params": {
+									"torrentHash": "Hash of the torrent file"
+								},
+								"returns": {
+									"_0": "Array of peer addresses connected to the swarm"
+								}
+							},
+							"getTorrentMetadata(bytes32)": {
+								"params": {
+									"torrentHash": "Hash of the torrent file"
+								},
+								"returns": {
+									"_0": "Metadata associated with the torrent"
+								}
+							},
+							"isPeerInSwarm(bytes32,address)": {
+								"params": {
+									"peer": "Address of the peer",
+									"torrentHash": "Hash of the torrent file"
+								},
+								"returns": {
+									"_0": "True if the peer is part of the swarm, false otherwise"
+								}
+							},
+							"joinSwarm(bytes32)": {
+								"params": {
+									"torrentHash": "Hash of the torrent file to join"
+								}
+							},
+							"leaveSwarm(bytes32)": {
+								"params": {
+									"torrentHash": "Hash of the torrent file to leave"
+								}
+							},
+							"removeTorrent(bytes32)": {
+								"params": {
+									"torrentHash": "Hash of the torrent file to remove"
+								}
+							}
+						},
+						"title": "IBitTorrent",
+						"version": 1
+					},
+					"evm": {
+						"assembly": "",
+						"bytecode": {
+							"functionDebugData": {},
+							"generatedSources": [],
+							"linkReferences": {},
+							"object": "",
+							"opcodes": "",
+							"sourceMap": ""
+						},
+						"deployedBytecode": {
+							"functionDebugData": {},
+							"generatedSources": [],
+							"immutableReferences": {},
+							"linkReferences": {},
+							"object": "",
+							"opcodes": "",
+							"sourceMap": ""
+						},
+						"gasEstimates": null,
+						"legacyAssembly": null,
+						"methodIdentifiers": {
+							"addTorrent(bytes32,bytes)": "85a80265",
+							"getSwarmPeers(bytes32)": "1a26edb5",
+							"getTorrentMetadata(bytes32)": "c7aa2f1e",
+							"isPeerInSwarm(bytes32,address)": "3d2babf2",
+							"joinSwarm(bytes32)": "675fd3e6",
+							"leaveSwarm(bytes32)": "9a5e71c2",
+							"removeTorrent(bytes32)": "97ab3501"
+						}
+					},
+					"metadata": "{\"compiler\":{\"version\":\"0.8.26+commit.8a97fa7a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"torrentHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"peer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"PeerConnected\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"torrentHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"peer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"PeerDisconnected\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"torrentHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"uploader\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"TorrentAdded\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"torrentHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"metadata\",\"type\":\"bytes\"}],\"name\":\"addTorrent\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"torrentHash\",\"type\":\"bytes32\"}],\"name\":\"getSwarmPeers\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"torrentHash\",\"type\":\"bytes32\"}],\"name\":\"getTorrentMetadata\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"torrentHash\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"peer\",\"type\":\"address\"}],\"name\":\"isPeerInSwarm\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"torrentHash\",\"type\":\"bytes32\"}],\"name\":\"joinSwarm\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"torrentHash\",\"type\":\"bytes32\"}],\"name\":\"leaveSwarm\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"torrentHash\",\"type\":\"bytes32\"}],\"name\":\"removeTorrent\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Interface for BitTorrent integration in Cipher Zero Protocol\",\"events\":{\"PeerConnected(bytes32,address,uint256)\":{\"params\":{\"peer\":\"Address of the peer that joined the swarm\",\"timestamp\":\"Time when the peer joined\",\"torrentHash\":\"Hash of the torrent file\"}},\"PeerDisconnected(bytes32,address,uint256)\":{\"params\":{\"peer\":\"Address of the peer that disconnected\",\"timestamp\":\"Time when the peer left the swarm\",\"torrentHash\":\"Hash of the torrent file\"}},\"TorrentAdded(bytes32,address,uint256)\":{\"params\":{\"timestamp\":\"Time when the torrent was added\",\"torrentHash\":\"Hash of the torrent file\",\"uploader\":\"Address of the uploader\"}}},\"kind\":\"dev\",\"methods\":{\"addTorrent(bytes32,bytes)\":{\"params\":{\"metadata\":\"Metadata associated with the torrent file\",\"torrentHash\":\"Hash of the torrent file\"}},\"getSwarmPeers(bytes32)\":{\"params\":{\"torrentHash\":\"Hash of the torrent file\"},\"returns\":{\"_0\":\"Array of peer addresses connected to the swarm\"}},\"getTorrentMetadata(bytes32)\":{\"params\":{\"torrentHash\":\"Hash of the torrent file\"},\"returns\":{\"_0\":\"Metadata associated with the torrent\"}},\"isPeerInSwarm(bytes32,address)\":{\"params\":{\"peer\":\"Address of the peer\",\"torrentHash\":\"Hash of the torrent file\"},\"returns\":{\"_0\":\"True if the peer is part of the swarm, false otherwise\"}},\"joinSwarm(bytes32)\":{\"params\":{\"torrentHash\":\"Hash of the torrent file to join\"}},\"leaveSwarm(bytes32)\":{\"params\":{\"torrentHash\":\"Hash of the torrent file to leave\"}},\"removeTorrent(bytes32)\":{\"params\":{\"torrentHash\":\"Hash of the torrent file to remove\"}}},\"title\":\"IBitTorrent\",\"version\":1},\"userdoc\":{\"events\":{\"PeerConnected(bytes32,address,uint256)\":{\"notice\":\"Emitted when a peer connects to a torrent swarm\"},\"PeerDisconnected(bytes32,address,uint256)\":{\"notice\":\"Emitted when a peer disconnects from a torrent swarm\"},\"TorrentAdded(bytes32,address,uint256)\":{\"notice\":\"Emitted when a new torrent file is added to the system\"}},\"kind\":\"user\",\"methods\":{\"addTorrent(bytes32,bytes)\":{\"notice\":\"Adds a new torrent file to the system\"},\"getSwarmPeers(bytes32)\":{\"notice\":\"Gets the list of peers connected to a torrent swarm\"},\"getTorrentMetadata(bytes32)\":{\"notice\":\"Retrieves the metadata of a torrent file\"},\"isPeerInSwarm(bytes32,address)\":{\"notice\":\"Checks if a peer is part of a torrent swarm\"},\"joinSwarm(bytes32)\":{\"notice\":\"Joins a torrent swarm as a peer\"},\"leaveSwarm(bytes32)\":{\"notice\":\"Leaves a torrent swarm as a peer\"},\"removeTorrent(bytes32)\":{\"notice\":\"Removes a torrent file from the system\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"interfaces/IBitTorrent.sol\":\"IBitTorrent\"},\"evmVersion\":\"cancun\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"interfaces/IBitTorrent.sol\":{\"keccak256\":\"0x1d7eaa3d1f1015fcbc78caaf06e5dbfb281ea0776604b964931ea30fa406378c\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://d5b6fd1477198c9b8df6415558c42ecdf726cb74918d778636e8600dff257152\",\"dweb:/ipfs/QmZUgtqMJjY3Ziz4ptjZeRizbZPVdowptYf9JDmkH477EC\"]}},\"version\":1}",
+					"storageLayout": {
+						"storage": [],
+						"types": null
+					},
+					"userdoc": {
+						"events": {
+							"PeerConnected(bytes32,address,uint256)": {
+								"notice": "Emitted when a peer connects to a torrent swarm"
+							},
+							"PeerDisconnected(bytes32,address,uint256)": {
+								"notice": "Emitted when a peer disconnects from a torrent swarm"
+							},
+							"TorrentAdded(bytes32,address,uint256)": {
+								"notice": "Emitted when a new torrent file is added to the system"
+							}
+						},
+						"kind": "user",
+						"methods": {
+							"addTorrent(bytes32,bytes)": {
+								"notice": "Adds a new torrent file to the system"
+							},
+							"getSwarmPeers(bytes32)": {
+								"notice": "Gets the list of peers connected to a torrent swarm"
+							},
+							"getTorrentMetadata(bytes32)": {
+								"notice": "Retrieves the metadata of a torrent file"
+							},
+							"isPeerInSwarm(bytes32,address)": {
+								"notice": "Checks if a peer is part of a torrent swarm"
+							},
+							"joinSwarm(bytes32)": {
+								"notice": "Joins a torrent swarm as a peer"
+							},
+							"leaveSwarm(bytes32)": {
+								"notice": "Leaves a torrent swarm as a peer"
+							},
+							"removeTorrent(bytes32)": {
+								"notice": "Removes a torrent file from the system"
+							}
+						},
+						"version": 1
+					}
+				}
+			}
+		},
+		"sources": {
+			"interfaces/IBitTorrent.sol": {
+				"ast": {
+					"absolutePath": "interfaces/IBitTorrent.sol",
+					"exportedSymbols": {
+						"IBitTorrent": [
+							83
+						]
+					},
+					"id": 84,
+					"license": "MIT",
+					"nodeType": "SourceUnit",
+					"nodes": [
+						{
+							"id": 1,
+							"literals": [
+								"solidity",
+								"^",
+								"0.8",
+								".26"
+							],
+							"nodeType": "PragmaDirective",
+							"src": "32:24:0"
+						},
+						{
+							"abstract": false,
+							"baseContracts": [],
+							"canonicalName": "IBitTorrent",
+							"contractDependencies": [],
+							"contractKind": "interface",
+							"documentation": {
+								"id": 2,
+								"nodeType": "StructuredDocumentation",
+								"src": "58:98:0",
+								"text": " @title IBitTorrent\n @dev Interface for BitTorrent integration in Cipher Zero Protocol"
+							},
+							"fullyImplemented": false,
+							"id": 83,
+							"linearizedBaseContracts": [
+								83
+							],
+							"name": "IBitTorrent",
+							"nameLocation": "167:11:0",
+							"nodeType": "ContractDefinition",
+							"nodes": [
+								{
+									"anonymous": false,
+									"documentation": {
+										"id": 3,
+										"nodeType": "StructuredDocumentation",
+										"src": "186:223:0",
+										"text": "@notice Emitted when a new torrent file is added to the system\n @param torrentHash Hash of the torrent file\n @param uploader Address of the uploader\n @param timestamp Time when the torrent was added"
+									},
+									"eventSelector": "6122b1e4f3bd4dfa7d9119126ee35a84fdd6ada5610af09eb79f458e9c9d81b4",
+									"id": 11,
+									"name": "TorrentAdded",
+									"nameLocation": "420:12:0",
+									"nodeType": "EventDefinition",
+									"parameters": {
+										"id": 10,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 5,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "torrentHash",
+												"nameLocation": "449:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 11,
+												"src": "433:27:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 4,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "433:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 7,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "uploader",
+												"nameLocation": "478:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 11,
+												"src": "462:24:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 6,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "462:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 9,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "timestamp",
+												"nameLocation": "496:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 11,
+												"src": "488:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 8,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "488:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "432:74:0"
+									},
+									"src": "414:93:0"
+								},
+								{
+									"anonymous": false,
+									"documentation": {
+										"id": 12,
+										"nodeType": "StructuredDocumentation",
+										"src": "513:224:0",
+										"text": "@notice Emitted when a peer connects to a torrent swarm\n @param torrentHash Hash of the torrent file\n @param peer Address of the peer that joined the swarm\n @param timestamp Time when the peer joined"
+									},
+									"eventSelector": "d84d0633ad9ab561ad856417efb7e4a2d1483daf3a7f42c392ee6f04992db219",
+									"id": 20,
+									"name": "PeerConnected",
+									"nameLocation": "748:13:0",
+									"nodeType": "EventDefinition",
+									"parameters": {
+										"id": 19,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 14,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "torrentHash",
+												"nameLocation": "778:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 20,
+												"src": "762:27:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 13,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "762:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 16,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "peer",
+												"nameLocation": "807:4:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 20,
+												"src": "791:20:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 15,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "791:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 18,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "timestamp",
+												"nameLocation": "821:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 20,
+												"src": "813:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 17,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "813:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "761:70:0"
+									},
+									"src": "742:90:0"
+								},
+								{
+									"anonymous": false,
+									"documentation": {
+										"id": 21,
+										"nodeType": "StructuredDocumentation",
+										"src": "838:233:0",
+										"text": "@notice Emitted when a peer disconnects from a torrent swarm\n @param torrentHash Hash of the torrent file\n @param peer Address of the peer that disconnected\n @param timestamp Time when the peer left the swarm"
+									},
+									"eventSelector": "7565a2c9634613aa0af01cef698e5e7372d3c47734de4399d295dea5150c3ec5",
+									"id": 29,
+									"name": "PeerDisconnected",
+									"nameLocation": "1082:16:0",
+									"nodeType": "EventDefinition",
+									"parameters": {
+										"id": 28,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 23,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "torrentHash",
+												"nameLocation": "1115:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 29,
+												"src": "1099:27:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 22,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1099:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 25,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "peer",
+												"nameLocation": "1144:4:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 29,
+												"src": "1128:20:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 24,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "1128:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 27,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "timestamp",
+												"nameLocation": "1158:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 29,
+												"src": "1150:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 26,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "1150:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1098:70:0"
+									},
+									"src": "1076:93:0"
+								},
+								{
+									"documentation": {
+										"id": 30,
+										"nodeType": "StructuredDocumentation",
+										"src": "1175:180:0",
+										"text": " @notice Adds a new torrent file to the system\n @param torrentHash Hash of the torrent file\n @param metadata Metadata associated with the torrent file"
+									},
+									"functionSelector": "85a80265",
+									"id": 37,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "addTorrent",
+									"nameLocation": "1369:10:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 35,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 32,
+												"mutability": "mutable",
+												"name": "torrentHash",
+												"nameLocation": "1388:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 37,
+												"src": "1380:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 31,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1380:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 34,
+												"mutability": "mutable",
+												"name": "metadata",
+												"nameLocation": "1414:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 37,
+												"src": "1401:21:0",
+												"stateVariable": false,
+												"storageLocation": "memory",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_memory_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 33,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "1401:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1379:44:0"
+									},
+									"returnParameters": {
+										"id": 36,
+										"nodeType": "ParameterList",
+										"parameters": [],
+										"src": "1432:0:0"
+									},
+									"scope": 83,
+									"src": "1360:73:0",
+									"stateMutability": "nonpayable",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 38,
+										"nodeType": "StructuredDocumentation",
+										"src": "1439:117:0",
+										"text": " @notice Joins a torrent swarm as a peer\n @param torrentHash Hash of the torrent file to join"
+									},
+									"functionSelector": "675fd3e6",
+									"id": 43,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "joinSwarm",
+									"nameLocation": "1570:9:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 41,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 40,
+												"mutability": "mutable",
+												"name": "torrentHash",
+												"nameLocation": "1588:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 43,
+												"src": "1580:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 39,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1580:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1579:21:0"
+									},
+									"returnParameters": {
+										"id": 42,
+										"nodeType": "ParameterList",
+										"parameters": [],
+										"src": "1609:0:0"
+									},
+									"scope": 83,
+									"src": "1561:49:0",
+									"stateMutability": "nonpayable",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 44,
+										"nodeType": "StructuredDocumentation",
+										"src": "1616:119:0",
+										"text": " @notice Leaves a torrent swarm as a peer\n @param torrentHash Hash of the torrent file to leave"
+									},
+									"functionSelector": "9a5e71c2",
+									"id": 49,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "leaveSwarm",
+									"nameLocation": "1749:10:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 47,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 46,
+												"mutability": "mutable",
+												"name": "torrentHash",
+												"nameLocation": "1768:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 49,
+												"src": "1760:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 45,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1760:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1759:21:0"
+									},
+									"returnParameters": {
+										"id": 48,
+										"nodeType": "ParameterList",
+										"parameters": [],
+										"src": "1789:0:0"
+									},
+									"scope": 83,
+									"src": "1740:50:0",
+									"stateMutability": "nonpayable",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 50,
+										"nodeType": "StructuredDocumentation",
+										"src": "1796:170:0",
+										"text": " @notice Retrieves the metadata of a torrent file\n @param torrentHash Hash of the torrent file\n @return Metadata associated with the torrent"
+									},
+									"functionSelector": "c7aa2f1e",
+									"id": 57,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "getTorrentMetadata",
+									"nameLocation": "1980:18:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 53,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 52,
+												"mutability": "mutable",
+												"name": "torrentHash",
+												"nameLocation": "2007:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 57,
+												"src": "1999:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 51,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1999:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1998:21:0"
+									},
+									"returnParameters": {
+										"id": 56,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 55,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 57,
+												"src": "2043:12:0",
+												"stateVariable": false,
+												"storageLocation": "memory",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_memory_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 54,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "2043:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2042:14:0"
+									},
+									"scope": 83,
+									"src": "1971:86:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 58,
+										"nodeType": "StructuredDocumentation",
+										"src": "2063:191:0",
+										"text": " @notice Gets the list of peers connected to a torrent swarm\n @param torrentHash Hash of the torrent file\n @return Array of peer addresses connected to the swarm"
+									},
+									"functionSelector": "1a26edb5",
+									"id": 66,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "getSwarmPeers",
+									"nameLocation": "2268:13:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 61,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 60,
+												"mutability": "mutable",
+												"name": "torrentHash",
+												"nameLocation": "2290:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 66,
+												"src": "2282:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 59,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2282:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2281:21:0"
+									},
+									"returnParameters": {
+										"id": 65,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 64,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 66,
+												"src": "2326:16:0",
+												"stateVariable": false,
+												"storageLocation": "memory",
+												"typeDescriptions": {
+													"typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+													"typeString": "address[]"
+												},
+												"typeName": {
+													"baseType": {
+														"id": 62,
+														"name": "address",
+														"nodeType": "ElementaryTypeName",
+														"src": "2326:7:0",
+														"stateMutability": "nonpayable",
+														"typeDescriptions": {
+															"typeIdentifier": "t_address",
+															"typeString": "address"
+														}
+													},
+													"id": 63,
+													"nodeType": "ArrayTypeName",
+													"src": "2326:9:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_array$_t_address_$dyn_storage_ptr",
+														"typeString": "address[]"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2325:18:0"
+									},
+									"scope": 83,
+									"src": "2259:85:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 67,
+										"nodeType": "StructuredDocumentation",
+										"src": "2350:230:0",
+										"text": " @notice Checks if a peer is part of a torrent swarm\n @param torrentHash Hash of the torrent file\n @param peer Address of the peer\n @return True if the peer is part of the swarm, false otherwise"
+									},
+									"functionSelector": "3d2babf2",
+									"id": 76,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "isPeerInSwarm",
+									"nameLocation": "2594:13:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 72,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 69,
+												"mutability": "mutable",
+												"name": "torrentHash",
+												"nameLocation": "2616:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 76,
+												"src": "2608:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 68,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2608:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 71,
+												"mutability": "mutable",
+												"name": "peer",
+												"nameLocation": "2637:4:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 76,
+												"src": "2629:12:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 70,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "2629:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2607:35:0"
+									},
+									"returnParameters": {
+										"id": 75,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 74,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 76,
+												"src": "2666:4:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 73,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "2666:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2665:6:0"
+									},
+									"scope": 83,
+									"src": "2585:87:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 77,
+										"nodeType": "StructuredDocumentation",
+										"src": "2678:126:0",
+										"text": " @notice Removes a torrent file from the system\n @param torrentHash Hash of the torrent file to remove"
+									},
+									"functionSelector": "97ab3501",
+									"id": 82,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "removeTorrent",
+									"nameLocation": "2818:13:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 80,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 79,
+												"mutability": "mutable",
+												"name": "torrentHash",
+												"nameLocation": "2840:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 82,
+												"src": "2832:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 78,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2832:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2831:21:0"
+									},
+									"returnParameters": {
+										"id": 81,
+										"nodeType": "ParameterList",
+										"parameters": [],
+										"src": "2861:0:0"
+									},
+									"scope": 83,
+									"src": "2809:53:0",
+									"stateMutability": "nonpayable",
+									"virtual": false,
+									"visibility": "external"
+								}
+							],
+							"scope": 84,
+							"src": "157:2707:0",
+							"usedErrors": [],
+							"usedEvents": [
+								11,
+								20,
+								29
+							]
+						}
+					],
+					"src": "32:2833:0"
+				},
+				"id": 0
+			}
+		}
+	}
+}

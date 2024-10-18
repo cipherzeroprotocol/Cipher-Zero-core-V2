@@ -1,0 +1,326 @@
+{
+	"id": "832824ee0240281d9ec68ed061a9dbc8",
+	"_format": "hh-sol-build-info-1",
+	"solcVersion": "0.8.26",
+	"solcLongVersion": "0.8.26+commit.8a97fa7a",
+	"input": {
+		"language": "Solidity",
+		"sources": {
+			"interfaces/IZKVerifier.sol": {
+				"content": "// SPDX-License-Identifier: MIT\n\npragma solidity ^0.8.26;\n\ninterface IZKVerifier {\n    function verifyProof(uint256[8] calldata proof, uint256[1] calldata input) external view returns (bool);\n}"
+			}
+		},
+		"settings": {
+			"optimizer": {
+				"enabled": false,
+				"runs": 200
+			},
+			"outputSelection": {
+				"*": {
+					"": [
+						"ast"
+					],
+					"*": [
+						"abi",
+						"metadata",
+						"devdoc",
+						"userdoc",
+						"storageLayout",
+						"evm.legacyAssembly",
+						"evm.bytecode",
+						"evm.deployedBytecode",
+						"evm.methodIdentifiers",
+						"evm.gasEstimates",
+						"evm.assembly"
+					]
+				}
+			},
+			"remappings": []
+		}
+	},
+	"output": {
+		"contracts": {
+			"interfaces/IZKVerifier.sol": {
+				"IZKVerifier": {
+					"abi": [
+						{
+							"inputs": [
+								{
+									"internalType": "uint256[8]",
+									"name": "proof",
+									"type": "uint256[8]"
+								},
+								{
+									"internalType": "uint256[1]",
+									"name": "input",
+									"type": "uint256[1]"
+								}
+							],
+							"name": "verifyProof",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						}
+					],
+					"devdoc": {
+						"kind": "dev",
+						"methods": {},
+						"version": 1
+					},
+					"evm": {
+						"assembly": "",
+						"bytecode": {
+							"functionDebugData": {},
+							"generatedSources": [],
+							"linkReferences": {},
+							"object": "",
+							"opcodes": "",
+							"sourceMap": ""
+						},
+						"deployedBytecode": {
+							"functionDebugData": {},
+							"generatedSources": [],
+							"immutableReferences": {},
+							"linkReferences": {},
+							"object": "",
+							"opcodes": "",
+							"sourceMap": ""
+						},
+						"gasEstimates": null,
+						"legacyAssembly": null,
+						"methodIdentifiers": {
+							"verifyProof(uint256[8],uint256[1])": "1b81f829"
+						}
+					},
+					"metadata": "{\"compiler\":{\"version\":\"0.8.26+commit.8a97fa7a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256[8]\",\"name\":\"proof\",\"type\":\"uint256[8]\"},{\"internalType\":\"uint256[1]\",\"name\":\"input\",\"type\":\"uint256[1]\"}],\"name\":\"verifyProof\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"interfaces/IZKVerifier.sol\":\"IZKVerifier\"},\"evmVersion\":\"cancun\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"interfaces/IZKVerifier.sol\":{\"keccak256\":\"0xb17bdc18f4cc39289a458128deccb5cb04132793fea6e0625f6a73c1625685df\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://e0bf9e03622900462dba53cb2165bbf50b71a0c305942f825feeb0934664d9b4\",\"dweb:/ipfs/QmVdT1ec11Pi8RCqS4qDqQgMLd6j5m2DJ1StDKfPHbxhGT\"]}},\"version\":1}",
+					"storageLayout": {
+						"storage": [],
+						"types": null
+					},
+					"userdoc": {
+						"kind": "user",
+						"methods": {},
+						"version": 1
+					}
+				}
+			}
+		},
+		"sources": {
+			"interfaces/IZKVerifier.sol": {
+				"ast": {
+					"absolutePath": "interfaces/IZKVerifier.sol",
+					"exportedSymbols": {
+						"IZKVerifier": [
+							15
+						]
+					},
+					"id": 16,
+					"license": "MIT",
+					"nodeType": "SourceUnit",
+					"nodes": [
+						{
+							"id": 1,
+							"literals": [
+								"solidity",
+								"^",
+								"0.8",
+								".26"
+							],
+							"nodeType": "PragmaDirective",
+							"src": "33:24:0"
+						},
+						{
+							"abstract": false,
+							"baseContracts": [],
+							"canonicalName": "IZKVerifier",
+							"contractDependencies": [],
+							"contractKind": "interface",
+							"fullyImplemented": false,
+							"id": 15,
+							"linearizedBaseContracts": [
+								15
+							],
+							"name": "IZKVerifier",
+							"nameLocation": "69:11:0",
+							"nodeType": "ContractDefinition",
+							"nodes": [
+								{
+									"functionSelector": "1b81f829",
+									"id": 14,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "verifyProof",
+									"nameLocation": "96:11:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 10,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 5,
+												"mutability": "mutable",
+												"name": "proof",
+												"nameLocation": "128:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 14,
+												"src": "108:25:0",
+												"stateVariable": false,
+												"storageLocation": "calldata",
+												"typeDescriptions": {
+													"typeIdentifier": "t_array$_t_uint256_$8_calldata_ptr",
+													"typeString": "uint256[8]"
+												},
+												"typeName": {
+													"baseType": {
+														"id": 2,
+														"name": "uint256",
+														"nodeType": "ElementaryTypeName",
+														"src": "108:7:0",
+														"typeDescriptions": {
+															"typeIdentifier": "t_uint256",
+															"typeString": "uint256"
+														}
+													},
+													"id": 4,
+													"length": {
+														"hexValue": "38",
+														"id": 3,
+														"isConstant": false,
+														"isLValue": false,
+														"isPure": true,
+														"kind": "number",
+														"lValueRequested": false,
+														"nodeType": "Literal",
+														"src": "116:1:0",
+														"typeDescriptions": {
+															"typeIdentifier": "t_rational_8_by_1",
+															"typeString": "int_const 8"
+														},
+														"value": "8"
+													},
+													"nodeType": "ArrayTypeName",
+													"src": "108:10:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_array$_t_uint256_$8_storage_ptr",
+														"typeString": "uint256[8]"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 9,
+												"mutability": "mutable",
+												"name": "input",
+												"nameLocation": "155:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 14,
+												"src": "135:25:0",
+												"stateVariable": false,
+												"storageLocation": "calldata",
+												"typeDescriptions": {
+													"typeIdentifier": "t_array$_t_uint256_$1_calldata_ptr",
+													"typeString": "uint256[1]"
+												},
+												"typeName": {
+													"baseType": {
+														"id": 6,
+														"name": "uint256",
+														"nodeType": "ElementaryTypeName",
+														"src": "135:7:0",
+														"typeDescriptions": {
+															"typeIdentifier": "t_uint256",
+															"typeString": "uint256"
+														}
+													},
+													"id": 8,
+													"length": {
+														"hexValue": "31",
+														"id": 7,
+														"isConstant": false,
+														"isLValue": false,
+														"isPure": true,
+														"kind": "number",
+														"lValueRequested": false,
+														"nodeType": "Literal",
+														"src": "143:1:0",
+														"typeDescriptions": {
+															"typeIdentifier": "t_rational_1_by_1",
+															"typeString": "int_const 1"
+														},
+														"value": "1"
+													},
+													"nodeType": "ArrayTypeName",
+													"src": "135:10:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_array$_t_uint256_$1_storage_ptr",
+														"typeString": "uint256[1]"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "107:54:0"
+									},
+									"returnParameters": {
+										"id": 13,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 12,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 14,
+												"src": "185:4:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 11,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "185:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "184:6:0"
+									},
+									"scope": 15,
+									"src": "87:104:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								}
+							],
+							"scope": 16,
+							"src": "59:134:0",
+							"usedErrors": [],
+							"usedEvents": []
+						}
+					],
+					"src": "33:160:0"
+				},
+				"id": 0
+			}
+		}
+	}
+}

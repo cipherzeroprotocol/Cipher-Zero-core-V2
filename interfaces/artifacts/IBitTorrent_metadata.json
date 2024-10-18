@@ -1,0 +1,345 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "torrentHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "peer",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "PeerConnected",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "torrentHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "peer",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "PeerDisconnected",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "torrentHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "uploader",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "TorrentAdded",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "torrentHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "metadata",
+						"type": "bytes"
+					}
+				],
+				"name": "addTorrent",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "torrentHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getSwarmPeers",
+				"outputs": [
+					{
+						"internalType": "address[]",
+						"name": "",
+						"type": "address[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "torrentHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getTorrentMetadata",
+				"outputs": [
+					{
+						"internalType": "bytes",
+						"name": "",
+						"type": "bytes"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "torrentHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "peer",
+						"type": "address"
+					}
+				],
+				"name": "isPeerInSwarm",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "torrentHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "joinSwarm",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "torrentHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "leaveSwarm",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "torrentHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "removeTorrent",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"details": "Interface for BitTorrent integration in Cipher Zero Protocol",
+			"events": {
+				"PeerConnected(bytes32,address,uint256)": {
+					"params": {
+						"peer": "Address of the peer that joined the swarm",
+						"timestamp": "Time when the peer joined",
+						"torrentHash": "Hash of the torrent file"
+					}
+				},
+				"PeerDisconnected(bytes32,address,uint256)": {
+					"params": {
+						"peer": "Address of the peer that disconnected",
+						"timestamp": "Time when the peer left the swarm",
+						"torrentHash": "Hash of the torrent file"
+					}
+				},
+				"TorrentAdded(bytes32,address,uint256)": {
+					"params": {
+						"timestamp": "Time when the torrent was added",
+						"torrentHash": "Hash of the torrent file",
+						"uploader": "Address of the uploader"
+					}
+				}
+			},
+			"kind": "dev",
+			"methods": {
+				"addTorrent(bytes32,bytes)": {
+					"params": {
+						"metadata": "Metadata associated with the torrent file",
+						"torrentHash": "Hash of the torrent file"
+					}
+				},
+				"getSwarmPeers(bytes32)": {
+					"params": {
+						"torrentHash": "Hash of the torrent file"
+					},
+					"returns": {
+						"_0": "Array of peer addresses connected to the swarm"
+					}
+				},
+				"getTorrentMetadata(bytes32)": {
+					"params": {
+						"torrentHash": "Hash of the torrent file"
+					},
+					"returns": {
+						"_0": "Metadata associated with the torrent"
+					}
+				},
+				"isPeerInSwarm(bytes32,address)": {
+					"params": {
+						"peer": "Address of the peer",
+						"torrentHash": "Hash of the torrent file"
+					},
+					"returns": {
+						"_0": "True if the peer is part of the swarm, false otherwise"
+					}
+				},
+				"joinSwarm(bytes32)": {
+					"params": {
+						"torrentHash": "Hash of the torrent file to join"
+					}
+				},
+				"leaveSwarm(bytes32)": {
+					"params": {
+						"torrentHash": "Hash of the torrent file to leave"
+					}
+				},
+				"removeTorrent(bytes32)": {
+					"params": {
+						"torrentHash": "Hash of the torrent file to remove"
+					}
+				}
+			},
+			"title": "IBitTorrent",
+			"version": 1
+		},
+		"userdoc": {
+			"events": {
+				"PeerConnected(bytes32,address,uint256)": {
+					"notice": "Emitted when a peer connects to a torrent swarm"
+				},
+				"PeerDisconnected(bytes32,address,uint256)": {
+					"notice": "Emitted when a peer disconnects from a torrent swarm"
+				},
+				"TorrentAdded(bytes32,address,uint256)": {
+					"notice": "Emitted when a new torrent file is added to the system"
+				}
+			},
+			"kind": "user",
+			"methods": {
+				"addTorrent(bytes32,bytes)": {
+					"notice": "Adds a new torrent file to the system"
+				},
+				"getSwarmPeers(bytes32)": {
+					"notice": "Gets the list of peers connected to a torrent swarm"
+				},
+				"getTorrentMetadata(bytes32)": {
+					"notice": "Retrieves the metadata of a torrent file"
+				},
+				"isPeerInSwarm(bytes32,address)": {
+					"notice": "Checks if a peer is part of a torrent swarm"
+				},
+				"joinSwarm(bytes32)": {
+					"notice": "Joins a torrent swarm as a peer"
+				},
+				"leaveSwarm(bytes32)": {
+					"notice": "Leaves a torrent swarm as a peer"
+				},
+				"removeTorrent(bytes32)": {
+					"notice": "Removes a torrent file from the system"
+				}
+			},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"interfaces/IBitTorrent.sol": "IBitTorrent"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"interfaces/IBitTorrent.sol": {
+			"keccak256": "0x1d7eaa3d1f1015fcbc78caaf06e5dbfb281ea0776604b964931ea30fa406378c",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://d5b6fd1477198c9b8df6415558c42ecdf726cb74918d778636e8600dff257152",
+				"dweb:/ipfs/QmZUgtqMJjY3Ziz4ptjZeRizbZPVdowptYf9JDmkH477EC"
+			]
+		}
+	},
+	"version": 1
+}

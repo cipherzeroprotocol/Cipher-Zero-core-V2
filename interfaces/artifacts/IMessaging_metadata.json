@@ -1,0 +1,371 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "MessageDeleted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "receiver",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "MessageReceived",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "receiver",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "MessageSent",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "decryptionKey",
+						"type": "bytes"
+					}
+				],
+				"name": "decryptMessage",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "deleteMessage",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getMessageSender",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getMessageTimestamp",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "messageExists",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "retrieveMessage",
+				"outputs": [
+					{
+						"internalType": "bytes",
+						"name": "",
+						"type": "bytes"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "receiver",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "sendMessage",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"details": "Interface for the encrypted messaging functionality in Cipher Zero Protocol",
+			"events": {
+				"MessageDeleted(bytes32,address,uint256)": {
+					"params": {
+						"messageHash": "Hash of the deleted message",
+						"sender": "Address that deleted the message",
+						"timestamp": "Time when the message was deleted"
+					}
+				},
+				"MessageReceived(address,bytes32,uint256)": {
+					"params": {
+						"messageHash": "Hash of the encrypted message content",
+						"receiver": "Address of the message receiver",
+						"timestamp": "Time when the message was decrypted"
+					}
+				},
+				"MessageSent(address,address,bytes32,uint256)": {
+					"params": {
+						"messageHash": "Hash of the encrypted message content",
+						"receiver": "Address of the message receiver",
+						"sender": "Address of the message sender",
+						"timestamp": "Time when the message was sent"
+					}
+				}
+			},
+			"kind": "dev",
+			"methods": {
+				"decryptMessage(bytes32,bytes)": {
+					"params": {
+						"decryptionKey": "Key used to decrypt the message",
+						"messageHash": "Hash of the encrypted message content"
+					},
+					"returns": {
+						"_0": "The decrypted message content"
+					}
+				},
+				"deleteMessage(bytes32)": {
+					"params": {
+						"messageHash": "Hash of the message to delete"
+					}
+				},
+				"getMessageSender(bytes32)": {
+					"params": {
+						"messageHash": "Hash of the message"
+					},
+					"returns": {
+						"_0": "The address of the message sender"
+					}
+				},
+				"getMessageTimestamp(bytes32)": {
+					"params": {
+						"messageHash": "Hash of the message"
+					},
+					"returns": {
+						"_0": "The timestamp when the message was sent"
+					}
+				},
+				"messageExists(bytes32)": {
+					"params": {
+						"messageHash": "Hash of the message to check"
+					},
+					"returns": {
+						"_0": "True if the message exists, false otherwise"
+					}
+				},
+				"retrieveMessage(bytes32)": {
+					"params": {
+						"messageHash": "Hash of the message content"
+					},
+					"returns": {
+						"_0": "Encrypted content of the message"
+					}
+				},
+				"sendMessage(address,bytes32)": {
+					"details": "The message content must be encrypted before calling this function",
+					"params": {
+						"messageHash": "Hash of the encrypted message content",
+						"receiver": "Address of the message receiver"
+					}
+				}
+			},
+			"title": "IMessaging",
+			"version": 1
+		},
+		"userdoc": {
+			"events": {
+				"MessageDeleted(bytes32,address,uint256)": {
+					"notice": "Emitted when a message is deleted by the sender or receiver"
+				},
+				"MessageReceived(address,bytes32,uint256)": {
+					"notice": "Emitted when a message is received and decrypted"
+				},
+				"MessageSent(address,address,bytes32,uint256)": {
+					"notice": "Emitted when a new message is sent"
+				}
+			},
+			"kind": "user",
+			"methods": {
+				"decryptMessage(bytes32,bytes)": {
+					"notice": "Decrypts the message using a decryption key"
+				},
+				"deleteMessage(bytes32)": {
+					"notice": "Deletes a message from the sender's or receiver's view"
+				},
+				"getMessageSender(bytes32)": {
+					"notice": "Retrieves the address of the sender of the message"
+				},
+				"getMessageTimestamp(bytes32)": {
+					"notice": "Returns the timestamp when the message was sent"
+				},
+				"messageExists(bytes32)": {
+					"notice": "Checks if a message exists in the messaging system"
+				},
+				"retrieveMessage(bytes32)": {
+					"notice": "Retrieves the message's encrypted content using its hash"
+				},
+				"sendMessage(address,bytes32)": {
+					"notice": "Sends an encrypted message to a receiver"
+				}
+			},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"interfaces/IMessaging.sol": "IMessaging"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"interfaces/IMessaging.sol": {
+			"keccak256": "0x3a42a6ed447cc9b3c31f376aa2519dd5f9b400f11132eab36948aaca68618eaf",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://b536d196d93ffb95e9b6a41cc867c217e38eea5fe4f66611ab80e6667957d602",
+				"dweb:/ipfs/QmUWKM1GmVhgY3s2dFrSoGpCd6waJmHfLo2QHuFAMKvLKa"
+			]
+		}
+	},
+	"version": 1
+}

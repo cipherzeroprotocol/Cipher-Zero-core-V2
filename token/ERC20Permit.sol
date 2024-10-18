@@ -3,9 +3,9 @@
 pragma solidity ^0.8.26;
 
 import "./ERC20.sol";
-import "../interfaces/IERC20Permit.sol";
+import "../interfaces/IERCPermit.sol";
 import "../cryptography/ECDSA.sol";
-import "../utils/Counters.sol";
+import "../utils/Counter.sol";
 import "./EIP712.sol";
 
 /**

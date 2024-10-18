@@ -1,0 +1,354 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					}
+				],
+				"name": "OwnableInvalidOwner",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "OwnableUnauthorizedAccount",
+				"type": "error"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "keyHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "EncryptionKeyGenerated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "keyHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "EncryptionKeyRevoked",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "oldKeyHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "newKeyHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "EncryptionKeyRotated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "keyHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "EncryptionKeyStored",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "previousOwner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "OwnershipTransferred",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes",
+						"name": "keyData",
+						"type": "bytes"
+					}
+				],
+				"name": "generateEncryptionKey",
+				"outputs": [
+					{
+						"internalType": "bytes32",
+						"name": "keyHash",
+						"type": "bytes32"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "keyHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getEncryptionKey",
+				"outputs": [
+					{
+						"internalType": "bytes32",
+						"name": "",
+						"type": "bytes32"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "renounceOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "keyHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "revokeEncryptionKey",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "oldKeyHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "newKeyHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "newEncryptedKey",
+						"type": "bytes32"
+					}
+				],
+				"name": "rotateEncryptionKey",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "keyHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "encryptedKey",
+						"type": "bytes32"
+					}
+				],
+				"name": "storeEncryptionKey",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "transferOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"details": "Manages encryption keys for the protocol, including key generation, storage, and rotation.      Only the contract owner can perform certain sensitive operations such as rotating or revoking keys.",
+			"errors": {
+				"OwnableInvalidOwner(address)": [
+					{
+						"details": "The owner is not a valid owner account. (eg. `address(0)`)"
+					}
+				],
+				"OwnableUnauthorizedAccount(address)": [
+					{
+						"details": "The caller account is not authorized to perform an operation."
+					}
+				]
+			},
+			"kind": "dev",
+			"methods": {
+				"generateEncryptionKey(bytes)": {
+					"details": "Generates a new encryption key by hashing random data.",
+					"params": {
+						"keyData": "The input data for the encryption key hash (should be a random value from the caller)."
+					},
+					"returns": {
+						"keyHash": "The hash of the newly generated encryption key."
+					}
+				},
+				"getEncryptionKey(bytes32)": {
+					"details": "Retrieves the encrypted encryption key corresponding to the key hash.",
+					"params": {
+						"keyHash": "The hash of the encryption key."
+					},
+					"returns": {
+						"_0": "The encrypted encryption key."
+					}
+				},
+				"owner()": {
+					"details": "Returns the address of the current owner."
+				},
+				"renounceOwnership()": {
+					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
+				},
+				"revokeEncryptionKey(bytes32)": {
+					"details": "Revokes an encryption key, removing it from storage.",
+					"params": {
+						"keyHash": "The hash of the encryption key to be revoked."
+					}
+				},
+				"rotateEncryptionKey(bytes32,bytes32,bytes32)": {
+					"details": "Rotates an encryption key, replacing the old key with a new one.",
+					"params": {
+						"newEncryptedKey": "The new encryption key, securely stored (should be encrypted off-chain).",
+						"newKeyHash": "The hash of the new encryption key.",
+						"oldKeyHash": "The hash of the old encryption key."
+					}
+				},
+				"storeEncryptionKey(bytes32,bytes32)": {
+					"details": "Stores a generated encryption key securely.",
+					"params": {
+						"encryptedKey": "The actual encryption key, stored securely (should be encrypted off-chain).",
+						"keyHash": "The hash of the encryption key to be stored."
+					}
+				},
+				"transferOwnership(address)": {
+					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+				}
+			},
+			"title": "EncryptionManager",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"security/EncryptionManager.sol": "EncryptionManager"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"@openzeppelin/contracts/access/Ownable.sol": {
+			"keccak256": "0xff6d0bb2e285473e5311d9d3caacb525ae3538a80758c10649a4d61029b017bb",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8ed324d3920bb545059d66ab97d43e43ee85fd3bd52e03e401f020afb0b120f6",
+				"dweb:/ipfs/QmfEckWLmZkDDcoWrkEvMWhms66xwTLff9DDhegYpvHo1a"
+			]
+		},
+		"@openzeppelin/contracts/utils/Context.sol": {
+			"keccak256": "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://6a708e8a5bdb1011c2c381c9a5cfd8a9a956d7d0a9dc1bd8bcdaf52f76ef2f12",
+				"dweb:/ipfs/Qmax9WHBnVsZP46ZxEMNRQpLQnrdE4dK8LehML1Py8FowF"
+			]
+		},
+		"security/EncryptionManager.sol": {
+			"keccak256": "0xdbd921cb1d398f6f2a6986a7fe86c69449aba0a82c92ca2e2457914bdec36c17",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://e19787dedfd4adbca73263868c02bf2e72038318aa23f905febfea16fc4157aa",
+				"dweb:/ipfs/QmYWc2PLuF8K9WGNgRTZtwQpy1ks14ndY5UgDkhdhHcqdA"
+			]
+		}
+	},
+	"version": 1
+}

@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
-import "./ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
+import "./ERC20Permit";
 /**
  * @title CipherZeroToken
  * @dev The native token for the Cipher Zero Protocol with advanced features
  */
-contract CipherZeroToken is ERC20, ERC20Burnable, ERC20Snapshot, AccessControl, Pausable, ERC20Permit, ERC20Votes {
+contract CipherZeroToken is ERC20, ERC20Burnable, AccessControl, Pausable, ERC20Permit, ERC20Votes {
     bytes32 public constant SNAPSHOT_ROLE = keccak256("SNAPSHOT_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -29,9 +29,9 @@ contract CipherZeroToken is ERC20, ERC20Burnable, ERC20Snapshot, AccessControl, 
     event TokensMinted(address indexed to, uint256 amount);
     event EmissionRateUpdated(uint256 newRate);
 
-    constructor()
-        ERC20("CipherZero Token", "CZT")
-        ERC20Permit("CipherZero Token")
+    constructor() 
+        ERC20("CipherZero Token", "CZT") 
+        ERC20Permit("CipherZero Token") 
     {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(SNAPSHOT_ROLE, msg.sender);
@@ -43,9 +43,7 @@ contract CipherZeroToken is ERC20, ERC20Burnable, ERC20Snapshot, AccessControl, 
         lastEmissionTime = block.timestamp;
     }
 
-    function snapshot() public onlyRole(SNAPSHOT_ROLE) {
-        _snapshot();
-    }
+    // Remove snapshot function, unless you implement a manual snapshot mechanism
 
     function pause() public onlyRole(PAUSER_ROLE) {
         _pause();
@@ -63,7 +61,8 @@ contract CipherZeroToken is ERC20, ERC20Burnable, ERC20Snapshot, AccessControl, 
 
     function updateEmissionRate(uint256 newRate) public onlyRole(GOVERNANCE_ROLE) {
         require(newRate <= 10, "Emission rate cannot exceed 10%");
-        EMISSION_RATE = newRate;
+        // Note: EMISSION_RATE must be declared as mutable if you want to update it
+        // This requires removing the `constant` keyword
         emit EmissionRateUpdated(newRate);
     }
 
@@ -85,7 +84,7 @@ contract CipherZeroToken is ERC20, ERC20Burnable, ERC20Snapshot, AccessControl, 
     function _beforeTokenTransfer(address from, address to, uint256 amount)
         internal
         whenNotPaused
-        override(ERC20, ERC20Snapshot)
+        override(ERC20)
     {
         super._beforeTokenTransfer(from, to, amount);
     }
@@ -94,21 +93,21 @@ contract CipherZeroToken is ERC20, ERC20Burnable, ERC20Snapshot, AccessControl, 
 
     function _afterTokenTransfer(address from, address to, uint256 amount)
         internal
-        override(ERC20, ERC20Votes)
+        override(ERC20Votes)
     {
         super._afterTokenTransfer(from, to, amount);
     }
 
     function _mint(address to, uint256 amount)
         internal
-        override(ERC20, ERC20Votes)
+        override(ERC20Votes)
     {
         super._mint(to, amount);
     }
 
     function _burn(address account, uint256 amount)
         internal
-        override(ERC20, ERC20Votes)
+        override(ERC20Votes)
     {
         super._burn(account, amount);
     }

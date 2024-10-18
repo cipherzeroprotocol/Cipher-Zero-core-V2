@@ -1,0 +1,396 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "dataHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "deleter",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "DataDeleted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "dataHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "retriever",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "DataRetrieved",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "dataHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "DataStored",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "dataHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "updater",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "DataUpdated",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "dataHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "dataExists",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "dataHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "deleteData",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "dataHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getDataMetadata",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "dataHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getDataOwner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "dataHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "retrieveData",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "dataHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "string",
+						"name": "dataUri",
+						"type": "string"
+					}
+				],
+				"name": "storeData",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "dataHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "string",
+						"name": "newUri",
+						"type": "string"
+					}
+				],
+				"name": "updateData",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"details": "Interface for the decentralized storage module of Cipher Zero Protocol",
+			"events": {
+				"DataDeleted(bytes32,address,uint256)": {
+					"params": {
+						"dataHash": "Hash of the deleted data",
+						"deleter": "Address that deleted the data",
+						"timestamp": "Time when data was deleted"
+					}
+				},
+				"DataRetrieved(bytes32,address,uint256)": {
+					"params": {
+						"dataHash": "Hash of the retrieved data",
+						"retriever": "Address that retrieved the data",
+						"timestamp": "Time of retrieval"
+					}
+				},
+				"DataStored(bytes32,address,uint256)": {
+					"params": {
+						"dataHash": "Hash of the stored data",
+						"sender": "Address that submitted the data",
+						"timestamp": "Time when data was stored"
+					}
+				},
+				"DataUpdated(bytes32,address,uint256)": {
+					"params": {
+						"dataHash": "Hash of the updated data",
+						"timestamp": "Time when data was updated",
+						"updater": "Address that updated the data"
+					}
+				}
+			},
+			"kind": "dev",
+			"methods": {
+				"dataExists(bytes32)": {
+					"params": {
+						"dataHash": "The hash of the data to check"
+					},
+					"returns": {
+						"_0": "True if the data exists, false otherwise"
+					}
+				},
+				"deleteData(bytes32)": {
+					"details": "Can only be called by the original uploader of the data",
+					"params": {
+						"dataHash": "The hash of the data to delete"
+					}
+				},
+				"getDataMetadata(bytes32)": {
+					"params": {
+						"dataHash": "The hash of the data to fetch metadata for"
+					},
+					"returns": {
+						"_0": "URI string of the data and timestamp when it was stored"
+					}
+				},
+				"getDataOwner(bytes32)": {
+					"params": {
+						"dataHash": "The hash of the data to check ownership for"
+					},
+					"returns": {
+						"_0": "Address of the data owner"
+					}
+				},
+				"retrieveData(bytes32)": {
+					"params": {
+						"dataHash": "The hash of the data to be retrieved"
+					},
+					"returns": {
+						"_0": "The URI where the data can be accessed"
+					}
+				},
+				"storeData(bytes32,string)": {
+					"details": "Only the data owner can update or delete stored data",
+					"params": {
+						"dataHash": "The hash of the data being stored",
+						"dataUri": "The URI pointing to the actual data (stored off-chain)"
+					}
+				},
+				"updateData(bytes32,string)": {
+					"params": {
+						"dataHash": "The hash of the data to update",
+						"newUri": "The new URI for the data"
+					}
+				}
+			},
+			"title": "IStorage",
+			"version": 1
+		},
+		"userdoc": {
+			"events": {
+				"DataDeleted(bytes32,address,uint256)": {
+					"notice": "Emitted when data is deleted"
+				},
+				"DataRetrieved(bytes32,address,uint256)": {
+					"notice": "Emitted when data is retrieved"
+				},
+				"DataStored(bytes32,address,uint256)": {
+					"notice": "Emitted when a new data hash is stored"
+				},
+				"DataUpdated(bytes32,address,uint256)": {
+					"notice": "Emitted when data is updated"
+				}
+			},
+			"kind": "user",
+			"methods": {
+				"dataExists(bytes32)": {
+					"notice": "Check if the data exists on-chain"
+				},
+				"deleteData(bytes32)": {
+					"notice": "Permanently delete data by its hash"
+				},
+				"getDataMetadata(bytes32)": {
+					"notice": "Get the metadata associated with the data hash"
+				},
+				"getDataOwner(bytes32)": {
+					"notice": "Get the owner of the stored data"
+				},
+				"retrieveData(bytes32)": {
+					"notice": "Retrieve the URI of the data by its hash"
+				},
+				"storeData(bytes32,string)": {
+					"notice": "Store data on-chain by submitting a hash and off-chain URI"
+				},
+				"updateData(bytes32,string)": {
+					"notice": "Update existing data's URI"
+				}
+			},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"interfaces/IStorage.sol": "IStorage"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"interfaces/IStorage.sol": {
+			"keccak256": "0x893756e3ad2d56f07b030dfcb18f2b7558db32530fe443cfa5aaf12f9fe37fe3",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://92c248096f31d5be1726b7adccdeec1a40748e70f7fd7a55797a58ab66835beb",
+				"dweb:/ipfs/QmVwKYK3vbHTqRH3yN8ZBJdurkyY7MTL1rdrLtggYr6qts"
+			]
+		}
+	},
+	"version": 1
+}

@@ -1,0 +1,321 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_verifier",
+						"type": "address"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					}
+				],
+				"name": "OwnableInvalidOwner",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "OwnableUnauthorizedAccount",
+				"type": "error"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "ipHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "AnonymizedIPRegistered",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "previousOwner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "OwnershipTransferred",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newVerifier",
+						"type": "address"
+					}
+				],
+				"name": "VerifierUpdated",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "ipHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "isIPAnonymized",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "ipHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256[8]",
+						"name": "proof",
+						"type": "uint256[8]"
+					},
+					{
+						"internalType": "uint256[1]",
+						"name": "publicInputs",
+						"type": "uint256[1]"
+					}
+				],
+				"name": "registerAnonymizedIP",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "renounceOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "ipHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "revokeAnonymizedIP",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "transferOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_newVerifier",
+						"type": "address"
+					}
+				],
+				"name": "updateVerifier",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "verifier",
+				"outputs": [
+					{
+						"internalType": "contract IZKVerifier",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"details": "This contract enables the registration and verification of anonymized IP addresses      using zk-SNARKs for privacy-preserving proof. The contract owner can update      the zk-SNARK verifier if needed.",
+			"errors": {
+				"OwnableInvalidOwner(address)": [
+					{
+						"details": "The owner is not a valid owner account. (eg. `address(0)`)"
+					}
+				],
+				"OwnableUnauthorizedAccount(address)": [
+					{
+						"details": "The caller account is not authorized to perform an operation."
+					}
+				]
+			},
+			"kind": "dev",
+			"methods": {
+				"constructor": {
+					"details": "Constructor that initializes the zk-SNARK verifier.",
+					"params": {
+						"_verifier": "Address of the zk-SNARK verifier contract"
+					}
+				},
+				"isIPAnonymized(bytes32)": {
+					"details": "Returns whether an IP address has been anonymized.",
+					"params": {
+						"ipHash": "The hash of the IP address to check"
+					},
+					"returns": {
+						"_0": "True if the IP has been anonymized, false otherwise"
+					}
+				},
+				"owner()": {
+					"details": "Returns the address of the current owner."
+				},
+				"registerAnonymizedIP(bytes32,uint256[8],uint256[1])": {
+					"details": "Registers an anonymized IP by verifying the zk-SNARK proof.",
+					"params": {
+						"ipHash": "The hash of the IP address to be anonymized",
+						"proof": "The zk-SNARK proof for anonymization",
+						"publicInputs": "The public inputs for the proof verification"
+					}
+				},
+				"renounceOwnership()": {
+					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
+				},
+				"revokeAnonymizedIP(bytes32)": {
+					"details": "Revokes the anonymization of an IP, if necessary. Restricted to the contract owner.",
+					"params": {
+						"ipHash": "The hash of the IP address to be de-anonymized"
+					}
+				},
+				"transferOwnership(address)": {
+					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+				},
+				"updateVerifier(address)": {
+					"details": "Updates the zk-SNARK verifier contract address. Restricted to the contract owner.",
+					"params": {
+						"_newVerifier": "The address of the new zk-SNARK verifier contract"
+					}
+				}
+			},
+			"title": "IPAnonymizer",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"security/IPAnonymizer.sol": "IPAnonymizer"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"@openzeppelin/contracts/access/Ownable.sol": {
+			"keccak256": "0xff6d0bb2e285473e5311d9d3caacb525ae3538a80758c10649a4d61029b017bb",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8ed324d3920bb545059d66ab97d43e43ee85fd3bd52e03e401f020afb0b120f6",
+				"dweb:/ipfs/QmfEckWLmZkDDcoWrkEvMWhms66xwTLff9DDhegYpvHo1a"
+			]
+		},
+		"@openzeppelin/contracts/utils/Context.sol": {
+			"keccak256": "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://6a708e8a5bdb1011c2c381c9a5cfd8a9a956d7d0a9dc1bd8bcdaf52f76ef2f12",
+				"dweb:/ipfs/Qmax9WHBnVsZP46ZxEMNRQpLQnrdE4dK8LehML1Py8FowF"
+			]
+		},
+		"interfaces/IZKVerifier.sol": {
+			"keccak256": "0xb17bdc18f4cc39289a458128deccb5cb04132793fea6e0625f6a73c1625685df",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://e0bf9e03622900462dba53cb2165bbf50b71a0c305942f825feeb0934664d9b4",
+				"dweb:/ipfs/QmVdT1ec11Pi8RCqS4qDqQgMLd6j5m2DJ1StDKfPHbxhGT"
+			]
+		},
+		"security/IPAnonymizer.sol": {
+			"keccak256": "0x2bb81abf8fdc0e7878986c44c99553d5847210dfe35b11fe08d47d332bdd2717",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://0bae9def209ca3b581ddc7b5e10853e821c43108da5788ae891ac1ea314083d9",
+				"dweb:/ipfs/QmbjRciZrk2gQj1P9tQBi6fXhJVxY53ANSbMPG8VHmk6QJ"
+			]
+		}
+	},
+	"version": 1
+}

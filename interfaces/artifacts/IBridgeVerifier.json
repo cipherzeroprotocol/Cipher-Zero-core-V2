@@ -1,0 +1,519 @@
+{
+	"deploy": {
+		"VM:-": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"main:1": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"ropsten:3": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"rinkeby:4": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"kovan:42": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"goerli:5": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"Custom": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		}
+	},
+	"data": {
+		"bytecode": {
+			"functionDebugData": {},
+			"generatedSources": [],
+			"linkReferences": {},
+			"object": "",
+			"opcodes": "",
+			"sourceMap": ""
+		},
+		"deployedBytecode": {
+			"functionDebugData": {},
+			"generatedSources": [],
+			"immutableReferences": {},
+			"linkReferences": {},
+			"object": "",
+			"opcodes": "",
+			"sourceMap": ""
+		},
+		"gasEstimates": null,
+		"methodIdentifiers": {
+			"getGuardianActions(bytes32)": "34bd5c12",
+			"getGuardians()": "0665f04b",
+			"getMessage(bytes32)": "0139a221",
+			"getMessageStatus(bytes32)": "5075a9d4",
+			"getMessageTimeout()": "448f4d0f",
+			"getRequiredSignatures()": "ccd93998",
+			"getSupportedSourceChains()": "dc6a0b55",
+			"isGuardian(address)": "0c68ba21",
+			"isMessageTimedOut(bytes32)": "38a4be87",
+			"isMessageVerified(bytes32)": "e002fe37",
+			"isNullifierUsed(bytes32)": "22dc7b4c",
+			"isSourceChainSupported(uint16)": "ed06faa5",
+			"verifyGuardianSignature(bytes32,bytes,address)": "75b14412",
+			"verifyMessage(bytes,bytes)": "08b64d01"
+		}
+	},
+	"abi": [
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": true,
+					"internalType": "uint32",
+					"name": "index",
+					"type": "uint32"
+				},
+				{
+					"indexed": false,
+					"internalType": "address[]",
+					"name": "guardians",
+					"type": "address[]"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "timestamp",
+					"type": "uint256"
+				}
+			],
+			"name": "GuardianSetUpdated",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": true,
+					"internalType": "bytes32",
+					"name": "messageHash",
+					"type": "bytes32"
+				},
+				{
+					"indexed": false,
+					"internalType": "string",
+					"name": "reason",
+					"type": "string"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "timestamp",
+					"type": "uint256"
+				}
+			],
+			"name": "MessageVerificationFailed",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": true,
+					"internalType": "bytes32",
+					"name": "messageHash",
+					"type": "bytes32"
+				},
+				{
+					"indexed": true,
+					"internalType": "uint16",
+					"name": "sourceChain",
+					"type": "uint16"
+				},
+				{
+					"indexed": true,
+					"internalType": "uint16",
+					"name": "targetChain",
+					"type": "uint16"
+				},
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "sender",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "recipient",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "timestamp",
+					"type": "uint256"
+				}
+			],
+			"name": "MessageVerified",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": true,
+					"internalType": "bytes32",
+					"name": "messageHash",
+					"type": "bytes32"
+				},
+				{
+					"indexed": true,
+					"internalType": "bytes32",
+					"name": "proofHash",
+					"type": "bytes32"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "timestamp",
+					"type": "uint256"
+				}
+			],
+			"name": "ProofVerified",
+			"type": "event"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes32",
+					"name": "messageHash",
+					"type": "bytes32"
+				}
+			],
+			"name": "getGuardianActions",
+			"outputs": [
+				{
+					"components": [
+						{
+							"internalType": "address",
+							"name": "guardian",
+							"type": "address"
+						},
+						{
+							"internalType": "bytes32",
+							"name": "messageHash",
+							"type": "bytes32"
+						},
+						{
+							"internalType": "bytes",
+							"name": "signature",
+							"type": "bytes"
+						},
+						{
+							"internalType": "uint256",
+							"name": "timestamp",
+							"type": "uint256"
+						}
+					],
+					"internalType": "struct IBridgeVerifier.GuardianAction[]",
+					"name": "actions",
+					"type": "tuple[]"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getGuardians",
+			"outputs": [
+				{
+					"internalType": "address[]",
+					"name": "guardians",
+					"type": "address[]"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes32",
+					"name": "messageHash",
+					"type": "bytes32"
+				}
+			],
+			"name": "getMessage",
+			"outputs": [
+				{
+					"components": [
+						{
+							"internalType": "bytes32",
+							"name": "messageHash",
+							"type": "bytes32"
+						},
+						{
+							"internalType": "uint16",
+							"name": "sourceChain",
+							"type": "uint16"
+						},
+						{
+							"internalType": "uint16",
+							"name": "targetChain",
+							"type": "uint16"
+						},
+						{
+							"internalType": "bytes32",
+							"name": "payloadHash",
+							"type": "bytes32"
+						},
+						{
+							"internalType": "bytes32",
+							"name": "nullifier",
+							"type": "bytes32"
+						},
+						{
+							"internalType": "address",
+							"name": "sender",
+							"type": "address"
+						},
+						{
+							"internalType": "address",
+							"name": "recipient",
+							"type": "address"
+						},
+						{
+							"internalType": "enum IBridgeVerifier.MessageStatus",
+							"name": "status",
+							"type": "uint8"
+						},
+						{
+							"internalType": "uint256",
+							"name": "timestamp",
+							"type": "uint256"
+						},
+						{
+							"internalType": "bytes32",
+							"name": "proof",
+							"type": "bytes32"
+						}
+					],
+					"internalType": "struct IBridgeVerifier.CrossChainMessage",
+					"name": "message",
+					"type": "tuple"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes32",
+					"name": "messageHash",
+					"type": "bytes32"
+				}
+			],
+			"name": "getMessageStatus",
+			"outputs": [
+				{
+					"internalType": "enum IBridgeVerifier.MessageStatus",
+					"name": "status",
+					"type": "uint8"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getMessageTimeout",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "timeout",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getRequiredSignatures",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "required",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "getSupportedSourceChains",
+			"outputs": [
+				{
+					"internalType": "uint16[]",
+					"name": "sourceChains",
+					"type": "uint16[]"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "guardian",
+					"type": "address"
+				}
+			],
+			"name": "isGuardian",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "isGuardian",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes32",
+					"name": "messageHash",
+					"type": "bytes32"
+				}
+			],
+			"name": "isMessageTimedOut",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "timedOut",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes32",
+					"name": "messageHash",
+					"type": "bytes32"
+				}
+			],
+			"name": "isMessageVerified",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "verified",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes32",
+					"name": "nullifier",
+					"type": "bytes32"
+				}
+			],
+			"name": "isNullifierUsed",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "used",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint16",
+					"name": "chainId",
+					"type": "uint16"
+				}
+			],
+			"name": "isSourceChainSupported",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "supported",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes32",
+					"name": "messageHash",
+					"type": "bytes32"
+				},
+				{
+					"internalType": "bytes",
+					"name": "signature",
+					"type": "bytes"
+				},
+				{
+					"internalType": "address",
+					"name": "guardian",
+					"type": "address"
+				}
+			],
+			"name": "verifyGuardianSignature",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "valid",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes",
+					"name": "encodedVM",
+					"type": "bytes"
+				},
+				{
+					"internalType": "bytes",
+					"name": "proof",
+					"type": "bytes"
+				}
+			],
+			"name": "verifyMessage",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "success",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		}
+	]
+}

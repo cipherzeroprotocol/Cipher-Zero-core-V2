@@ -1,0 +1,692 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint32",
+						"name": "index",
+						"type": "uint32"
+					},
+					{
+						"indexed": false,
+						"internalType": "address[]",
+						"name": "guardians",
+						"type": "address[]"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "GuardianSetUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "reason",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "MessageVerificationFailed",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint16",
+						"name": "sourceChain",
+						"type": "uint16"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint16",
+						"name": "targetChain",
+						"type": "uint16"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "MessageVerified",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "proofHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "ProofVerified",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getGuardianActions",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "guardian",
+								"type": "address"
+							},
+							{
+								"internalType": "bytes32",
+								"name": "messageHash",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "bytes",
+								"name": "signature",
+								"type": "bytes"
+							},
+							{
+								"internalType": "uint256",
+								"name": "timestamp",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct IBridgeVerifier.GuardianAction[]",
+						"name": "actions",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getGuardians",
+				"outputs": [
+					{
+						"internalType": "address[]",
+						"name": "guardians",
+						"type": "address[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getMessage",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "bytes32",
+								"name": "messageHash",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "uint16",
+								"name": "sourceChain",
+								"type": "uint16"
+							},
+							{
+								"internalType": "uint16",
+								"name": "targetChain",
+								"type": "uint16"
+							},
+							{
+								"internalType": "bytes32",
+								"name": "payloadHash",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "bytes32",
+								"name": "nullifier",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "address",
+								"name": "sender",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "recipient",
+								"type": "address"
+							},
+							{
+								"internalType": "enum IBridgeVerifier.MessageStatus",
+								"name": "status",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint256",
+								"name": "timestamp",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bytes32",
+								"name": "proof",
+								"type": "bytes32"
+							}
+						],
+						"internalType": "struct IBridgeVerifier.CrossChainMessage",
+						"name": "message",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getMessageStatus",
+				"outputs": [
+					{
+						"internalType": "enum IBridgeVerifier.MessageStatus",
+						"name": "status",
+						"type": "uint8"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getMessageTimeout",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "timeout",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getRequiredSignatures",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "required",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getSupportedSourceChains",
+				"outputs": [
+					{
+						"internalType": "uint16[]",
+						"name": "sourceChains",
+						"type": "uint16[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "guardian",
+						"type": "address"
+					}
+				],
+				"name": "isGuardian",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "isGuardian",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "isMessageTimedOut",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "timedOut",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "isMessageVerified",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "verified",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "nullifier",
+						"type": "bytes32"
+					}
+				],
+				"name": "isNullifierUsed",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "used",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint16",
+						"name": "chainId",
+						"type": "uint16"
+					}
+				],
+				"name": "isSourceChainSupported",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "supported",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "signature",
+						"type": "bytes"
+					},
+					{
+						"internalType": "address",
+						"name": "guardian",
+						"type": "address"
+					}
+				],
+				"name": "verifyGuardianSignature",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "valid",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes",
+						"name": "encodedVM",
+						"type": "bytes"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyMessage",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "success",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"details": "Defines the core functionality for verifying cross-chain messages and their associated ZK proofs",
+			"events": {
+				"GuardianSetUpdated(uint32,address[],uint256)": {
+					"params": {
+						"guardians": "New guardian addresses",
+						"index": "Guardian set index",
+						"timestamp": "Update timestamp"
+					}
+				},
+				"MessageVerificationFailed(bytes32,string,uint256)": {
+					"params": {
+						"messageHash": "Hash of the failed message",
+						"reason": "Failure reason",
+						"timestamp": "Failure timestamp"
+					}
+				},
+				"MessageVerified(bytes32,uint16,uint16,address,address,uint256)": {
+					"params": {
+						"messageHash": "Hash of the verified message",
+						"recipient": "Message recipient",
+						"sender": "Message sender",
+						"sourceChain": "Source chain ID",
+						"targetChain": "Target chain ID",
+						"timestamp": "Verification timestamp"
+					}
+				},
+				"ProofVerified(bytes32,bytes32,uint256)": {
+					"params": {
+						"messageHash": "Associated message hash",
+						"proofHash": "Hash of the verified proof",
+						"timestamp": "Verification timestamp"
+					}
+				}
+			},
+			"kind": "dev",
+			"methods": {
+				"getGuardianActions(bytes32)": {
+					"params": {
+						"messageHash": "Message hash to query"
+					},
+					"returns": {
+						"actions": "Array of guardian actions"
+					}
+				},
+				"getGuardians()": {
+					"returns": {
+						"guardians": "Array of current guardian addresses"
+					}
+				},
+				"getMessage(bytes32)": {
+					"params": {
+						"messageHash": "Message hash to query"
+					},
+					"returns": {
+						"message": "CrossChainMessage struct"
+					}
+				},
+				"getMessageStatus(bytes32)": {
+					"params": {
+						"messageHash": "Message hash to check"
+					},
+					"returns": {
+						"status": "Current message status"
+					}
+				},
+				"getMessageTimeout()": {
+					"returns": {
+						"timeout": "Timeout period in seconds"
+					}
+				},
+				"getRequiredSignatures()": {
+					"returns": {
+						"required": "Number of required signatures"
+					}
+				},
+				"getSupportedSourceChains()": {
+					"returns": {
+						"sourceChains": "Array of supported source chain IDs"
+					}
+				},
+				"isGuardian(address)": {
+					"params": {
+						"guardian": "Address to check"
+					},
+					"returns": {
+						"isGuardian": "Whether address is a current guardian"
+					}
+				},
+				"isMessageTimedOut(bytes32)": {
+					"params": {
+						"messageHash": "Message hash to check"
+					},
+					"returns": {
+						"timedOut": "Whether message has timed out"
+					}
+				},
+				"isMessageVerified(bytes32)": {
+					"params": {
+						"messageHash": "Message hash to check"
+					},
+					"returns": {
+						"verified": "Verification status"
+					}
+				},
+				"isNullifierUsed(bytes32)": {
+					"params": {
+						"nullifier": "Nullifier to check"
+					},
+					"returns": {
+						"used": "Whether nullifier has been used"
+					}
+				},
+				"isSourceChainSupported(uint16)": {
+					"params": {
+						"chainId": "Chain ID to check"
+					},
+					"returns": {
+						"supported": "Whether chain is supported"
+					}
+				},
+				"verifyGuardianSignature(bytes32,bytes,address)": {
+					"params": {
+						"guardian": "Guardian address",
+						"messageHash": "Message hash",
+						"signature": "Guardian signature"
+					},
+					"returns": {
+						"valid": "Signature validity"
+					}
+				},
+				"verifyMessage(bytes,bytes)": {
+					"params": {
+						"encodedVM": "Wormhole encoded verified message",
+						"proof": "ZK proof data"
+					},
+					"returns": {
+						"success": "Verification success status"
+					}
+				}
+			},
+			"title": "IBridgeVerifier",
+			"version": 1
+		},
+		"userdoc": {
+			"events": {
+				"GuardianSetUpdated(uint32,address[],uint256)": {
+					"notice": "Emitted when a guardian set is updated"
+				},
+				"MessageVerificationFailed(bytes32,string,uint256)": {
+					"notice": "Emitted when a cross-chain message fails verification"
+				},
+				"MessageVerified(bytes32,uint16,uint16,address,address,uint256)": {
+					"notice": "Emitted when a cross-chain message is verified"
+				},
+				"ProofVerified(bytes32,bytes32,uint256)": {
+					"notice": "Emitted when a proof is verified"
+				}
+			},
+			"kind": "user",
+			"methods": {
+				"getGuardianActions(bytes32)": {
+					"notice": "Get guardian actions for a message"
+				},
+				"getGuardians()": {
+					"notice": "Get active guardian set"
+				},
+				"getMessage(bytes32)": {
+					"notice": "Get message details"
+				},
+				"getMessageStatus(bytes32)": {
+					"notice": "Get message status"
+				},
+				"getMessageTimeout()": {
+					"notice": "Get message timeout period"
+				},
+				"getRequiredSignatures()": {
+					"notice": "Get required number of guardian signatures"
+				},
+				"getSupportedSourceChains()": {
+					"notice": "Get supported source chains"
+				},
+				"isGuardian(address)": {
+					"notice": "Check if an address is a guardian"
+				},
+				"isMessageTimedOut(bytes32)": {
+					"notice": "Check if message has timed out"
+				},
+				"isMessageVerified(bytes32)": {
+					"notice": "Check if a message is verified"
+				},
+				"isNullifierUsed(bytes32)": {
+					"notice": "Check if nullifier has been used"
+				},
+				"isSourceChainSupported(uint16)": {
+					"notice": "Check if source chain is supported"
+				},
+				"verifyGuardianSignature(bytes32,bytes,address)": {
+					"notice": "Verify a guardian signature"
+				},
+				"verifyMessage(bytes,bytes)": {
+					"notice": "Verify a cross-chain message with ZK proof"
+				}
+			},
+			"notice": "Interface for cross-chain message and proof verification in Cipher Zero Protocol",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"interfaces/IBridgeVerifier.sol": "IBridgeVerifier"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"interfaces/IBridgeVerifier.sol": {
+			"keccak256": "0xd0c626902e2d65b085de2ace5c23230890b40195fcf81dc36707900dad83e89b",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://9eedd2085593431de1de8baad090a103f855b58900c94090fee43c477e1e2ba9",
+				"dweb:/ipfs/QmXmPpMy8cF3gRcQzd6oXciAgyjSE98QtuVFiSuwPzfytU"
+			]
+		}
+	},
+	"version": 1
+}

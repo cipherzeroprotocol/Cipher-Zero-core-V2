@@ -86,10 +86,15 @@ contract BitTorrentRegistry is IBitTorrent, Ownable, ReentrancyGuard, Pausable {
 
     /**
      * @notice Constructor
+     * @param initialOwner Initial contract owner
      * @param _fileRegistry Address of FileRegistry contract
      * @param _verifier Address of Verifier contract
      */
-    constructor(address _fileRegistry, address _verifier) {
+    constructor(
+        address initialOwner,
+        address _fileRegistry,
+        address _verifier
+    ) Ownable(initialOwner) {
         fileRegistry = IFileRegistry(_fileRegistry);
         verifier = IVerifier(_verifier);
     }
@@ -117,39 +122,46 @@ contract BitTorrentRegistry is IBitTorrent, Ownable, ReentrancyGuard, Pausable {
 
         // Verify file proof
         require(
-            verifier.verifyFileProof(
-                fileCommitment,
-                proof
-            ),
+            verifier.verifyFileProof(fileCommitment, proof),
             "Invalid file proof"
         );
 
-        // Calculate piece count
-        uint256 pieceCount = (size + pieceSize - 1) / pieceSize;
-
-        // Create torrent
-        Torrent storage newTorrent = torrents[infoHash];
-        newTorrent.infoHash = infoHash;
-        newTorrent.fileCommitment = fileCommitment;
-        newTorrent.size = size;
-        newTorrent.pieceSize = pieceSize;
-        newTorrent.pieceCount = pieceCount;
-        newTorrent.piecesRoot = piecesRoot;
-        newTorrent.owner = msg.sender;
-        newTorrent.timestamp = block.timestamp;
-
-        // Authorize owner as initial peer
-        newTorrent.authorizedPeers[msg.sender] = true;
-
-        // Update peer stats
-        _updatePeerStats(msg.sender, true, 0);
-
-        emit TorrentRegistered(
+        // Register torrent
+        _registerTorrent(
             infoHash,
             fileCommitment,
-            msg.sender,
             size,
-            block.timestamp
+            pieceSize,
+            piecesRoot
+        );
+    }
+
+    /**
+     * @notice Add a new torrent to the registry
+     * @param torrentHash Torrent hash
+     * @param metadata Torrent metadata
+     */
+    function addTorrent(
+        bytes32 torrentHash,
+        bytes memory metadata
+    ) external override nonReentrant whenNotPaused {
+        require(torrents[torrentHash].infoHash == bytes32(0), "Torrent exists");
+        
+        // Decode metadata
+        (
+            bytes32 fileCommitment,
+            uint256 size,
+            uint256 pieceSize,
+            bytes32 piecesRoot
+        ) = abi.decode(metadata, (bytes32, uint256, uint256, bytes32));
+
+        // Register torrent
+        _registerTorrent(
+            torrentHash,
+            fileCommitment,
+            size,
+            pieceSize,
+            piecesRoot
         );
     }
 
@@ -157,7 +169,9 @@ contract BitTorrentRegistry is IBitTorrent, Ownable, ReentrancyGuard, Pausable {
      * @notice Register as a peer
      * @param proof ZK proof for peer anonymity
      */
-    function registerPeer(bytes calldata proof) external nonReentrant whenNotPaused {
+    function registerPeer(
+        bytes calldata proof
+    ) external nonReentrant whenNotPaused {
         require(peers[msg.sender].peerId == bytes32(0), "Peer exists");
 
         // Generate anonymous ID
@@ -181,6 +195,32 @@ contract BitTorrentRegistry is IBitTorrent, Ownable, ReentrancyGuard, Pausable {
             anonymousId,
             block.timestamp
         );
+    }
+
+    /**
+     * @notice Join a torrent swarm
+     * @param torrentHash Torrent hash
+     */
+    function joinSwarm(bytes32 torrentHash) external override {
+        Torrent storage torrent = torrents[torrentHash];
+        require(torrent.infoHash != bytes32(0), "Torrent not found");
+        require(!torrent.authorizedPeers[msg.sender], "Already in swarm");
+
+        torrent.authorizedPeers[msg.sender] = true;
+        torrentPeerCount[torrentHash]++;
+    }
+
+    /**
+     * @notice Leave a torrent swarm
+     * @param torrentHash Torrent hash
+     */
+    function leaveSwarm(bytes32 torrentHash) external override {
+        Torrent storage torrent = torrents[torrentHash];
+        require(torrent.infoHash != bytes32(0), "Torrent not found");
+        require(torrent.authorizedPeers[msg.sender], "Not in swarm");
+
+        torrent.authorizedPeers[msg.sender] = false;
+        torrentPeerCount[torrentHash]--;
     }
 
     /**
@@ -222,52 +262,58 @@ contract BitTorrentRegistry is IBitTorrent, Ownable, ReentrancyGuard, Pausable {
     }
 
     /**
-     * @notice Update peer reputation
-     * @param peer Peer address
-     * @param isPositive Whether update is positive
-     * @param magnitude Update magnitude
+     * @notice Get torrent metadata
+     * @param torrentHash Torrent hash
      */
-    function _updatePeerStats(
-        address peer,
-        bool isPositive,
-        uint256 magnitude
-    ) internal {
-        Peer storage peerData = peers[peer];
-        require(peerData.isActive, "Peer not active");
+    function getTorrentMetadata(
+        bytes32 torrentHash
+    ) external view override returns (bytes memory) {
+        Torrent storage torrent = torrents[torrentHash];
+        require(torrent.infoHash != bytes32(0), "Torrent not found");
 
-        uint256 change = magnitude == 0 ? 
-            (isPositive ? REPUTATION_INCREASE : REPUTATION_DECREASE) :
-            magnitude;
-
-        if (isPositive) {
-            peerData.reputation = peerData.reputation + change;
-            peerData.uploadCount++;
-        } else {
-            peerData.reputation = peerData.reputation > change ?
-                peerData.reputation - change : 0;
-            peerData.downloadCount++;
-        }
-
-        peerData.lastSeen = block.timestamp;
-
-        emit PeerReputationUpdated(
-            peerData.peerId,
-            peerData.reputation,
-            block.timestamp
+        return abi.encode(
+            torrent.fileCommitment,
+            torrent.size,
+            torrent.pieceSize,
+            torrent.piecesRoot,
+            torrent.owner,
+            torrent.isPrivate,
+            torrent.isEncrypted
         );
     }
 
     /**
-     * @notice Generate anonymous ID for peer
-     * @param peer Peer address
-     * @param proof Anonymity proof
+     * @notice Get peers in torrent swarm
+     * @param torrentHash Torrent hash
      */
-    function _generateAnonymousId(
-        address peer,
-        bytes calldata proof
-    ) internal pure returns (bytes32) {
-        // In practice, this would use zk proofs to generate a truly anonymous ID
-        return keccak256(abi.encodePacked(peer, proof));
+    function getSwarmPeers(
+        bytes32 torrentHash
+    ) external view override returns (address[] memory) {
+        return new address[](0); // Simplified implementation
+    }
+
+    /**
+     * @notice Check if peer is in swarm
+     * @param torrentHash Torrent hash
+     * @param peer Peer address
+     */
+    function isPeerInSwarm(
+        bytes32 torrentHash,
+        address peer
+    ) external view override returns (bool) {
+        return torrents[torrentHash].authorizedPeers[peer];
+    }
+
+    /**
+     * @notice Remove a torrent
+     * @param torrentHash Torrent hash
+     */
+    function removeTorrent(bytes32 torrentHash) external override {
+        Torrent storage torrent = torrents[torrentHash];
+        require(torrent.infoHash != bytes32(0), "Torrent not found");
+        require(torrent.owner == msg.sender, "Not torrent owner");
+
+        delete torrents[torrentHash];
     }
 
     /**
@@ -339,15 +385,86 @@ contract BitTorrentRegistry is IBitTorrent, Ownable, ReentrancyGuard, Pausable {
     }
 
     /**
-     * @notice Check if peer is authorized for torrent
-     * @param infoHash Torrent info hash
-     * @param peer Peer address
+     * @notice Internal function to register torrent
      */
-    function isAuthorizedPeer(
-        bytes32 infoHash,
-        address peer
-    ) external view returns (bool) {
-        return torrents[infoHash].authorizedPeers[peer];
+    function _registerTorrent(
+        bytes32 torrentHash,
+        bytes32 fileCommitment,
+        uint256 size,
+        uint256 pieceSize,
+        bytes32 piecesRoot
+    ) internal {
+        // Calculate piece count
+        uint256 pieceCount = (size + pieceSize - 1) / pieceSize;
+
+        // Create torrent
+        Torrent storage newTorrent = torrents[torrentHash];
+        newTorrent.infoHash = torrentHash;
+        newTorrent.fileCommitment = fileCommitment;
+        newTorrent.size = size;
+        newTorrent.pieceSize = pieceSize;
+        newTorrent.pieceCount = pieceCount;
+        newTorrent.piecesRoot = piecesRoot;
+        newTorrent.owner = msg.sender;
+        newTorrent.timestamp = block.timestamp;
+
+        // Authorize owner as initial peer
+        newTorrent.authorizedPeers[msg.sender] = true;
+        torrentPeerCount[torrentHash] = 1;
+
+        // Update peer stats
+        _updatePeerStats(msg.sender, true, 0);
+
+        emit TorrentRegistered(
+            torrentHash,
+            fileCommitment,
+            msg.sender,
+            size,
+            block.timestamp
+        );
+    }
+
+    /**
+     * @notice Update peer reputation
+     */
+    function _updatePeerStats(
+        address peer,
+        bool isPositive,
+        uint256 magnitude
+    ) internal {
+        Peer storage peerData = peers[peer];
+        require(peerData.isActive, "Peer not active");
+
+        uint256 change = magnitude == 0 ? 
+            (isPositive ? REPUTATION_INCREASE : REPUTATION_DECREASE) :
+            magnitude;
+
+        if (isPositive) {
+            peerData.reputation = peerData.reputation + change;
+            peerData.uploadCount++;
+        } else {
+            peerData.reputation = peerData.reputation > change ?
+                peerData.reputation - change : 0;
+            peerData.downloadCount++;
+        }
+
+        peerData.lastSeen = block.timestamp;
+
+        emit PeerReputationUpdated(
+            peerData.peerId,
+            peerData.reputation,
+            block.timestamp
+        );
+    }
+
+    /**
+     * @notice Generate anonymous ID for peer
+     */
+    function _generateAnonymousId(
+        address peer,
+        bytes calldata proof
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(peer, proof));
     }
 
     // Emergency functions

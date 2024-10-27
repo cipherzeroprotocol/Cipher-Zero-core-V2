@@ -1,0 +1,508 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_fileRegistry",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_messaging",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_storage",
+						"type": "address"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					}
+				],
+				"name": "OwnableInvalidOwner",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "OwnableUnauthorizedAccount",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "ReentrancyGuardReentrantCall",
+				"type": "error"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "FileDownloaded",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "size",
+						"type": "uint256"
+					}
+				],
+				"name": "FileUploaded",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					}
+				],
+				"name": "MessageSent",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "previousOwner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "OwnershipTransferred",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "UserRegistered",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "_fileHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "downloadFile",
+				"outputs": [
+					{
+						"internalType": "bytes",
+						"name": "",
+						"type": "bytes"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "fileRegistry",
+				"outputs": [
+					{
+						"internalType": "contract IFileRegistry",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "messaging",
+				"outputs": [
+					{
+						"internalType": "contract IMessaging",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "registerUser",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "registeredUsers",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "renounceOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_recipient",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "_encryptedMessage",
+						"type": "bytes"
+					}
+				],
+				"name": "sendMessage",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "storageContract",
+				"outputs": [
+					{
+						"internalType": "contract IStorageContract",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "transferOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_newFileRegistry",
+						"type": "address"
+					}
+				],
+				"name": "updateFileRegistry",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_newMessaging",
+						"type": "address"
+					}
+				],
+				"name": "updateMessaging",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_newStorage",
+						"type": "address"
+					}
+				],
+				"name": "updateStorage",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "_fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_size",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "_data",
+						"type": "bytes"
+					}
+				],
+				"name": "uploadFile",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"details": "Main entry point for the Cipher Zero Protocol",
+			"errors": {
+				"OwnableInvalidOwner(address)": [
+					{
+						"details": "The owner is not a valid owner account. (eg. `address(0)`)"
+					}
+				],
+				"OwnableUnauthorizedAccount(address)": [
+					{
+						"details": "The caller account is not authorized to perform an operation."
+					}
+				],
+				"ReentrancyGuardReentrantCall()": [
+					{
+						"details": "Unauthorized reentrant call."
+					}
+				]
+			},
+			"kind": "dev",
+			"methods": {
+				"constructor": {
+					"details": "Constructor to set up dependencies",
+					"params": {
+						"_fileRegistry": "Address of the FileRegistry contract",
+						"_messaging": "Address of the Messaging contract",
+						"_storage": "Address of the Storage contract"
+					}
+				},
+				"owner()": {
+					"details": "Returns the address of the current owner."
+				},
+				"registerUser(address)": {
+					"details": "Registers a new user in the protocol",
+					"params": {
+						"_user": "Address of the user to register"
+					}
+				},
+				"renounceOwnership()": {
+					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
+				},
+				"transferOwnership(address)": {
+					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+				},
+				"updateFileRegistry(address)": {
+					"details": "Updates the address of the FileRegistry contract",
+					"params": {
+						"_newFileRegistry": "Address of the new FileRegistry contract"
+					}
+				},
+				"updateMessaging(address)": {
+					"details": "Updates the address of the Messaging contract",
+					"params": {
+						"_newMessaging": "Address of the new Messaging contract"
+					}
+				},
+				"updateStorage(address)": {
+					"details": "Updates the address of the Storage contract",
+					"params": {
+						"_newStorage": "Address of the new Storage contract"
+					}
+				},
+				"uploadFile(bytes32,uint256,bytes)": {
+					"details": "Initiates file upload process",
+					"params": {
+						"_fileHash": "Hash of the file to upload",
+						"_size": "Size of the file in bytes"
+					}
+				}
+			},
+			"title": "CipherZeroCore",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"core/CipherZeroCore.sol": "CipherZeroCore"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"@openzeppelin/contracts/access/Ownable.sol": {
+			"keccak256": "0xff6d0bb2e285473e5311d9d3caacb525ae3538a80758c10649a4d61029b017bb",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8ed324d3920bb545059d66ab97d43e43ee85fd3bd52e03e401f020afb0b120f6",
+				"dweb:/ipfs/QmfEckWLmZkDDcoWrkEvMWhms66xwTLff9DDhegYpvHo1a"
+			]
+		},
+		"@openzeppelin/contracts/utils/Context.sol": {
+			"keccak256": "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://6a708e8a5bdb1011c2c381c9a5cfd8a9a956d7d0a9dc1bd8bcdaf52f76ef2f12",
+				"dweb:/ipfs/Qmax9WHBnVsZP46ZxEMNRQpLQnrdE4dK8LehML1Py8FowF"
+			]
+		},
+		"@openzeppelin/contracts/utils/ReentrancyGuard.sol": {
+			"keccak256": "0x11a5a79827df29e915a12740caf62fe21ebe27c08c9ae3e09abe9ee3ba3866d3",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://3cf0c69ab827e3251db9ee6a50647d62c90ba580a4d7bbff21f2bea39e7b2f4a",
+				"dweb:/ipfs/QmZiKwtKU1SBX4RGfQtY7PZfiapbbu6SZ9vizGQD9UHjRA"
+			]
+		},
+		"core/CipherZeroCore.sol": {
+			"keccak256": "0x26b29370f9530bfc4ddfdb22175cc34a97f375672eda3e5b2950a3cf3a63265d",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://040d435f1dfc4155893643336c8530d41b72d3ebf1f8eb44a7b7a6c97a8b94c4",
+				"dweb:/ipfs/QmbLMgRMTVZtbgcqDdqhDqjYtxgapK4jcGWW3HXCziKsfx"
+			]
+		},
+		"interfaces/IFileRegistry.sol": {
+			"keccak256": "0xc297a4bc330ebf98fba5feaf2add262e9e702c69e36d2521d5e7c54858fb939a",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://ee40936e054234974ed297210d9a5cf7e49956224a4465e5661594bd17a4884d",
+				"dweb:/ipfs/QmeALYE6VxiLuBSb75BLwbXpXBm7JQd7aXtkcF5mbxRCzx"
+			]
+		},
+		"interfaces/IMessaging.sol": {
+			"keccak256": "0x06e3ed418695de27688579033bcb5f9894663b8dbe447c818bedebb8f0be7bd5",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://c021027d26a1983b98ef2cdd87861ee4c6a0524e1ad5eee336d9d2d4a8d99c79",
+				"dweb:/ipfs/QmRAKSGQVBgnVSk647m69BJJKrZURURQj27GauP6ek3LRw"
+			]
+		},
+		"interfaces/IStorageContract.sol": {
+			"keccak256": "0xd8159e5dfef7b9e94f8963159dcdf9d7186f8f4f9635309b293b4529f4310237",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://119f1c4dc97e342093fc21c77f2279704adc948e8bf75bec11b98129e2c726c5",
+				"dweb:/ipfs/QmbkVjAZogkv1s9u2jnL3skjfLxBjqETyggTHgk2RjCQ1u"
+			]
+		}
+	},
+	"version": 1
+}

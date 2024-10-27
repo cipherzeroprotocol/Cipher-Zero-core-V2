@@ -1,69 +1,166 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.26;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "../interfaces/IBitTorrent.sol";
+import "../interfaces/IVerifier.sol";
 
-contract BitTorrentIntegration is Ownable {
-    constructor() Ownable(msg.sender) {}
-    // Mapping to store magnet links associated with file hashes
-    mapping(bytes32 => string) private magnetLinks;
+contract BitTorrentIntegration is IBitTorrent, AccessControl, Pausable, ReentrancyGuard {
+    bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
+    
+    // Verifier contract for proofs
+    IVerifier public verifier;
 
-    // Event to log magnet link generation
-    event MagnetLinkGenerated(bytes32 indexed fileHash, string magnetLink);
+    // Swarm storage
+    mapping(bytes32 => address[]) private swarmPeers;
+    mapping(bytes32 => mapping(address => uint256)) private peerIndices;
+    mapping(bytes32 => bytes) private torrentMetadata;
 
-    // Event to log magnet link storage
-    event MagnetLinkStored(bytes32 indexed fileHash, string magnetLink);
-
-    // Function to generate a magnet link for a file
-    function generateMagnetLink(bytes32 _fileHash, uint256 _size) public pure returns (string memory) {
-        // Simple magnet link generation (can be customized further)
-        return string(abi.encodePacked("magnet:?xt=urn:btih:", toHexString(_fileHash), "&dn=File&xl=", uint2str(_size)));
+    constructor(address _verifier) {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(OPERATOR_ROLE, msg.sender);
+        verifier = IVerifier(_verifier);
     }
 
-    // Function to store a magnet link for a file
-    function storeMagnetLink(bytes32 _fileHash, string memory _magnetLink) public onlyOwner {
-        // Store the magnet link in the mapping
-        magnetLinks[_fileHash] = _magnetLink;
-
-        // Emit event for the stored link
-        emit MagnetLinkStored(_fileHash, _magnetLink);
+    /**
+     * @inheritdoc IBitTorrent
+     */
+    function addTorrent(bytes32 torrentHash, bytes memory metadata) 
+        external 
+        override 
+        whenNotPaused 
+        nonReentrant 
+    {
+        require(torrentMetadata[torrentHash].length == 0, "Torrent already exists");
+        require(metadata.length > 0, "Empty metadata");
+        
+        torrentMetadata[torrentHash] = metadata;
+        emit TorrentAdded(torrentHash, msg.sender);
     }
 
-    // Function to retrieve a magnet link for a file
-    function getMagnetLink(bytes32 _fileHash) public view returns (string memory) {
-        return magnetLinks[_fileHash];
+    /**
+     * @inheritdoc IBitTorrent
+     */
+    function joinSwarm(bytes32 torrentHash) 
+        external 
+        override 
+        whenNotPaused 
+    {
+        require(torrentMetadata[torrentHash].length > 0, "Torrent not found");
+        require(!_isPeerInSwarm(torrentHash, msg.sender), "Already in swarm");
+        
+        swarmPeers[torrentHash].push(msg.sender);
+        peerIndices[torrentHash][msg.sender] = swarmPeers[torrentHash].length - 1;
+        
+        emit SwarmJoined(torrentHash, msg.sender);
     }
 
-    // Utility function to convert bytes32 to a hexadecimal string
-    function toHexString(bytes32 _data) internal pure returns (string memory) {
-        bytes memory hexChars = "0123456789abcdef";
-        bytes memory result = new bytes(64);
-        for (uint256 i = 0; i < 32; i++) {
-            result[i * 2] = hexChars[uint8(_data[i] >> 4)];
-            result[i * 2 + 1] = hexChars[uint8(_data[i] & 0x0f)];
+    /**
+     * @inheritdoc IBitTorrent
+     */
+    function leaveSwarm(bytes32 torrentHash) 
+        external 
+        override 
+    {
+        require(_isPeerInSwarm(torrentHash, msg.sender), "Not in swarm");
+        
+        uint256 index = peerIndices[torrentHash][msg.sender];
+        uint256 lastIndex = swarmPeers[torrentHash].length - 1;
+        
+        if (index != lastIndex) {
+            address lastPeer = swarmPeers[torrentHash][lastIndex];
+            swarmPeers[torrentHash][index] = lastPeer;
+            peerIndices[torrentHash][lastPeer] = index;
         }
-        return string(result);
+        
+        swarmPeers[torrentHash].pop();
+        delete peerIndices[torrentHash][msg.sender];
+        
+        emit SwarmLeft(torrentHash, msg.sender);
     }
 
-    // Utility function to convert uint256 to string
-    function uint2str(uint256 _i) internal pure returns (string memory) {
-        if (_i == 0) {
-            return "0";
-        }
-        uint256 j = _i;
-        uint256 length;
-        while (j != 0) {
-            length++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(length);
-        uint256 k = length;
-        j = _i;
-        while (j != 0) {
-            bstr[--k] = bytes1(uint8(48 + j % 10));
-            j /= 10;
-        }
-        return string(bstr);
+    /**
+     * @inheritdoc IBitTorrent
+     */
+    function getTorrentMetadata(bytes32 torrentHash) 
+        external 
+        view 
+        override 
+        returns (bytes memory) 
+    {
+        return torrentMetadata[torrentHash];
+    }
+
+    /**
+     * @inheritdoc IBitTorrent
+     */
+    function getSwarmPeers(bytes32 torrentHash) 
+        external 
+        view 
+        override 
+        returns (address[] memory) 
+    {
+        return swarmPeers[torrentHash];
+    }
+
+    /**
+     * @inheritdoc IBitTorrent
+     */
+    function isPeerInSwarm(bytes32 torrentHash, address peer) 
+        external 
+        view 
+        override 
+        returns (bool) 
+    {
+        return _isPeerInSwarm(torrentHash, peer);
+    }
+
+    /**
+     * @inheritdoc IBitTorrent
+     */
+    function removeTorrent(bytes32 torrentHash) 
+        external 
+        override 
+        onlyRole(OPERATOR_ROLE) 
+    {
+        require(torrentMetadata[torrentHash].length > 0, "Torrent not found");
+        
+        delete torrentMetadata[torrentHash];
+        delete swarmPeers[torrentHash];
+        
+        emit TorrentRemoved(torrentHash, msg.sender);
+    }
+
+    /**
+     * @dev Internal function to check if a peer is in a swarm
+     */
+    function _isPeerInSwarm(bytes32 torrentHash, address peer) 
+        internal 
+        view 
+        returns (bool) 
+    {
+        uint256 index = peerIndices[torrentHash][peer];
+        return index < swarmPeers[torrentHash].length && 
+               swarmPeers[torrentHash][index] == peer;
+    }
+
+    // Admin functions
+
+    function updateVerifier(address _verifier)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(_verifier != address(0), "Invalid verifier address");
+        verifier = IVerifier(_verifier);
+    }
+
+    function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _pause();
+    }
+
+    function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _unpause();
     }
 }

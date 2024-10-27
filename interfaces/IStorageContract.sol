@@ -6,13 +6,13 @@ pragma solidity ^0.8.26;
  * @title IStorage
  * @dev Interface for the decentralized storage module of Cipher Zero Protocol
  */
-interface IStorage {
+interface IStorageContract {
     
     /// @notice Emitted when a new data hash is stored
     /// @param dataHash Hash of the stored data
     /// @param sender Address that submitted the data
     /// @param timestamp Time when data was stored
-    event DataStored(bytes32 indexed dataHash, address indexed sender, uint256 timestamp);
+    //event DataStored(bytes32 indexed dataHash, address indexed sender, uint256 timestamp);
     
     /// @notice Emitted when data is retrieved
     /// @param dataHash Hash of the retrieved data
@@ -45,7 +45,7 @@ interface IStorage {
      * @param dataHash The hash of the data to be retrieved
      * @return The URI where the data can be accessed
      */
-    function retrieveData(bytes32 dataHash) external view returns (string memory);
+    //function retrieveData(bytes32 dataHash) external view returns (string memory);
 
     /**
      * @notice Update existing data's URI
@@ -81,4 +81,40 @@ interface IStorage {
      * @return URI string of the data and timestamp when it was stored
      */
     function getDataMetadata(bytes32 dataHash) external view returns (string memory, uint256);
+    
+    //function storeData(bytes32 fileHash, bytes calldata data) external;
+
+    /**
+     * @notice Retrieves file data from storage
+     * @param fileHash Hash of the file to retrieve
+     */
+         function storeData(bytes32 fileHash, bytes memory data) external;
+
+    /**
+     * @notice Retrieves file data from storage
+     * @param fileHash Hash of the file to retrieve
+     * @return bytes The retrieved file data
+     */
+    function retrieveData(bytes32 fileHash) external view returns (bytes memory);
+
+    /**
+     * @notice Checks if a file exists in storage
+     * @param fileHash Hash of the file to check
+     * @return bool True if file exists
+     */
+    function fileExists(bytes32 fileHash) external view returns (bool);
+
+    /**
+     * @notice Gets the size of a stored file
+     * @param fileHash Hash of the file
+     * @return uint256 File size in bytes
+     */
+    function getFileSize(bytes32 fileHash) external view returns (uint256);
+
+    // Events
+    event DataStored(bytes32 indexed fileHash, address indexed owner, uint256 size);
+    event DataRetrieved(bytes32 indexed fileHash, address indexed requester);
+    event DataRemoved(bytes32 indexed fileHash, address indexed owner);
+
+    
 }

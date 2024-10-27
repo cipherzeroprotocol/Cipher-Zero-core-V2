@@ -1,0 +1,3085 @@
+{
+	"id": "8d8c9894dc574f7ed7505c2df21df8c0",
+	"_format": "hh-sol-build-info-1",
+	"solcVersion": "0.8.26",
+	"solcLongVersion": "0.8.26+commit.8a97fa7a",
+	"input": {
+		"language": "Solidity",
+		"sources": {
+			"interfaces/IBridgeVerifier.sol": {
+				"content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.26;\r\n\r\n/**\r\n * @title IBridgeVerifier\r\n * @notice Interface for cross-chain message and proof verification in Cipher Zero Protocol\r\n * @dev Defines the core functionality for verifying cross-chain messages and their associated ZK proofs\r\n */\r\ninterface IBridgeVerifier {\r\n    /**\r\n     * @notice Message verification status\r\n     * @param UNVERIFIED Initial state\r\n     * @param PENDING Verification in progress\r\n     * @param VERIFIED Successfully verified\r\n     * @param FAILED Verification failed\r\n     * @param EXPIRED Message timeout\r\n     */\r\n    enum MessageStatus {\r\n        UNVERIFIED,\r\n        PENDING,\r\n        VERIFIED,\r\n        FAILED,\r\n        EXPIRED\r\n    }\r\n\r\n    /**\r\n     * @notice Cross-chain message structure\r\n     * @param messageHash Hash of message data\r\n     * @param sourceChain Source chain ID\r\n     * @param targetChain Target chain ID\r\n     * @param payloadHash Hash of payload data\r\n     * @param nullifier Unique nullifier\r\n     * @param sender Original sender\r\n     * @param recipient Target recipient\r\n     * @param status Message status\r\n     * @param timestamp Message timestamp\r\n     * @param proof ZK proof hash\r\n     */\r\n    struct CrossChainMessage {\r\n        bytes32 messageHash;\r\n        uint16 sourceChain;\r\n        uint16 targetChain;\r\n        bytes32 payloadHash;\r\n        bytes32 nullifier;\r\n        address sender;\r\n        address recipient;\r\n        MessageStatus status;\r\n        uint256 timestamp;\r\n        bytes32 proof;\r\n    }\r\n\r\n    /**\r\n     * @notice Guardian action structure\r\n     * @param guardian Guardian address\r\n     * @param messageHash Message hash\r\n     * @param signature Guardian signature\r\n     * @param timestamp Action timestamp\r\n     */\r\n    struct GuardianAction {\r\n        address guardian;\r\n        bytes32 messageHash;\r\n        bytes signature;\r\n        uint256 timestamp;\r\n    }\r\n\r\n    /**\r\n     * @notice Emitted when a cross-chain message is verified\r\n     * @param messageHash Hash of the verified message\r\n     * @param sourceChain Source chain ID\r\n     * @param targetChain Target chain ID\r\n     * @param sender Message sender\r\n     * @param recipient Message recipient\r\n     * @param timestamp Verification timestamp\r\n     */\r\n    event MessageVerified(\r\n        bytes32 indexed messageHash,\r\n        uint16 indexed sourceChain,\r\n        uint16 indexed targetChain,\r\n        address sender,\r\n        address recipient,\r\n        uint256 timestamp\r\n    );\r\n\r\n    /**\r\n     * @notice Emitted when a cross-chain message fails verification\r\n     * @param messageHash Hash of the failed message\r\n     * @param reason Failure reason\r\n     * @param timestamp Failure timestamp\r\n     */\r\n    event MessageVerificationFailed(\r\n        bytes32 indexed messageHash,\r\n        string reason,\r\n        uint256 timestamp\r\n    );\r\n\r\n    /**\r\n     * @notice Emitted when a guardian set is updated\r\n     * @param index Guardian set index\r\n     * @param guardians New guardian addresses\r\n     * @param timestamp Update timestamp\r\n     */\r\n    event GuardianSetUpdated(\r\n        uint32 indexed index,\r\n        address[] guardians,\r\n        uint256 timestamp\r\n    );\r\n\r\n    /**\r\n     * @notice Emitted when a proof is verified\r\n     * @param messageHash Associated message hash\r\n     * @param proofHash Hash of the verified proof\r\n     * @param timestamp Verification timestamp\r\n     */\r\n    event ProofVerified(\r\n        bytes32 indexed messageHash,\r\n        bytes32 indexed proofHash,\r\n        uint256 timestamp\r\n    );\r\n\r\n    /**\r\n     * @notice Verify a cross-chain message with ZK proof\r\n     * @param encodedVM Wormhole encoded verified message\r\n     * @param proof ZK proof data\r\n     * @return success Verification success status\r\n     */\r\n    function verifyMessage(\r\n        bytes memory encodedVM,\r\n        bytes memory proof\r\n    ) external returns (bool success);\r\n\r\n    /**\r\n     * @notice Verify a guardian signature\r\n     * @param messageHash Message hash\r\n     * @param signature Guardian signature\r\n     * @param guardian Guardian address\r\n     * @return valid Signature validity\r\n     */\r\n    function verifyGuardianSignature(\r\n        bytes32 messageHash,\r\n        bytes memory signature,\r\n        address guardian\r\n    ) external view returns (bool valid);\r\n\r\n    /**\r\n     * @notice Check if a message is verified\r\n     * @param messageHash Message hash to check\r\n     * @return verified Verification status\r\n     */\r\n    function isMessageVerified(\r\n        bytes32 messageHash\r\n    ) external view returns (bool verified);\r\n\r\n    /**\r\n     * @notice Get message status\r\n     * @param messageHash Message hash to check\r\n     * @return status Current message status\r\n     */\r\n    function getMessageStatus(\r\n        bytes32 messageHash\r\n    ) external view returns (MessageStatus status);\r\n\r\n    /**\r\n     * @notice Get message details\r\n     * @param messageHash Message hash to query\r\n     * @return message CrossChainMessage struct\r\n     */\r\n    function getMessage(\r\n        bytes32 messageHash\r\n    ) external view returns (CrossChainMessage memory message);\r\n\r\n    /**\r\n     * @notice Get active guardian set\r\n     * @return guardians Array of current guardian addresses\r\n     */\r\n    function getGuardians() external view returns (address[] memory guardians);\r\n\r\n    /**\r\n     * @notice Check if an address is a guardian\r\n     * @param guardian Address to check\r\n     * @return isGuardian Whether address is a current guardian\r\n     */\r\n    function isGuardian(\r\n        address guardian\r\n    ) external view returns (bool isGuardian);\r\n\r\n    /**\r\n     * @notice Get required number of guardian signatures\r\n     * @return required Number of required signatures\r\n     */\r\n    function getRequiredSignatures() external view returns (uint256 required);\r\n\r\n    /**\r\n     * @notice Get supported source chains\r\n     * @return sourceChains Array of supported source chain IDs\r\n     */\r\n    function getSupportedSourceChains() external view returns (uint16[] memory sourceChains);\r\n\r\n    /**\r\n     * @notice Check if source chain is supported\r\n     * @param chainId Chain ID to check\r\n     * @return supported Whether chain is supported\r\n     */\r\n    function isSourceChainSupported(\r\n        uint16 chainId\r\n    ) external view returns (bool supported);\r\n\r\n    /**\r\n     * @notice Get message timeout period\r\n     * @return timeout Timeout period in seconds\r\n     */\r\n    function getMessageTimeout() external view returns (uint256 timeout);\r\n\r\n    /**\r\n     * @notice Check if message has timed out\r\n     * @param messageHash Message hash to check\r\n     * @return timedOut Whether message has timed out\r\n     */\r\n    function isMessageTimedOut(\r\n        bytes32 messageHash\r\n    ) external view returns (bool timedOut);\r\n\r\n    /**\r\n     * @notice Check if nullifier has been used\r\n     * @param nullifier Nullifier to check\r\n     * @return used Whether nullifier has been used\r\n     */\r\n    function isNullifierUsed(\r\n        bytes32 nullifier\r\n    ) external view returns (bool used);\r\n\r\n    /**\r\n     * @notice Get guardian actions for a message\r\n     * @param messageHash Message hash to query\r\n     * @return actions Array of guardian actions\r\n     */\r\n    function getGuardianActions(\r\n        bytes32 messageHash\r\n    ) external view returns (GuardianAction[] memory actions);\r\n}"
+			}
+		},
+		"settings": {
+			"optimizer": {
+				"enabled": false,
+				"runs": 200
+			},
+			"outputSelection": {
+				"*": {
+					"": [
+						"ast"
+					],
+					"*": [
+						"abi",
+						"metadata",
+						"devdoc",
+						"userdoc",
+						"storageLayout",
+						"evm.legacyAssembly",
+						"evm.bytecode",
+						"evm.deployedBytecode",
+						"evm.methodIdentifiers",
+						"evm.gasEstimates",
+						"evm.assembly"
+					]
+				}
+			},
+			"remappings": []
+		}
+	},
+	"output": {
+		"contracts": {
+			"interfaces/IBridgeVerifier.sol": {
+				"IBridgeVerifier": {
+					"abi": [
+						{
+							"anonymous": false,
+							"inputs": [
+								{
+									"indexed": true,
+									"internalType": "uint32",
+									"name": "index",
+									"type": "uint32"
+								},
+								{
+									"indexed": false,
+									"internalType": "address[]",
+									"name": "guardians",
+									"type": "address[]"
+								},
+								{
+									"indexed": false,
+									"internalType": "uint256",
+									"name": "timestamp",
+									"type": "uint256"
+								}
+							],
+							"name": "GuardianSetUpdated",
+							"type": "event"
+						},
+						{
+							"anonymous": false,
+							"inputs": [
+								{
+									"indexed": true,
+									"internalType": "bytes32",
+									"name": "messageHash",
+									"type": "bytes32"
+								},
+								{
+									"indexed": false,
+									"internalType": "string",
+									"name": "reason",
+									"type": "string"
+								},
+								{
+									"indexed": false,
+									"internalType": "uint256",
+									"name": "timestamp",
+									"type": "uint256"
+								}
+							],
+							"name": "MessageVerificationFailed",
+							"type": "event"
+						},
+						{
+							"anonymous": false,
+							"inputs": [
+								{
+									"indexed": true,
+									"internalType": "bytes32",
+									"name": "messageHash",
+									"type": "bytes32"
+								},
+								{
+									"indexed": true,
+									"internalType": "uint16",
+									"name": "sourceChain",
+									"type": "uint16"
+								},
+								{
+									"indexed": true,
+									"internalType": "uint16",
+									"name": "targetChain",
+									"type": "uint16"
+								},
+								{
+									"indexed": false,
+									"internalType": "address",
+									"name": "sender",
+									"type": "address"
+								},
+								{
+									"indexed": false,
+									"internalType": "address",
+									"name": "recipient",
+									"type": "address"
+								},
+								{
+									"indexed": false,
+									"internalType": "uint256",
+									"name": "timestamp",
+									"type": "uint256"
+								}
+							],
+							"name": "MessageVerified",
+							"type": "event"
+						},
+						{
+							"anonymous": false,
+							"inputs": [
+								{
+									"indexed": true,
+									"internalType": "bytes32",
+									"name": "messageHash",
+									"type": "bytes32"
+								},
+								{
+									"indexed": true,
+									"internalType": "bytes32",
+									"name": "proofHash",
+									"type": "bytes32"
+								},
+								{
+									"indexed": false,
+									"internalType": "uint256",
+									"name": "timestamp",
+									"type": "uint256"
+								}
+							],
+							"name": "ProofVerified",
+							"type": "event"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "messageHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "getGuardianActions",
+							"outputs": [
+								{
+									"components": [
+										{
+											"internalType": "address",
+											"name": "guardian",
+											"type": "address"
+										},
+										{
+											"internalType": "bytes32",
+											"name": "messageHash",
+											"type": "bytes32"
+										},
+										{
+											"internalType": "bytes",
+											"name": "signature",
+											"type": "bytes"
+										},
+										{
+											"internalType": "uint256",
+											"name": "timestamp",
+											"type": "uint256"
+										}
+									],
+									"internalType": "struct IBridgeVerifier.GuardianAction[]",
+									"name": "actions",
+									"type": "tuple[]"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [],
+							"name": "getGuardians",
+							"outputs": [
+								{
+									"internalType": "address[]",
+									"name": "guardians",
+									"type": "address[]"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "messageHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "getMessage",
+							"outputs": [
+								{
+									"components": [
+										{
+											"internalType": "bytes32",
+											"name": "messageHash",
+											"type": "bytes32"
+										},
+										{
+											"internalType": "uint16",
+											"name": "sourceChain",
+											"type": "uint16"
+										},
+										{
+											"internalType": "uint16",
+											"name": "targetChain",
+											"type": "uint16"
+										},
+										{
+											"internalType": "bytes32",
+											"name": "payloadHash",
+											"type": "bytes32"
+										},
+										{
+											"internalType": "bytes32",
+											"name": "nullifier",
+											"type": "bytes32"
+										},
+										{
+											"internalType": "address",
+											"name": "sender",
+											"type": "address"
+										},
+										{
+											"internalType": "address",
+											"name": "recipient",
+											"type": "address"
+										},
+										{
+											"internalType": "enum IBridgeVerifier.MessageStatus",
+											"name": "status",
+											"type": "uint8"
+										},
+										{
+											"internalType": "uint256",
+											"name": "timestamp",
+											"type": "uint256"
+										},
+										{
+											"internalType": "bytes32",
+											"name": "proof",
+											"type": "bytes32"
+										}
+									],
+									"internalType": "struct IBridgeVerifier.CrossChainMessage",
+									"name": "message",
+									"type": "tuple"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "messageHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "getMessageStatus",
+							"outputs": [
+								{
+									"internalType": "enum IBridgeVerifier.MessageStatus",
+									"name": "status",
+									"type": "uint8"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [],
+							"name": "getMessageTimeout",
+							"outputs": [
+								{
+									"internalType": "uint256",
+									"name": "timeout",
+									"type": "uint256"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [],
+							"name": "getRequiredSignatures",
+							"outputs": [
+								{
+									"internalType": "uint256",
+									"name": "required",
+									"type": "uint256"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [],
+							"name": "getSupportedSourceChains",
+							"outputs": [
+								{
+									"internalType": "uint16[]",
+									"name": "sourceChains",
+									"type": "uint16[]"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "address",
+									"name": "guardian",
+									"type": "address"
+								}
+							],
+							"name": "isGuardian",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "isGuardian",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "messageHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "isMessageTimedOut",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "timedOut",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "messageHash",
+									"type": "bytes32"
+								}
+							],
+							"name": "isMessageVerified",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "verified",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "nullifier",
+									"type": "bytes32"
+								}
+							],
+							"name": "isNullifierUsed",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "used",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "uint16",
+									"name": "chainId",
+									"type": "uint16"
+								}
+							],
+							"name": "isSourceChainSupported",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "supported",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "messageHash",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "bytes",
+									"name": "signature",
+									"type": "bytes"
+								},
+								{
+									"internalType": "address",
+									"name": "guardian",
+									"type": "address"
+								}
+							],
+							"name": "verifyGuardianSignature",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "valid",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes",
+									"name": "encodedVM",
+									"type": "bytes"
+								},
+								{
+									"internalType": "bytes",
+									"name": "proof",
+									"type": "bytes"
+								}
+							],
+							"name": "verifyMessage",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "success",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "nonpayable",
+							"type": "function"
+						}
+					],
+					"devdoc": {
+						"details": "Defines the core functionality for verifying cross-chain messages and their associated ZK proofs",
+						"events": {
+							"GuardianSetUpdated(uint32,address[],uint256)": {
+								"params": {
+									"guardians": "New guardian addresses",
+									"index": "Guardian set index",
+									"timestamp": "Update timestamp"
+								}
+							},
+							"MessageVerificationFailed(bytes32,string,uint256)": {
+								"params": {
+									"messageHash": "Hash of the failed message",
+									"reason": "Failure reason",
+									"timestamp": "Failure timestamp"
+								}
+							},
+							"MessageVerified(bytes32,uint16,uint16,address,address,uint256)": {
+								"params": {
+									"messageHash": "Hash of the verified message",
+									"recipient": "Message recipient",
+									"sender": "Message sender",
+									"sourceChain": "Source chain ID",
+									"targetChain": "Target chain ID",
+									"timestamp": "Verification timestamp"
+								}
+							},
+							"ProofVerified(bytes32,bytes32,uint256)": {
+								"params": {
+									"messageHash": "Associated message hash",
+									"proofHash": "Hash of the verified proof",
+									"timestamp": "Verification timestamp"
+								}
+							}
+						},
+						"kind": "dev",
+						"methods": {
+							"getGuardianActions(bytes32)": {
+								"params": {
+									"messageHash": "Message hash to query"
+								},
+								"returns": {
+									"actions": "Array of guardian actions"
+								}
+							},
+							"getGuardians()": {
+								"returns": {
+									"guardians": "Array of current guardian addresses"
+								}
+							},
+							"getMessage(bytes32)": {
+								"params": {
+									"messageHash": "Message hash to query"
+								},
+								"returns": {
+									"message": "CrossChainMessage struct"
+								}
+							},
+							"getMessageStatus(bytes32)": {
+								"params": {
+									"messageHash": "Message hash to check"
+								},
+								"returns": {
+									"status": "Current message status"
+								}
+							},
+							"getMessageTimeout()": {
+								"returns": {
+									"timeout": "Timeout period in seconds"
+								}
+							},
+							"getRequiredSignatures()": {
+								"returns": {
+									"required": "Number of required signatures"
+								}
+							},
+							"getSupportedSourceChains()": {
+								"returns": {
+									"sourceChains": "Array of supported source chain IDs"
+								}
+							},
+							"isGuardian(address)": {
+								"params": {
+									"guardian": "Address to check"
+								},
+								"returns": {
+									"isGuardian": "Whether address is a current guardian"
+								}
+							},
+							"isMessageTimedOut(bytes32)": {
+								"params": {
+									"messageHash": "Message hash to check"
+								},
+								"returns": {
+									"timedOut": "Whether message has timed out"
+								}
+							},
+							"isMessageVerified(bytes32)": {
+								"params": {
+									"messageHash": "Message hash to check"
+								},
+								"returns": {
+									"verified": "Verification status"
+								}
+							},
+							"isNullifierUsed(bytes32)": {
+								"params": {
+									"nullifier": "Nullifier to check"
+								},
+								"returns": {
+									"used": "Whether nullifier has been used"
+								}
+							},
+							"isSourceChainSupported(uint16)": {
+								"params": {
+									"chainId": "Chain ID to check"
+								},
+								"returns": {
+									"supported": "Whether chain is supported"
+								}
+							},
+							"verifyGuardianSignature(bytes32,bytes,address)": {
+								"params": {
+									"guardian": "Guardian address",
+									"messageHash": "Message hash",
+									"signature": "Guardian signature"
+								},
+								"returns": {
+									"valid": "Signature validity"
+								}
+							},
+							"verifyMessage(bytes,bytes)": {
+								"params": {
+									"encodedVM": "Wormhole encoded verified message",
+									"proof": "ZK proof data"
+								},
+								"returns": {
+									"success": "Verification success status"
+								}
+							}
+						},
+						"title": "IBridgeVerifier",
+						"version": 1
+					},
+					"evm": {
+						"assembly": "",
+						"bytecode": {
+							"functionDebugData": {},
+							"generatedSources": [],
+							"linkReferences": {},
+							"object": "",
+							"opcodes": "",
+							"sourceMap": ""
+						},
+						"deployedBytecode": {
+							"functionDebugData": {},
+							"generatedSources": [],
+							"immutableReferences": {},
+							"linkReferences": {},
+							"object": "",
+							"opcodes": "",
+							"sourceMap": ""
+						},
+						"gasEstimates": null,
+						"legacyAssembly": null,
+						"methodIdentifiers": {
+							"getGuardianActions(bytes32)": "34bd5c12",
+							"getGuardians()": "0665f04b",
+							"getMessage(bytes32)": "0139a221",
+							"getMessageStatus(bytes32)": "5075a9d4",
+							"getMessageTimeout()": "448f4d0f",
+							"getRequiredSignatures()": "ccd93998",
+							"getSupportedSourceChains()": "dc6a0b55",
+							"isGuardian(address)": "0c68ba21",
+							"isMessageTimedOut(bytes32)": "38a4be87",
+							"isMessageVerified(bytes32)": "e002fe37",
+							"isNullifierUsed(bytes32)": "22dc7b4c",
+							"isSourceChainSupported(uint16)": "ed06faa5",
+							"verifyGuardianSignature(bytes32,bytes,address)": "75b14412",
+							"verifyMessage(bytes,bytes)": "08b64d01"
+						}
+					},
+					"metadata": "{\"compiler\":{\"version\":\"0.8.26+commit.8a97fa7a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint32\",\"name\":\"index\",\"type\":\"uint32\"},{\"indexed\":false,\"internalType\":\"address[]\",\"name\":\"guardians\",\"type\":\"address[]\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"GuardianSetUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"reason\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"MessageVerificationFailed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint16\",\"name\":\"sourceChain\",\"type\":\"uint16\"},{\"indexed\":true,\"internalType\":\"uint16\",\"name\":\"targetChain\",\"type\":\"uint16\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"MessageVerified\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"proofHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"ProofVerified\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"}],\"name\":\"getGuardianActions\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"guardian\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"internalType\":\"struct IBridgeVerifier.GuardianAction[]\",\"name\":\"actions\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getGuardians\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"guardians\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"}],\"name\":\"getMessage\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint16\",\"name\":\"sourceChain\",\"type\":\"uint16\"},{\"internalType\":\"uint16\",\"name\":\"targetChain\",\"type\":\"uint16\"},{\"internalType\":\"bytes32\",\"name\":\"payloadHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"nullifier\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"enum IBridgeVerifier.MessageStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"proof\",\"type\":\"bytes32\"}],\"internalType\":\"struct IBridgeVerifier.CrossChainMessage\",\"name\":\"message\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"}],\"name\":\"getMessageStatus\",\"outputs\":[{\"internalType\":\"enum IBridgeVerifier.MessageStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMessageTimeout\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"timeout\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getRequiredSignatures\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"required\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getSupportedSourceChains\",\"outputs\":[{\"internalType\":\"uint16[]\",\"name\":\"sourceChains\",\"type\":\"uint16[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"guardian\",\"type\":\"address\"}],\"name\":\"isGuardian\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"isGuardian\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"}],\"name\":\"isMessageTimedOut\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"timedOut\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"}],\"name\":\"isMessageVerified\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"verified\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"nullifier\",\"type\":\"bytes32\"}],\"name\":\"isNullifierUsed\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"used\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint16\",\"name\":\"chainId\",\"type\":\"uint16\"}],\"name\":\"isSourceChainSupported\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"supported\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"address\",\"name\":\"guardian\",\"type\":\"address\"}],\"name\":\"verifyGuardianSignature\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"valid\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encodedVM\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"name\":\"verifyMessage\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Defines the core functionality for verifying cross-chain messages and their associated ZK proofs\",\"events\":{\"GuardianSetUpdated(uint32,address[],uint256)\":{\"params\":{\"guardians\":\"New guardian addresses\",\"index\":\"Guardian set index\",\"timestamp\":\"Update timestamp\"}},\"MessageVerificationFailed(bytes32,string,uint256)\":{\"params\":{\"messageHash\":\"Hash of the failed message\",\"reason\":\"Failure reason\",\"timestamp\":\"Failure timestamp\"}},\"MessageVerified(bytes32,uint16,uint16,address,address,uint256)\":{\"params\":{\"messageHash\":\"Hash of the verified message\",\"recipient\":\"Message recipient\",\"sender\":\"Message sender\",\"sourceChain\":\"Source chain ID\",\"targetChain\":\"Target chain ID\",\"timestamp\":\"Verification timestamp\"}},\"ProofVerified(bytes32,bytes32,uint256)\":{\"params\":{\"messageHash\":\"Associated message hash\",\"proofHash\":\"Hash of the verified proof\",\"timestamp\":\"Verification timestamp\"}}},\"kind\":\"dev\",\"methods\":{\"getGuardianActions(bytes32)\":{\"params\":{\"messageHash\":\"Message hash to query\"},\"returns\":{\"actions\":\"Array of guardian actions\"}},\"getGuardians()\":{\"returns\":{\"guardians\":\"Array of current guardian addresses\"}},\"getMessage(bytes32)\":{\"params\":{\"messageHash\":\"Message hash to query\"},\"returns\":{\"message\":\"CrossChainMessage struct\"}},\"getMessageStatus(bytes32)\":{\"params\":{\"messageHash\":\"Message hash to check\"},\"returns\":{\"status\":\"Current message status\"}},\"getMessageTimeout()\":{\"returns\":{\"timeout\":\"Timeout period in seconds\"}},\"getRequiredSignatures()\":{\"returns\":{\"required\":\"Number of required signatures\"}},\"getSupportedSourceChains()\":{\"returns\":{\"sourceChains\":\"Array of supported source chain IDs\"}},\"isGuardian(address)\":{\"params\":{\"guardian\":\"Address to check\"},\"returns\":{\"isGuardian\":\"Whether address is a current guardian\"}},\"isMessageTimedOut(bytes32)\":{\"params\":{\"messageHash\":\"Message hash to check\"},\"returns\":{\"timedOut\":\"Whether message has timed out\"}},\"isMessageVerified(bytes32)\":{\"params\":{\"messageHash\":\"Message hash to check\"},\"returns\":{\"verified\":\"Verification status\"}},\"isNullifierUsed(bytes32)\":{\"params\":{\"nullifier\":\"Nullifier to check\"},\"returns\":{\"used\":\"Whether nullifier has been used\"}},\"isSourceChainSupported(uint16)\":{\"params\":{\"chainId\":\"Chain ID to check\"},\"returns\":{\"supported\":\"Whether chain is supported\"}},\"verifyGuardianSignature(bytes32,bytes,address)\":{\"params\":{\"guardian\":\"Guardian address\",\"messageHash\":\"Message hash\",\"signature\":\"Guardian signature\"},\"returns\":{\"valid\":\"Signature validity\"}},\"verifyMessage(bytes,bytes)\":{\"params\":{\"encodedVM\":\"Wormhole encoded verified message\",\"proof\":\"ZK proof data\"},\"returns\":{\"success\":\"Verification success status\"}}},\"title\":\"IBridgeVerifier\",\"version\":1},\"userdoc\":{\"events\":{\"GuardianSetUpdated(uint32,address[],uint256)\":{\"notice\":\"Emitted when a guardian set is updated\"},\"MessageVerificationFailed(bytes32,string,uint256)\":{\"notice\":\"Emitted when a cross-chain message fails verification\"},\"MessageVerified(bytes32,uint16,uint16,address,address,uint256)\":{\"notice\":\"Emitted when a cross-chain message is verified\"},\"ProofVerified(bytes32,bytes32,uint256)\":{\"notice\":\"Emitted when a proof is verified\"}},\"kind\":\"user\",\"methods\":{\"getGuardianActions(bytes32)\":{\"notice\":\"Get guardian actions for a message\"},\"getGuardians()\":{\"notice\":\"Get active guardian set\"},\"getMessage(bytes32)\":{\"notice\":\"Get message details\"},\"getMessageStatus(bytes32)\":{\"notice\":\"Get message status\"},\"getMessageTimeout()\":{\"notice\":\"Get message timeout period\"},\"getRequiredSignatures()\":{\"notice\":\"Get required number of guardian signatures\"},\"getSupportedSourceChains()\":{\"notice\":\"Get supported source chains\"},\"isGuardian(address)\":{\"notice\":\"Check if an address is a guardian\"},\"isMessageTimedOut(bytes32)\":{\"notice\":\"Check if message has timed out\"},\"isMessageVerified(bytes32)\":{\"notice\":\"Check if a message is verified\"},\"isNullifierUsed(bytes32)\":{\"notice\":\"Check if nullifier has been used\"},\"isSourceChainSupported(uint16)\":{\"notice\":\"Check if source chain is supported\"},\"verifyGuardianSignature(bytes32,bytes,address)\":{\"notice\":\"Verify a guardian signature\"},\"verifyMessage(bytes,bytes)\":{\"notice\":\"Verify a cross-chain message with ZK proof\"}},\"notice\":\"Interface for cross-chain message and proof verification in Cipher Zero Protocol\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"interfaces/IBridgeVerifier.sol\":\"IBridgeVerifier\"},\"evmVersion\":\"cancun\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"interfaces/IBridgeVerifier.sol\":{\"keccak256\":\"0xd0c626902e2d65b085de2ace5c23230890b40195fcf81dc36707900dad83e89b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://9eedd2085593431de1de8baad090a103f855b58900c94090fee43c477e1e2ba9\",\"dweb:/ipfs/QmXmPpMy8cF3gRcQzd6oXciAgyjSE98QtuVFiSuwPzfytU\"]}},\"version\":1}",
+					"storageLayout": {
+						"storage": [],
+						"types": null
+					},
+					"userdoc": {
+						"events": {
+							"GuardianSetUpdated(uint32,address[],uint256)": {
+								"notice": "Emitted when a guardian set is updated"
+							},
+							"MessageVerificationFailed(bytes32,string,uint256)": {
+								"notice": "Emitted when a cross-chain message fails verification"
+							},
+							"MessageVerified(bytes32,uint16,uint16,address,address,uint256)": {
+								"notice": "Emitted when a cross-chain message is verified"
+							},
+							"ProofVerified(bytes32,bytes32,uint256)": {
+								"notice": "Emitted when a proof is verified"
+							}
+						},
+						"kind": "user",
+						"methods": {
+							"getGuardianActions(bytes32)": {
+								"notice": "Get guardian actions for a message"
+							},
+							"getGuardians()": {
+								"notice": "Get active guardian set"
+							},
+							"getMessage(bytes32)": {
+								"notice": "Get message details"
+							},
+							"getMessageStatus(bytes32)": {
+								"notice": "Get message status"
+							},
+							"getMessageTimeout()": {
+								"notice": "Get message timeout period"
+							},
+							"getRequiredSignatures()": {
+								"notice": "Get required number of guardian signatures"
+							},
+							"getSupportedSourceChains()": {
+								"notice": "Get supported source chains"
+							},
+							"isGuardian(address)": {
+								"notice": "Check if an address is a guardian"
+							},
+							"isMessageTimedOut(bytes32)": {
+								"notice": "Check if message has timed out"
+							},
+							"isMessageVerified(bytes32)": {
+								"notice": "Check if a message is verified"
+							},
+							"isNullifierUsed(bytes32)": {
+								"notice": "Check if nullifier has been used"
+							},
+							"isSourceChainSupported(uint16)": {
+								"notice": "Check if source chain is supported"
+							},
+							"verifyGuardianSignature(bytes32,bytes,address)": {
+								"notice": "Verify a guardian signature"
+							},
+							"verifyMessage(bytes,bytes)": {
+								"notice": "Verify a cross-chain message with ZK proof"
+							}
+						},
+						"notice": "Interface for cross-chain message and proof verification in Cipher Zero Protocol",
+						"version": 1
+					}
+				}
+			}
+		},
+		"sources": {
+			"interfaces/IBridgeVerifier.sol": {
+				"ast": {
+					"absolutePath": "interfaces/IBridgeVerifier.sol",
+					"exportedSymbols": {
+						"IBridgeVerifier": [
+							202
+						]
+					},
+					"id": 203,
+					"license": "MIT",
+					"nodeType": "SourceUnit",
+					"nodes": [
+						{
+							"id": 1,
+							"literals": [
+								"solidity",
+								"^",
+								"0.8",
+								".26"
+							],
+							"nodeType": "PragmaDirective",
+							"src": "33:24:0"
+						},
+						{
+							"abstract": false,
+							"baseContracts": [],
+							"canonicalName": "IBridgeVerifier",
+							"contractDependencies": [],
+							"contractKind": "interface",
+							"documentation": {
+								"id": 2,
+								"nodeType": "StructuredDocumentation",
+								"src": "61:234:0",
+								"text": " @title IBridgeVerifier\n @notice Interface for cross-chain message and proof verification in Cipher Zero Protocol\n @dev Defines the core functionality for verifying cross-chain messages and their associated ZK proofs"
+							},
+							"fullyImplemented": false,
+							"id": 202,
+							"linearizedBaseContracts": [
+								202
+							],
+							"name": "IBridgeVerifier",
+							"nameLocation": "307:15:0",
+							"nodeType": "ContractDefinition",
+							"nodes": [
+								{
+									"canonicalName": "IBridgeVerifier.MessageStatus",
+									"documentation": {
+										"id": 3,
+										"nodeType": "StructuredDocumentation",
+										"src": "330:271:0",
+										"text": " @notice Message verification status\n @param UNVERIFIED Initial state\n @param PENDING Verification in progress\n @param VERIFIED Successfully verified\n @param FAILED Verification failed\n @param EXPIRED Message timeout"
+									},
+									"id": 9,
+									"members": [
+										{
+											"id": 4,
+											"name": "UNVERIFIED",
+											"nameLocation": "637:10:0",
+											"nodeType": "EnumValue",
+											"src": "637:10:0"
+										},
+										{
+											"id": 5,
+											"name": "PENDING",
+											"nameLocation": "658:7:0",
+											"nodeType": "EnumValue",
+											"src": "658:7:0"
+										},
+										{
+											"id": 6,
+											"name": "VERIFIED",
+											"nameLocation": "676:8:0",
+											"nodeType": "EnumValue",
+											"src": "676:8:0"
+										},
+										{
+											"id": 7,
+											"name": "FAILED",
+											"nameLocation": "695:6:0",
+											"nodeType": "EnumValue",
+											"src": "695:6:0"
+										},
+										{
+											"id": 8,
+											"name": "EXPIRED",
+											"nameLocation": "712:7:0",
+											"nodeType": "EnumValue",
+											"src": "712:7:0"
+										}
+									],
+									"name": "MessageStatus",
+									"nameLocation": "612:13:0",
+									"nodeType": "EnumDefinition",
+									"src": "607:119:0"
+								},
+								{
+									"canonicalName": "IBridgeVerifier.CrossChainMessage",
+									"documentation": {
+										"id": 10,
+										"nodeType": "StructuredDocumentation",
+										"src": "734:477:0",
+										"text": " @notice Cross-chain message structure\n @param messageHash Hash of message data\n @param sourceChain Source chain ID\n @param targetChain Target chain ID\n @param payloadHash Hash of payload data\n @param nullifier Unique nullifier\n @param sender Original sender\n @param recipient Target recipient\n @param status Message status\n @param timestamp Message timestamp\n @param proof ZK proof hash"
+									},
+									"id": 32,
+									"members": [
+										{
+											"constant": false,
+											"id": 12,
+											"mutability": "mutable",
+											"name": "messageHash",
+											"nameLocation": "1261:11:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 32,
+											"src": "1253:19:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_bytes32",
+												"typeString": "bytes32"
+											},
+											"typeName": {
+												"id": 11,
+												"name": "bytes32",
+												"nodeType": "ElementaryTypeName",
+												"src": "1253:7:0",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												}
+											},
+											"visibility": "internal"
+										},
+										{
+											"constant": false,
+											"id": 14,
+											"mutability": "mutable",
+											"name": "sourceChain",
+											"nameLocation": "1290:11:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 32,
+											"src": "1283:18:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_uint16",
+												"typeString": "uint16"
+											},
+											"typeName": {
+												"id": 13,
+												"name": "uint16",
+												"nodeType": "ElementaryTypeName",
+												"src": "1283:6:0",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint16",
+													"typeString": "uint16"
+												}
+											},
+											"visibility": "internal"
+										},
+										{
+											"constant": false,
+											"id": 16,
+											"mutability": "mutable",
+											"name": "targetChain",
+											"nameLocation": "1319:11:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 32,
+											"src": "1312:18:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_uint16",
+												"typeString": "uint16"
+											},
+											"typeName": {
+												"id": 15,
+												"name": "uint16",
+												"nodeType": "ElementaryTypeName",
+												"src": "1312:6:0",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint16",
+													"typeString": "uint16"
+												}
+											},
+											"visibility": "internal"
+										},
+										{
+											"constant": false,
+											"id": 18,
+											"mutability": "mutable",
+											"name": "payloadHash",
+											"nameLocation": "1349:11:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 32,
+											"src": "1341:19:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_bytes32",
+												"typeString": "bytes32"
+											},
+											"typeName": {
+												"id": 17,
+												"name": "bytes32",
+												"nodeType": "ElementaryTypeName",
+												"src": "1341:7:0",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												}
+											},
+											"visibility": "internal"
+										},
+										{
+											"constant": false,
+											"id": 20,
+											"mutability": "mutable",
+											"name": "nullifier",
+											"nameLocation": "1379:9:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 32,
+											"src": "1371:17:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_bytes32",
+												"typeString": "bytes32"
+											},
+											"typeName": {
+												"id": 19,
+												"name": "bytes32",
+												"nodeType": "ElementaryTypeName",
+												"src": "1371:7:0",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												}
+											},
+											"visibility": "internal"
+										},
+										{
+											"constant": false,
+											"id": 22,
+											"mutability": "mutable",
+											"name": "sender",
+											"nameLocation": "1407:6:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 32,
+											"src": "1399:14:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_address",
+												"typeString": "address"
+											},
+											"typeName": {
+												"id": 21,
+												"name": "address",
+												"nodeType": "ElementaryTypeName",
+												"src": "1399:7:0",
+												"stateMutability": "nonpayable",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												}
+											},
+											"visibility": "internal"
+										},
+										{
+											"constant": false,
+											"id": 24,
+											"mutability": "mutable",
+											"name": "recipient",
+											"nameLocation": "1432:9:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 32,
+											"src": "1424:17:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_address",
+												"typeString": "address"
+											},
+											"typeName": {
+												"id": 23,
+												"name": "address",
+												"nodeType": "ElementaryTypeName",
+												"src": "1424:7:0",
+												"stateMutability": "nonpayable",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												}
+											},
+											"visibility": "internal"
+										},
+										{
+											"constant": false,
+											"id": 27,
+											"mutability": "mutable",
+											"name": "status",
+											"nameLocation": "1466:6:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 32,
+											"src": "1452:20:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_enum$_MessageStatus_$9",
+												"typeString": "enum IBridgeVerifier.MessageStatus"
+											},
+											"typeName": {
+												"id": 26,
+												"nodeType": "UserDefinedTypeName",
+												"pathNode": {
+													"id": 25,
+													"name": "MessageStatus",
+													"nameLocations": [
+														"1452:13:0"
+													],
+													"nodeType": "IdentifierPath",
+													"referencedDeclaration": 9,
+													"src": "1452:13:0"
+												},
+												"referencedDeclaration": 9,
+												"src": "1452:13:0",
+												"typeDescriptions": {
+													"typeIdentifier": "t_enum$_MessageStatus_$9",
+													"typeString": "enum IBridgeVerifier.MessageStatus"
+												}
+											},
+											"visibility": "internal"
+										},
+										{
+											"constant": false,
+											"id": 29,
+											"mutability": "mutable",
+											"name": "timestamp",
+											"nameLocation": "1491:9:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 32,
+											"src": "1483:17:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_uint256",
+												"typeString": "uint256"
+											},
+											"typeName": {
+												"id": 28,
+												"name": "uint256",
+												"nodeType": "ElementaryTypeName",
+												"src": "1483:7:0",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												}
+											},
+											"visibility": "internal"
+										},
+										{
+											"constant": false,
+											"id": 31,
+											"mutability": "mutable",
+											"name": "proof",
+											"nameLocation": "1519:5:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 32,
+											"src": "1511:13:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_bytes32",
+												"typeString": "bytes32"
+											},
+											"typeName": {
+												"id": 30,
+												"name": "bytes32",
+												"nodeType": "ElementaryTypeName",
+												"src": "1511:7:0",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												}
+											},
+											"visibility": "internal"
+										}
+									],
+									"name": "CrossChainMessage",
+									"nameLocation": "1224:17:0",
+									"nodeType": "StructDefinition",
+									"scope": 202,
+									"src": "1217:315:0",
+									"visibility": "public"
+								},
+								{
+									"canonicalName": "IBridgeVerifier.GuardianAction",
+									"documentation": {
+										"id": 33,
+										"nodeType": "StructuredDocumentation",
+										"src": "1540:221:0",
+										"text": " @notice Guardian action structure\n @param guardian Guardian address\n @param messageHash Message hash\n @param signature Guardian signature\n @param timestamp Action timestamp"
+									},
+									"id": 42,
+									"members": [
+										{
+											"constant": false,
+											"id": 35,
+											"mutability": "mutable",
+											"name": "guardian",
+											"nameLocation": "1808:8:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 42,
+											"src": "1800:16:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_address",
+												"typeString": "address"
+											},
+											"typeName": {
+												"id": 34,
+												"name": "address",
+												"nodeType": "ElementaryTypeName",
+												"src": "1800:7:0",
+												"stateMutability": "nonpayable",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												}
+											},
+											"visibility": "internal"
+										},
+										{
+											"constant": false,
+											"id": 37,
+											"mutability": "mutable",
+											"name": "messageHash",
+											"nameLocation": "1835:11:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 42,
+											"src": "1827:19:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_bytes32",
+												"typeString": "bytes32"
+											},
+											"typeName": {
+												"id": 36,
+												"name": "bytes32",
+												"nodeType": "ElementaryTypeName",
+												"src": "1827:7:0",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												}
+											},
+											"visibility": "internal"
+										},
+										{
+											"constant": false,
+											"id": 39,
+											"mutability": "mutable",
+											"name": "signature",
+											"nameLocation": "1863:9:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 42,
+											"src": "1857:15:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_bytes_storage_ptr",
+												"typeString": "bytes"
+											},
+											"typeName": {
+												"id": 38,
+												"name": "bytes",
+												"nodeType": "ElementaryTypeName",
+												"src": "1857:5:0",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_storage_ptr",
+													"typeString": "bytes"
+												}
+											},
+											"visibility": "internal"
+										},
+										{
+											"constant": false,
+											"id": 41,
+											"mutability": "mutable",
+											"name": "timestamp",
+											"nameLocation": "1891:9:0",
+											"nodeType": "VariableDeclaration",
+											"scope": 42,
+											"src": "1883:17:0",
+											"stateVariable": false,
+											"storageLocation": "default",
+											"typeDescriptions": {
+												"typeIdentifier": "t_uint256",
+												"typeString": "uint256"
+											},
+											"typeName": {
+												"id": 40,
+												"name": "uint256",
+												"nodeType": "ElementaryTypeName",
+												"src": "1883:7:0",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												}
+											},
+											"visibility": "internal"
+										}
+									],
+									"name": "GuardianAction",
+									"nameLocation": "1774:14:0",
+									"nodeType": "StructDefinition",
+									"scope": 202,
+									"src": "1767:141:0",
+									"visibility": "public"
+								},
+								{
+									"anonymous": false,
+									"documentation": {
+										"id": 43,
+										"nodeType": "StructuredDocumentation",
+										"src": "1916:345:0",
+										"text": " @notice Emitted when a cross-chain message is verified\n @param messageHash Hash of the verified message\n @param sourceChain Source chain ID\n @param targetChain Target chain ID\n @param sender Message sender\n @param recipient Message recipient\n @param timestamp Verification timestamp"
+									},
+									"eventSelector": "25156726cad8bbe7b979b0ce27b209c8f538bc377a7bd56e133ad6b9eb851ec0",
+									"id": 57,
+									"name": "MessageVerified",
+									"nameLocation": "2273:15:0",
+									"nodeType": "EventDefinition",
+									"parameters": {
+										"id": 56,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 45,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "messageHash",
+												"nameLocation": "2315:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 57,
+												"src": "2299:27:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 44,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2299:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 47,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "sourceChain",
+												"nameLocation": "2352:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 57,
+												"src": "2337:26:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint16",
+													"typeString": "uint16"
+												},
+												"typeName": {
+													"id": 46,
+													"name": "uint16",
+													"nodeType": "ElementaryTypeName",
+													"src": "2337:6:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint16",
+														"typeString": "uint16"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 49,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "targetChain",
+												"nameLocation": "2389:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 57,
+												"src": "2374:26:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint16",
+													"typeString": "uint16"
+												},
+												"typeName": {
+													"id": 48,
+													"name": "uint16",
+													"nodeType": "ElementaryTypeName",
+													"src": "2374:6:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint16",
+														"typeString": "uint16"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 51,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "sender",
+												"nameLocation": "2419:6:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 57,
+												"src": "2411:14:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 50,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "2411:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 53,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "recipient",
+												"nameLocation": "2444:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 57,
+												"src": "2436:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 52,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "2436:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 55,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "timestamp",
+												"nameLocation": "2472:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 57,
+												"src": "2464:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 54,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "2464:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2288:200:0"
+									},
+									"src": "2267:222:0"
+								},
+								{
+									"anonymous": false,
+									"documentation": {
+										"id": 58,
+										"nodeType": "StructuredDocumentation",
+										"src": "2497:216:0",
+										"text": " @notice Emitted when a cross-chain message fails verification\n @param messageHash Hash of the failed message\n @param reason Failure reason\n @param timestamp Failure timestamp"
+									},
+									"eventSelector": "dd9edb245740344e614fccbde9e76c3af44df3ff753baa649dd72acc0a88b16f",
+									"id": 66,
+									"name": "MessageVerificationFailed",
+									"nameLocation": "2725:25:0",
+									"nodeType": "EventDefinition",
+									"parameters": {
+										"id": 65,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 60,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "messageHash",
+												"nameLocation": "2777:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 66,
+												"src": "2761:27:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 59,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2761:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 62,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "reason",
+												"nameLocation": "2806:6:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 66,
+												"src": "2799:13:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_string_memory_ptr",
+													"typeString": "string"
+												},
+												"typeName": {
+													"id": 61,
+													"name": "string",
+													"nodeType": "ElementaryTypeName",
+													"src": "2799:6:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_string_storage_ptr",
+														"typeString": "string"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 64,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "timestamp",
+												"nameLocation": "2831:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 66,
+												"src": "2823:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 63,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "2823:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2750:97:0"
+									},
+									"src": "2719:129:0"
+								},
+								{
+									"anonymous": false,
+									"documentation": {
+										"id": 67,
+										"nodeType": "StructuredDocumentation",
+										"src": "2856:197:0",
+										"text": " @notice Emitted when a guardian set is updated\n @param index Guardian set index\n @param guardians New guardian addresses\n @param timestamp Update timestamp"
+									},
+									"eventSelector": "040e08e85d8648f6568a266d340dfd142e0cdceb54d02a1160ac5c23383df881",
+									"id": 76,
+									"name": "GuardianSetUpdated",
+									"nameLocation": "3065:18:0",
+									"nodeType": "EventDefinition",
+									"parameters": {
+										"id": 75,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 69,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "index",
+												"nameLocation": "3109:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 76,
+												"src": "3094:20:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint32",
+													"typeString": "uint32"
+												},
+												"typeName": {
+													"id": 68,
+													"name": "uint32",
+													"nodeType": "ElementaryTypeName",
+													"src": "3094:6:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint32",
+														"typeString": "uint32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 72,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "guardians",
+												"nameLocation": "3135:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 76,
+												"src": "3125:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+													"typeString": "address[]"
+												},
+												"typeName": {
+													"baseType": {
+														"id": 70,
+														"name": "address",
+														"nodeType": "ElementaryTypeName",
+														"src": "3125:7:0",
+														"stateMutability": "nonpayable",
+														"typeDescriptions": {
+															"typeIdentifier": "t_address",
+															"typeString": "address"
+														}
+													},
+													"id": 71,
+													"nodeType": "ArrayTypeName",
+													"src": "3125:9:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_array$_t_address_$dyn_storage_ptr",
+														"typeString": "address[]"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 74,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "timestamp",
+												"nameLocation": "3163:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 76,
+												"src": "3155:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 73,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "3155:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "3083:96:0"
+									},
+									"src": "3059:121:0"
+								},
+								{
+									"anonymous": false,
+									"documentation": {
+										"id": 77,
+										"nodeType": "StructuredDocumentation",
+										"src": "3188:212:0",
+										"text": " @notice Emitted when a proof is verified\n @param messageHash Associated message hash\n @param proofHash Hash of the verified proof\n @param timestamp Verification timestamp"
+									},
+									"eventSelector": "5218389e256f588f1b0c542d774ec9ba39106830c105126b25a30eab96afa3be",
+									"id": 85,
+									"name": "ProofVerified",
+									"nameLocation": "3412:13:0",
+									"nodeType": "EventDefinition",
+									"parameters": {
+										"id": 84,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 79,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "messageHash",
+												"nameLocation": "3452:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 85,
+												"src": "3436:27:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 78,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "3436:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 81,
+												"indexed": true,
+												"mutability": "mutable",
+												"name": "proofHash",
+												"nameLocation": "3490:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 85,
+												"src": "3474:25:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 80,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "3474:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 83,
+												"indexed": false,
+												"mutability": "mutable",
+												"name": "timestamp",
+												"nameLocation": "3518:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 85,
+												"src": "3510:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 82,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "3510:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "3425:109:0"
+									},
+									"src": "3406:129:0"
+								},
+								{
+									"documentation": {
+										"id": 86,
+										"nodeType": "StructuredDocumentation",
+										"src": "3543:217:0",
+										"text": " @notice Verify a cross-chain message with ZK proof\n @param encodedVM Wormhole encoded verified message\n @param proof ZK proof data\n @return success Verification success status"
+									},
+									"functionSelector": "08b64d01",
+									"id": 95,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "verifyMessage",
+									"nameLocation": "3775:13:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 91,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 88,
+												"mutability": "mutable",
+												"name": "encodedVM",
+												"nameLocation": "3812:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 95,
+												"src": "3799:22:0",
+												"stateVariable": false,
+												"storageLocation": "memory",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_memory_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 87,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "3799:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 90,
+												"mutability": "mutable",
+												"name": "proof",
+												"nameLocation": "3845:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 95,
+												"src": "3832:18:0",
+												"stateVariable": false,
+												"storageLocation": "memory",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_memory_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 89,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "3832:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "3788:69:0"
+									},
+									"returnParameters": {
+										"id": 94,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 93,
+												"mutability": "mutable",
+												"name": "success",
+												"nameLocation": "3881:7:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 95,
+												"src": "3876:12:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 92,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "3876:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "3875:14:0"
+									},
+									"scope": 202,
+									"src": "3766:124:0",
+									"stateMutability": "nonpayable",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 96,
+										"nodeType": "StructuredDocumentation",
+										"src": "3898:222:0",
+										"text": " @notice Verify a guardian signature\n @param messageHash Message hash\n @param signature Guardian signature\n @param guardian Guardian address\n @return valid Signature validity"
+									},
+									"functionSelector": "75b14412",
+									"id": 107,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "verifyGuardianSignature",
+									"nameLocation": "4135:23:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 103,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 98,
+												"mutability": "mutable",
+												"name": "messageHash",
+												"nameLocation": "4177:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 107,
+												"src": "4169:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 97,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "4169:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 100,
+												"mutability": "mutable",
+												"name": "signature",
+												"nameLocation": "4212:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 107,
+												"src": "4199:22:0",
+												"stateVariable": false,
+												"storageLocation": "memory",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_memory_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 99,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "4199:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 102,
+												"mutability": "mutable",
+												"name": "guardian",
+												"nameLocation": "4240:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 107,
+												"src": "4232:16:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 101,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "4232:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "4158:97:0"
+									},
+									"returnParameters": {
+										"id": 106,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 105,
+												"mutability": "mutable",
+												"name": "valid",
+												"nameLocation": "4284:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 107,
+												"src": "4279:10:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 104,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "4279:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "4278:12:0"
+									},
+									"scope": 202,
+									"src": "4126:165:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 108,
+										"nodeType": "StructuredDocumentation",
+										"src": "4299:153:0",
+										"text": " @notice Check if a message is verified\n @param messageHash Message hash to check\n @return verified Verification status"
+									},
+									"functionSelector": "e002fe37",
+									"id": 115,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "isMessageVerified",
+									"nameLocation": "4467:17:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 111,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 110,
+												"mutability": "mutable",
+												"name": "messageHash",
+												"nameLocation": "4503:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 115,
+												"src": "4495:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 109,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "4495:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "4484:37:0"
+									},
+									"returnParameters": {
+										"id": 114,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 113,
+												"mutability": "mutable",
+												"name": "verified",
+												"nameLocation": "4550:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 115,
+												"src": "4545:13:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 112,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "4545:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "4544:15:0"
+									},
+									"scope": 202,
+									"src": "4458:102:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 116,
+										"nodeType": "StructuredDocumentation",
+										"src": "4568:142:0",
+										"text": " @notice Get message status\n @param messageHash Message hash to check\n @return status Current message status"
+									},
+									"functionSelector": "5075a9d4",
+									"id": 124,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "getMessageStatus",
+									"nameLocation": "4725:16:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 119,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 118,
+												"mutability": "mutable",
+												"name": "messageHash",
+												"nameLocation": "4760:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 124,
+												"src": "4752:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 117,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "4752:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "4741:37:0"
+									},
+									"returnParameters": {
+										"id": 123,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 122,
+												"mutability": "mutable",
+												"name": "status",
+												"nameLocation": "4816:6:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 124,
+												"src": "4802:20:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_enum$_MessageStatus_$9",
+													"typeString": "enum IBridgeVerifier.MessageStatus"
+												},
+												"typeName": {
+													"id": 121,
+													"nodeType": "UserDefinedTypeName",
+													"pathNode": {
+														"id": 120,
+														"name": "MessageStatus",
+														"nameLocations": [
+															"4802:13:0"
+														],
+														"nodeType": "IdentifierPath",
+														"referencedDeclaration": 9,
+														"src": "4802:13:0"
+													},
+													"referencedDeclaration": 9,
+													"src": "4802:13:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_enum$_MessageStatus_$9",
+														"typeString": "enum IBridgeVerifier.MessageStatus"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "4801:22:0"
+									},
+									"scope": 202,
+									"src": "4716:108:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 125,
+										"nodeType": "StructuredDocumentation",
+										"src": "4832:146:0",
+										"text": " @notice Get message details\n @param messageHash Message hash to query\n @return message CrossChainMessage struct"
+									},
+									"functionSelector": "0139a221",
+									"id": 133,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "getMessage",
+									"nameLocation": "4993:10:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 128,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 127,
+												"mutability": "mutable",
+												"name": "messageHash",
+												"nameLocation": "5022:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 133,
+												"src": "5014:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 126,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "5014:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "5003:37:0"
+									},
+									"returnParameters": {
+										"id": 132,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 131,
+												"mutability": "mutable",
+												"name": "message",
+												"nameLocation": "5089:7:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 133,
+												"src": "5064:32:0",
+												"stateVariable": false,
+												"storageLocation": "memory",
+												"typeDescriptions": {
+													"typeIdentifier": "t_struct$_CrossChainMessage_$32_memory_ptr",
+													"typeString": "struct IBridgeVerifier.CrossChainMessage"
+												},
+												"typeName": {
+													"id": 130,
+													"nodeType": "UserDefinedTypeName",
+													"pathNode": {
+														"id": 129,
+														"name": "CrossChainMessage",
+														"nameLocations": [
+															"5064:17:0"
+														],
+														"nodeType": "IdentifierPath",
+														"referencedDeclaration": 32,
+														"src": "5064:17:0"
+													},
+													"referencedDeclaration": 32,
+													"src": "5064:17:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_struct$_CrossChainMessage_$32_storage_ptr",
+														"typeString": "struct IBridgeVerifier.CrossChainMessage"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "5063:34:0"
+									},
+									"scope": 202,
+									"src": "4984:114:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 134,
+										"nodeType": "StructuredDocumentation",
+										"src": "5106:114:0",
+										"text": " @notice Get active guardian set\n @return guardians Array of current guardian addresses"
+									},
+									"functionSelector": "0665f04b",
+									"id": 140,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "getGuardians",
+									"nameLocation": "5235:12:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 135,
+										"nodeType": "ParameterList",
+										"parameters": [],
+										"src": "5247:2:0"
+									},
+									"returnParameters": {
+										"id": 139,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 138,
+												"mutability": "mutable",
+												"name": "guardians",
+												"nameLocation": "5290:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 140,
+												"src": "5273:26:0",
+												"stateVariable": false,
+												"storageLocation": "memory",
+												"typeDescriptions": {
+													"typeIdentifier": "t_array$_t_address_$dyn_memory_ptr",
+													"typeString": "address[]"
+												},
+												"typeName": {
+													"baseType": {
+														"id": 136,
+														"name": "address",
+														"nodeType": "ElementaryTypeName",
+														"src": "5273:7:0",
+														"stateMutability": "nonpayable",
+														"typeDescriptions": {
+															"typeIdentifier": "t_address",
+															"typeString": "address"
+														}
+													},
+													"id": 137,
+													"nodeType": "ArrayTypeName",
+													"src": "5273:9:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_array$_t_address_$dyn_storage_ptr",
+														"typeString": "address[]"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "5272:28:0"
+									},
+									"scope": 202,
+									"src": "5226:75:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 141,
+										"nodeType": "StructuredDocumentation",
+										"src": "5309:168:0",
+										"text": " @notice Check if an address is a guardian\n @param guardian Address to check\n @return isGuardian Whether address is a current guardian"
+									},
+									"functionSelector": "0c68ba21",
+									"id": 148,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "isGuardian",
+									"nameLocation": "5492:10:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 144,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 143,
+												"mutability": "mutable",
+												"name": "guardian",
+												"nameLocation": "5521:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 148,
+												"src": "5513:16:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 142,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "5513:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "5502:34:0"
+									},
+									"returnParameters": {
+										"id": 147,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 146,
+												"mutability": "mutable",
+												"name": "isGuardian",
+												"nameLocation": "5565:10:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 148,
+												"src": "5560:15:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 145,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "5560:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "5559:17:0"
+									},
+									"scope": 202,
+									"src": "5483:94:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 149,
+										"nodeType": "StructuredDocumentation",
+										"src": "5585:126:0",
+										"text": " @notice Get required number of guardian signatures\n @return required Number of required signatures"
+									},
+									"functionSelector": "ccd93998",
+									"id": 154,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "getRequiredSignatures",
+									"nameLocation": "5726:21:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 150,
+										"nodeType": "ParameterList",
+										"parameters": [],
+										"src": "5747:2:0"
+									},
+									"returnParameters": {
+										"id": 153,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 152,
+												"mutability": "mutable",
+												"name": "required",
+												"nameLocation": "5781:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 154,
+												"src": "5773:16:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 151,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "5773:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "5772:18:0"
+									},
+									"scope": 202,
+									"src": "5717:74:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 155,
+										"nodeType": "StructuredDocumentation",
+										"src": "5799:121:0",
+										"text": " @notice Get supported source chains\n @return sourceChains Array of supported source chain IDs"
+									},
+									"functionSelector": "dc6a0b55",
+									"id": 161,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "getSupportedSourceChains",
+									"nameLocation": "5935:24:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 156,
+										"nodeType": "ParameterList",
+										"parameters": [],
+										"src": "5959:2:0"
+									},
+									"returnParameters": {
+										"id": 160,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 159,
+												"mutability": "mutable",
+												"name": "sourceChains",
+												"nameLocation": "6001:12:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 161,
+												"src": "5985:28:0",
+												"stateVariable": false,
+												"storageLocation": "memory",
+												"typeDescriptions": {
+													"typeIdentifier": "t_array$_t_uint16_$dyn_memory_ptr",
+													"typeString": "uint16[]"
+												},
+												"typeName": {
+													"baseType": {
+														"id": 157,
+														"name": "uint16",
+														"nodeType": "ElementaryTypeName",
+														"src": "5985:6:0",
+														"typeDescriptions": {
+															"typeIdentifier": "t_uint16",
+															"typeString": "uint16"
+														}
+													},
+													"id": 158,
+													"nodeType": "ArrayTypeName",
+													"src": "5985:8:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_array$_t_uint16_$dyn_storage_ptr",
+														"typeString": "uint16[]"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "5984:30:0"
+									},
+									"scope": 202,
+									"src": "5926:89:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 162,
+										"nodeType": "StructuredDocumentation",
+										"src": "6023:157:0",
+										"text": " @notice Check if source chain is supported\n @param chainId Chain ID to check\n @return supported Whether chain is supported"
+									},
+									"functionSelector": "ed06faa5",
+									"id": 169,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "isSourceChainSupported",
+									"nameLocation": "6195:22:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 165,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 164,
+												"mutability": "mutable",
+												"name": "chainId",
+												"nameLocation": "6235:7:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 169,
+												"src": "6228:14:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint16",
+													"typeString": "uint16"
+												},
+												"typeName": {
+													"id": 163,
+													"name": "uint16",
+													"nodeType": "ElementaryTypeName",
+													"src": "6228:6:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint16",
+														"typeString": "uint16"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "6217:32:0"
+									},
+									"returnParameters": {
+										"id": 168,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 167,
+												"mutability": "mutable",
+												"name": "supported",
+												"nameLocation": "6278:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 169,
+												"src": "6273:14:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 166,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "6273:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "6272:16:0"
+									},
+									"scope": 202,
+									"src": "6186:103:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 170,
+										"nodeType": "StructuredDocumentation",
+										"src": "6297:105:0",
+										"text": " @notice Get message timeout period\n @return timeout Timeout period in seconds"
+									},
+									"functionSelector": "448f4d0f",
+									"id": 175,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "getMessageTimeout",
+									"nameLocation": "6417:17:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 171,
+										"nodeType": "ParameterList",
+										"parameters": [],
+										"src": "6434:2:0"
+									},
+									"returnParameters": {
+										"id": 174,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 173,
+												"mutability": "mutable",
+												"name": "timeout",
+												"nameLocation": "6468:7:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 175,
+												"src": "6460:15:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 172,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "6460:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "6459:17:0"
+									},
+									"scope": 202,
+									"src": "6408:69:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 176,
+										"nodeType": "StructuredDocumentation",
+										"src": "6485:163:0",
+										"text": " @notice Check if message has timed out\n @param messageHash Message hash to check\n @return timedOut Whether message has timed out"
+									},
+									"functionSelector": "38a4be87",
+									"id": 183,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "isMessageTimedOut",
+									"nameLocation": "6663:17:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 179,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 178,
+												"mutability": "mutable",
+												"name": "messageHash",
+												"nameLocation": "6699:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 183,
+												"src": "6691:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 177,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "6691:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "6680:37:0"
+									},
+									"returnParameters": {
+										"id": 182,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 181,
+												"mutability": "mutable",
+												"name": "timedOut",
+												"nameLocation": "6746:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 183,
+												"src": "6741:13:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 180,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "6741:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "6740:15:0"
+									},
+									"scope": 202,
+									"src": "6654:102:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 184,
+										"nodeType": "StructuredDocumentation",
+										"src": "6764:158:0",
+										"text": " @notice Check if nullifier has been used\n @param nullifier Nullifier to check\n @return used Whether nullifier has been used"
+									},
+									"functionSelector": "22dc7b4c",
+									"id": 191,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "isNullifierUsed",
+									"nameLocation": "6937:15:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 187,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 186,
+												"mutability": "mutable",
+												"name": "nullifier",
+												"nameLocation": "6971:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 191,
+												"src": "6963:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 185,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "6963:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "6952:35:0"
+									},
+									"returnParameters": {
+										"id": 190,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 189,
+												"mutability": "mutable",
+												"name": "used",
+												"nameLocation": "7016:4:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 191,
+												"src": "7011:9:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 188,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "7011:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "7010:11:0"
+									},
+									"scope": 202,
+									"src": "6928:94:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 192,
+										"nodeType": "StructuredDocumentation",
+										"src": "7030:162:0",
+										"text": " @notice Get guardian actions for a message\n @param messageHash Message hash to query\n @return actions Array of guardian actions"
+									},
+									"functionSelector": "34bd5c12",
+									"id": 201,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "getGuardianActions",
+									"nameLocation": "7207:18:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 195,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 194,
+												"mutability": "mutable",
+												"name": "messageHash",
+												"nameLocation": "7244:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 201,
+												"src": "7236:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 193,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "7236:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "7225:37:0"
+									},
+									"returnParameters": {
+										"id": 200,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 199,
+												"mutability": "mutable",
+												"name": "actions",
+												"nameLocation": "7310:7:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 201,
+												"src": "7286:31:0",
+												"stateVariable": false,
+												"storageLocation": "memory",
+												"typeDescriptions": {
+													"typeIdentifier": "t_array$_t_struct$_GuardianAction_$42_memory_ptr_$dyn_memory_ptr",
+													"typeString": "struct IBridgeVerifier.GuardianAction[]"
+												},
+												"typeName": {
+													"baseType": {
+														"id": 197,
+														"nodeType": "UserDefinedTypeName",
+														"pathNode": {
+															"id": 196,
+															"name": "GuardianAction",
+															"nameLocations": [
+																"7286:14:0"
+															],
+															"nodeType": "IdentifierPath",
+															"referencedDeclaration": 42,
+															"src": "7286:14:0"
+														},
+														"referencedDeclaration": 42,
+														"src": "7286:14:0",
+														"typeDescriptions": {
+															"typeIdentifier": "t_struct$_GuardianAction_$42_storage_ptr",
+															"typeString": "struct IBridgeVerifier.GuardianAction"
+														}
+													},
+													"id": 198,
+													"nodeType": "ArrayTypeName",
+													"src": "7286:16:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_array$_t_struct$_GuardianAction_$42_storage_$dyn_storage_ptr",
+														"typeString": "struct IBridgeVerifier.GuardianAction[]"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "7285:33:0"
+									},
+									"scope": 202,
+									"src": "7198:121:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								}
+							],
+							"scope": 203,
+							"src": "297:7025:0",
+							"usedErrors": [],
+							"usedEvents": [
+								57,
+								66,
+								76,
+								85
+							]
+						}
+					],
+					"src": "33:7289:0"
+				},
+				"id": 0
+			}
+		}
+	}
+}

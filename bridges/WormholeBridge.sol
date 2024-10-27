@@ -78,4 +78,3 @@ contract WormholeBridge is AccessControl, Pausable {
         _unpause();
     }
 }
-// Duplicate contract declaration removed.

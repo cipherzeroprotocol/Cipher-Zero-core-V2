@@ -1,49 +1,37 @@
-// IVerifier.sol
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
 interface IVerifier {
     /**
-     * Verify a message proof
+     * @notice Verify a file proof
+     * @param fileHash Hash of the file
+     * @param owner Address of the file owner
+     * @param proof Zero-knowledge proof
+     * @return bool True if proof is valid
      */
-    function verifyMessageProof(
-        bytes32 commitment,
+    function verifyFileProof(
+        bytes32 fileHash,
+        address owner,
+        bytes calldata proof
+    ) external view returns (bool);
+
+    /**
+     * @notice Verify possession proof
+     * @param fileHash Hash of the file
+     * @param claimer Address claiming possession
+     * @param proof Zero-knowledge proof
+     * @return bool True if proof is valid
+     */
+    function verifyPossessionProof(
+        bytes32 fileHash,
+        address claimer,
+        bytes calldata proof
+    ) external view returns (bool);
+    function verifyBridgeProof(
+        bytes32 messageHash,
         bytes32 nullifier,
         address sender,
         address recipient,
-        bytes calldata encryptedContent,
-        bytes calldata proof
+        bytes memory proof
     ) external view returns (bool);
-
-
-
-    function verifyDepositProof(
-
-        bytes32 commitment,
-
-        uint256 amount,
-
-        address sender,
-
-        bytes calldata proof
-
-    ) external view returns (bool);
-
-
-
-    function verifyWithdrawProof(
-
-        bytes32 nullifier,
-
-        bytes32 commitment,
-
-        address recipient,
-
-        uint256 amount,
-
-        bytes calldata proof
-
-    ) external view returns (bool);
-
 }
-

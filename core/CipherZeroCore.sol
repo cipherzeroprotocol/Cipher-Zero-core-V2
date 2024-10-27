@@ -3,10 +3,10 @@
 pragma solidity ^0.8.26;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./interfaces/IFileRegistry.sol";
-import "./interfaces/IMessaging.sol";
-import "./interfaces/IStorage.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "../interfaces/IFileRegistry.sol";
+import "../interfaces/IMessaging.sol";
+import "../interfaces/IStorageContract.sol";
 
 /**
  * @title CipherZeroCore
@@ -15,7 +15,7 @@ import "./interfaces/IStorage.sol";
 contract CipherZeroCore is Ownable, ReentrancyGuard {
     IFileRegistry public fileRegistry;
     IMessaging public messaging;
-    IStorage public storage;
+    IStorageContract public storageContract; // Changed from 'storage' to 'storageContract'
 
     mapping(address => bool) public registeredUsers;
 
@@ -30,10 +30,14 @@ contract CipherZeroCore is Ownable, ReentrancyGuard {
      * @param _messaging Address of the Messaging contract
      * @param _storage Address of the Storage contract
      */
-    constructor(address _fileRegistry, address _messaging, address _storage) {
+    constructor(
+        address _fileRegistry, 
+        address _messaging, 
+        address _storage
+    ) Ownable(msg.sender) {
         fileRegistry = IFileRegistry(_fileRegistry);
         messaging = IMessaging(_messaging);
-        storage = IStorage(_storage);
+        storageContract = IStorageContract(_storage); // Updated variable name
     }
 
     /**
@@ -61,38 +65,55 @@ contract CipherZeroCore is Ownable, ReentrancyGuard {
      * @param _fileHash Hash of the file to upload
      * @param _size Size of the file in bytes
      */
-    function uploadFile(bytes32 _fileHash, uint256 _size) external onlyRegisteredUser nonReentrant {
+     function uploadFile(
+        bytes32 _fileHash, 
+        uint256 _size, 
+        bytes calldata _data
+    ) 
+        external 
+        onlyRegisteredUser 
+        nonReentrant 
+    {
         require(_fileHash != bytes32(0), "Invalid file hash");
         require(_size > 0, "File size must be greater than 0");
+        require(_data.length > 0, "Empty file data");
+        require(_data.length == _size, "Size mismatch");
 
         fileRegistry.addFile(_fileHash, msg.sender, _size);
-        storage.storeData(_fileHash);
+        storageContract.storeData(_fileHash, _data);
 
         emit FileUploaded(msg.sender, _fileHash, _size);
     }
 
-    /**
-     * @dev Initiates file download process
-     * @param _fileHash Hash of the file to download
-     */
-    function downloadFile(bytes32 _fileHash) external onlyRegisteredUser nonReentrant {
+    function downloadFile(bytes32 _fileHash) 
+        external 
+        onlyRegisteredUser 
+        nonReentrant 
+        returns (bytes memory)
+    {
         require(fileRegistry.checkAccess(_fileHash, msg.sender), "User does not have access to this file");
+        require(fileRegistry.getFileInfo(_fileHash).exists, "File does not exist");
 
-        storage.retrieveData(_fileHash);
+        bytes memory fileData = storageContract.retrieveData(_fileHash);
+        require(fileData.length > 0, "Empty file data");
 
         emit FileDownloaded(msg.sender, _fileHash);
+        return fileData;
     }
 
-    /**
-     * @dev Sends an encrypted message
-     * @param _recipient Address of the message recipient
-     * @param _encryptedMessage Encrypted message content
-     */
-    function sendMessage(address _recipient, bytes calldata _encryptedMessage) external onlyRegisteredUser nonReentrant {
+    function sendMessage(
+        address _recipient, 
+        bytes calldata _encryptedMessage
+    ) 
+        external 
+        onlyRegisteredUser 
+        nonReentrant 
+    {
         require(_recipient != address(0), "Invalid recipient address");
         require(_encryptedMessage.length > 0, "Message cannot be empty");
 
-        messaging.sendMessage(_recipient, _encryptedMessage);
+        bytes32 messageHash = keccak256(abi.encodePacked(_encryptedMessage));
+        messaging.sendMessage(_recipient, _encryptedMessage, messageHash);
 
         emit MessageSent(msg.sender, _recipient);
     }
@@ -121,6 +142,6 @@ contract CipherZeroCore is Ownable, ReentrancyGuard {
      */
     function updateStorage(address _newStorage) external onlyOwner {
         require(_newStorage != address(0), "Invalid Storage address");
-        storage = IStorage(_newStorage);
+        storageContract = IStorageContract(_newStorage); // Updated variable name
     }
 }

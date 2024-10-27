@@ -4,8 +4,8 @@ pragma solidity ^0.8.26;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
-import "../../interfaces/IZKVerifier.sol";
-import "../../interfaces/IBitTorrent.sol";
+import "../interfaces/IZKVerifier.sol";
+import "../interfaces/IBitTorrent.sol";
 
 /**
  * @title FileProver

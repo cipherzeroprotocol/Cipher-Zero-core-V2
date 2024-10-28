@@ -1,0 +1,1908 @@
+{
+	"id": "f2bcfa330045aeadd7b9bf03424c08eb",
+	"_format": "hh-sol-build-info-1",
+	"solcVersion": "0.8.26",
+	"solcLongVersion": "0.8.26+commit.8a97fa7a",
+	"input": {
+		"language": "Solidity",
+		"sources": {
+			"interfaces/IVerifier.sol": {
+				"content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.26;\n\ninterface IVerifier {\n    /**\n     * @notice Verify a file proof\n     * @param fileHash Hash of the file\n     * @param owner Address of the file owner\n     * @param proof Zero-knowledge proof\n     * @return bool True if proof is valid\n     */\n    function verifyFileProof(\n        bytes32 fileHash,\n        address owner,\n        bytes calldata proof\n    ) external view returns (bool);\n    \n    function verifyFileProof(\n        bytes32 fileCommitment, \n        bytes calldata proof,\n        address sender\n    ) external view returns (bool);\n\n    /**\n     * @notice Verify possession proof\n     * @param fileHash Hash of the file\n     * @param claimer Address claiming possession\n     * @param proof Zero-knowledge proof\n     * @return bool True if proof is valid\n     */\n    function verifyPossessionProof(\n        bytes32 fileHash,\n        address claimer,\n        bytes calldata proof\n    ) external view returns (bool);\n    function verifyBridgeProof(\n        bytes32 messageHash,\n        bytes32 nullifier,\n        address sender,\n        address recipient,\n        bytes memory proof\n    ) external view returns (bool);\n    function verifyMessageProof(\n        bytes32 commitment,\n        bytes32 nullifier,\n        address sender,\n        address recipient,\n        bytes calldata encryptedContent,\n        bytes calldata proof\n    ) external view returns (bool);\n\n\n\n     /**\n     * @notice Verify deposit proof\n     * @param commitment The note commitment\n     * @param amount The deposit amount\n     * @param sender The depositor address\n     * @param proof The zero-knowledge proof\n     * @return bool True if proof is valid\n     */\n    function verifyDepositProof(\n        bytes32 commitment,\n        uint256 amount,\n        address sender,\n        bytes calldata proof\n    ) external view returns (bool);\n\n    /**\n     * @notice Verify withdrawal proof\n     * @param nullifier The note nullifier\n     * @param commitment The note commitment\n     * @param recipient The withdrawal recipient\n     * @param amount The withdrawal amount\n     * @param proof The zero-knowledge proof\n     * @return bool True if proof is valid\n     */\n    function verifyWithdrawProof(\n        bytes32 nullifier,\n        bytes32 commitment,\n        address recipient,\n        uint256 amount,\n        bytes calldata proof\n    ) external view returns (bool);\n\n    /**\n     * @notice Verify transfer proof\n     * @param nullifierFrom Input note nullifier\n     * @param commitmentFrom Input note commitment\n     * @param commitmentTo Output note commitment\n     * @param amount Transfer amount\n     * @param proof Zero-knowledge proof\n     * @return bool True if proof is valid\n     */\n    function verifyTransferProof(\n        bytes32 nullifierFrom,\n        bytes32 commitmentFrom,\n        bytes32 commitmentTo,\n        uint256 amount,\n        bytes calldata proof\n    ) external view returns (bool);\n}"
+			}
+		},
+		"settings": {
+			"optimizer": {
+				"enabled": false,
+				"runs": 200
+			},
+			"outputSelection": {
+				"*": {
+					"": [
+						"ast"
+					],
+					"*": [
+						"abi",
+						"metadata",
+						"devdoc",
+						"userdoc",
+						"storageLayout",
+						"evm.legacyAssembly",
+						"evm.bytecode",
+						"evm.deployedBytecode",
+						"evm.methodIdentifiers",
+						"evm.gasEstimates",
+						"evm.assembly"
+					]
+				}
+			},
+			"remappings": []
+		}
+	},
+	"output": {
+		"contracts": {
+			"interfaces/IVerifier.sol": {
+				"IVerifier": {
+					"abi": [
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "messageHash",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "bytes32",
+									"name": "nullifier",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "address",
+									"name": "sender",
+									"type": "address"
+								},
+								{
+									"internalType": "address",
+									"name": "recipient",
+									"type": "address"
+								},
+								{
+									"internalType": "bytes",
+									"name": "proof",
+									"type": "bytes"
+								}
+							],
+							"name": "verifyBridgeProof",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "commitment",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "uint256",
+									"name": "amount",
+									"type": "uint256"
+								},
+								{
+									"internalType": "address",
+									"name": "sender",
+									"type": "address"
+								},
+								{
+									"internalType": "bytes",
+									"name": "proof",
+									"type": "bytes"
+								}
+							],
+							"name": "verifyDepositProof",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "fileHash",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "address",
+									"name": "owner",
+									"type": "address"
+								},
+								{
+									"internalType": "bytes",
+									"name": "proof",
+									"type": "bytes"
+								}
+							],
+							"name": "verifyFileProof",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "fileCommitment",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "bytes",
+									"name": "proof",
+									"type": "bytes"
+								},
+								{
+									"internalType": "address",
+									"name": "sender",
+									"type": "address"
+								}
+							],
+							"name": "verifyFileProof",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "commitment",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "bytes32",
+									"name": "nullifier",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "address",
+									"name": "sender",
+									"type": "address"
+								},
+								{
+									"internalType": "address",
+									"name": "recipient",
+									"type": "address"
+								},
+								{
+									"internalType": "bytes",
+									"name": "encryptedContent",
+									"type": "bytes"
+								},
+								{
+									"internalType": "bytes",
+									"name": "proof",
+									"type": "bytes"
+								}
+							],
+							"name": "verifyMessageProof",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "fileHash",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "address",
+									"name": "claimer",
+									"type": "address"
+								},
+								{
+									"internalType": "bytes",
+									"name": "proof",
+									"type": "bytes"
+								}
+							],
+							"name": "verifyPossessionProof",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "nullifierFrom",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "bytes32",
+									"name": "commitmentFrom",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "bytes32",
+									"name": "commitmentTo",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "uint256",
+									"name": "amount",
+									"type": "uint256"
+								},
+								{
+									"internalType": "bytes",
+									"name": "proof",
+									"type": "bytes"
+								}
+							],
+							"name": "verifyTransferProof",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "bytes32",
+									"name": "nullifier",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "bytes32",
+									"name": "commitment",
+									"type": "bytes32"
+								},
+								{
+									"internalType": "address",
+									"name": "recipient",
+									"type": "address"
+								},
+								{
+									"internalType": "uint256",
+									"name": "amount",
+									"type": "uint256"
+								},
+								{
+									"internalType": "bytes",
+									"name": "proof",
+									"type": "bytes"
+								}
+							],
+							"name": "verifyWithdrawProof",
+							"outputs": [
+								{
+									"internalType": "bool",
+									"name": "",
+									"type": "bool"
+								}
+							],
+							"stateMutability": "view",
+							"type": "function"
+						}
+					],
+					"devdoc": {
+						"kind": "dev",
+						"methods": {
+							"verifyDepositProof(bytes32,uint256,address,bytes)": {
+								"params": {
+									"amount": "The deposit amount",
+									"commitment": "The note commitment",
+									"proof": "The zero-knowledge proof",
+									"sender": "The depositor address"
+								},
+								"returns": {
+									"_0": "bool True if proof is valid"
+								}
+							},
+							"verifyFileProof(bytes32,address,bytes)": {
+								"params": {
+									"fileHash": "Hash of the file",
+									"owner": "Address of the file owner",
+									"proof": "Zero-knowledge proof"
+								},
+								"returns": {
+									"_0": "bool True if proof is valid"
+								}
+							},
+							"verifyPossessionProof(bytes32,address,bytes)": {
+								"params": {
+									"claimer": "Address claiming possession",
+									"fileHash": "Hash of the file",
+									"proof": "Zero-knowledge proof"
+								},
+								"returns": {
+									"_0": "bool True if proof is valid"
+								}
+							},
+							"verifyTransferProof(bytes32,bytes32,bytes32,uint256,bytes)": {
+								"params": {
+									"amount": "Transfer amount",
+									"commitmentFrom": "Input note commitment",
+									"commitmentTo": "Output note commitment",
+									"nullifierFrom": "Input note nullifier",
+									"proof": "Zero-knowledge proof"
+								},
+								"returns": {
+									"_0": "bool True if proof is valid"
+								}
+							},
+							"verifyWithdrawProof(bytes32,bytes32,address,uint256,bytes)": {
+								"params": {
+									"amount": "The withdrawal amount",
+									"commitment": "The note commitment",
+									"nullifier": "The note nullifier",
+									"proof": "The zero-knowledge proof",
+									"recipient": "The withdrawal recipient"
+								},
+								"returns": {
+									"_0": "bool True if proof is valid"
+								}
+							}
+						},
+						"version": 1
+					},
+					"evm": {
+						"assembly": "",
+						"bytecode": {
+							"functionDebugData": {},
+							"generatedSources": [],
+							"linkReferences": {},
+							"object": "",
+							"opcodes": "",
+							"sourceMap": ""
+						},
+						"deployedBytecode": {
+							"functionDebugData": {},
+							"generatedSources": [],
+							"immutableReferences": {},
+							"linkReferences": {},
+							"object": "",
+							"opcodes": "",
+							"sourceMap": ""
+						},
+						"gasEstimates": null,
+						"legacyAssembly": null,
+						"methodIdentifiers": {
+							"verifyBridgeProof(bytes32,bytes32,address,address,bytes)": "c2655925",
+							"verifyDepositProof(bytes32,uint256,address,bytes)": "ebcb5584",
+							"verifyFileProof(bytes32,address,bytes)": "dc983893",
+							"verifyFileProof(bytes32,bytes,address)": "e3d0a2be",
+							"verifyMessageProof(bytes32,bytes32,address,address,bytes,bytes)": "9cc06848",
+							"verifyPossessionProof(bytes32,address,bytes)": "126b1ee7",
+							"verifyTransferProof(bytes32,bytes32,bytes32,uint256,bytes)": "1392de8f",
+							"verifyWithdrawProof(bytes32,bytes32,address,uint256,bytes)": "c53ed3bf"
+						}
+					},
+					"metadata": "{\"compiler\":{\"version\":\"0.8.26+commit.8a97fa7a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"messageHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"nullifier\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"name\":\"verifyBridgeProof\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"commitment\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"name\":\"verifyDepositProof\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"fileHash\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"name\":\"verifyFileProof\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"fileCommitment\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"verifyFileProof\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"commitment\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"nullifier\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"encryptedContent\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"name\":\"verifyMessageProof\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"fileHash\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"claimer\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"name\":\"verifyPossessionProof\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"nullifierFrom\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"commitmentFrom\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"commitmentTo\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"name\":\"verifyTransferProof\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"nullifier\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"commitment\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"proof\",\"type\":\"bytes\"}],\"name\":\"verifyWithdrawProof\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"verifyDepositProof(bytes32,uint256,address,bytes)\":{\"params\":{\"amount\":\"The deposit amount\",\"commitment\":\"The note commitment\",\"proof\":\"The zero-knowledge proof\",\"sender\":\"The depositor address\"},\"returns\":{\"_0\":\"bool True if proof is valid\"}},\"verifyFileProof(bytes32,address,bytes)\":{\"params\":{\"fileHash\":\"Hash of the file\",\"owner\":\"Address of the file owner\",\"proof\":\"Zero-knowledge proof\"},\"returns\":{\"_0\":\"bool True if proof is valid\"}},\"verifyPossessionProof(bytes32,address,bytes)\":{\"params\":{\"claimer\":\"Address claiming possession\",\"fileHash\":\"Hash of the file\",\"proof\":\"Zero-knowledge proof\"},\"returns\":{\"_0\":\"bool True if proof is valid\"}},\"verifyTransferProof(bytes32,bytes32,bytes32,uint256,bytes)\":{\"params\":{\"amount\":\"Transfer amount\",\"commitmentFrom\":\"Input note commitment\",\"commitmentTo\":\"Output note commitment\",\"nullifierFrom\":\"Input note nullifier\",\"proof\":\"Zero-knowledge proof\"},\"returns\":{\"_0\":\"bool True if proof is valid\"}},\"verifyWithdrawProof(bytes32,bytes32,address,uint256,bytes)\":{\"params\":{\"amount\":\"The withdrawal amount\",\"commitment\":\"The note commitment\",\"nullifier\":\"The note nullifier\",\"proof\":\"The zero-knowledge proof\",\"recipient\":\"The withdrawal recipient\"},\"returns\":{\"_0\":\"bool True if proof is valid\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"verifyDepositProof(bytes32,uint256,address,bytes)\":{\"notice\":\"Verify deposit proof\"},\"verifyFileProof(bytes32,address,bytes)\":{\"notice\":\"Verify a file proof\"},\"verifyPossessionProof(bytes32,address,bytes)\":{\"notice\":\"Verify possession proof\"},\"verifyTransferProof(bytes32,bytes32,bytes32,uint256,bytes)\":{\"notice\":\"Verify transfer proof\"},\"verifyWithdrawProof(bytes32,bytes32,address,uint256,bytes)\":{\"notice\":\"Verify withdrawal proof\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"interfaces/IVerifier.sol\":\"IVerifier\"},\"evmVersion\":\"cancun\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"interfaces/IVerifier.sol\":{\"keccak256\":\"0xae76efa2fa55c8cde5964ae2ee8407487381132c066857df62321b65b0c1cb47\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://e645f9d03250f39f99eec6a17dd52f7b90f2589145ba4bb9545790d37b02315c\",\"dweb:/ipfs/QmZcz5Q18gB81YqCvTHRoi8LKDYgsB1QVyfTSfapZtusQa\"]}},\"version\":1}",
+					"storageLayout": {
+						"storage": [],
+						"types": null
+					},
+					"userdoc": {
+						"kind": "user",
+						"methods": {
+							"verifyDepositProof(bytes32,uint256,address,bytes)": {
+								"notice": "Verify deposit proof"
+							},
+							"verifyFileProof(bytes32,address,bytes)": {
+								"notice": "Verify a file proof"
+							},
+							"verifyPossessionProof(bytes32,address,bytes)": {
+								"notice": "Verify possession proof"
+							},
+							"verifyTransferProof(bytes32,bytes32,bytes32,uint256,bytes)": {
+								"notice": "Verify transfer proof"
+							},
+							"verifyWithdrawProof(bytes32,bytes32,address,uint256,bytes)": {
+								"notice": "Verify withdrawal proof"
+							}
+						},
+						"version": 1
+					}
+				}
+			}
+		},
+		"sources": {
+			"interfaces/IVerifier.sol": {
+				"ast": {
+					"absolutePath": "interfaces/IVerifier.sol",
+					"exportedSymbols": {
+						"IVerifier": [
+							115
+						]
+					},
+					"id": 116,
+					"license": "MIT",
+					"nodeType": "SourceUnit",
+					"nodes": [
+						{
+							"id": 1,
+							"literals": [
+								"solidity",
+								"^",
+								"0.8",
+								".26"
+							],
+							"nodeType": "PragmaDirective",
+							"src": "32:24:0"
+						},
+						{
+							"abstract": false,
+							"baseContracts": [],
+							"canonicalName": "IVerifier",
+							"contractDependencies": [],
+							"contractKind": "interface",
+							"fullyImplemented": false,
+							"id": 115,
+							"linearizedBaseContracts": [
+								115
+							],
+							"name": "IVerifier",
+							"nameLocation": "68:9:0",
+							"nodeType": "ContractDefinition",
+							"nodes": [
+								{
+									"documentation": {
+										"id": 2,
+										"nodeType": "StructuredDocumentation",
+										"src": "84:216:0",
+										"text": " @notice Verify a file proof\n @param fileHash Hash of the file\n @param owner Address of the file owner\n @param proof Zero-knowledge proof\n @return bool True if proof is valid"
+									},
+									"functionSelector": "dc983893",
+									"id": 13,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "verifyFileProof",
+									"nameLocation": "314:15:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 9,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 4,
+												"mutability": "mutable",
+												"name": "fileHash",
+												"nameLocation": "347:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 13,
+												"src": "339:16:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 3,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "339:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 6,
+												"mutability": "mutable",
+												"name": "owner",
+												"nameLocation": "373:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 13,
+												"src": "365:13:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 5,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "365:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 8,
+												"mutability": "mutable",
+												"name": "proof",
+												"nameLocation": "403:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 13,
+												"src": "388:20:0",
+												"stateVariable": false,
+												"storageLocation": "calldata",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_calldata_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 7,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "388:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "329:85:0"
+									},
+									"returnParameters": {
+										"id": 12,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 11,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 13,
+												"src": "438:4:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 10,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "438:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "437:6:0"
+									},
+									"scope": 115,
+									"src": "305:139:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"functionSelector": "e3d0a2be",
+									"id": 24,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "verifyFileProof",
+									"nameLocation": "463:15:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 20,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 15,
+												"mutability": "mutable",
+												"name": "fileCommitment",
+												"nameLocation": "496:14:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 24,
+												"src": "488:22:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 14,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "488:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 17,
+												"mutability": "mutable",
+												"name": "proof",
+												"nameLocation": "536:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 24,
+												"src": "521:20:0",
+												"stateVariable": false,
+												"storageLocation": "calldata",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_calldata_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 16,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "521:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 19,
+												"mutability": "mutable",
+												"name": "sender",
+												"nameLocation": "559:6:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 24,
+												"src": "551:14:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 18,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "551:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "478:93:0"
+									},
+									"returnParameters": {
+										"id": 23,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 22,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 24,
+												"src": "595:4:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 21,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "595:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "594:6:0"
+									},
+									"scope": 115,
+									"src": "454:147:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 25,
+										"nodeType": "StructuredDocumentation",
+										"src": "607:224:0",
+										"text": " @notice Verify possession proof\n @param fileHash Hash of the file\n @param claimer Address claiming possession\n @param proof Zero-knowledge proof\n @return bool True if proof is valid"
+									},
+									"functionSelector": "126b1ee7",
+									"id": 36,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "verifyPossessionProof",
+									"nameLocation": "845:21:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 32,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 27,
+												"mutability": "mutable",
+												"name": "fileHash",
+												"nameLocation": "884:8:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 36,
+												"src": "876:16:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 26,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "876:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 29,
+												"mutability": "mutable",
+												"name": "claimer",
+												"nameLocation": "910:7:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 36,
+												"src": "902:15:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 28,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "902:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 31,
+												"mutability": "mutable",
+												"name": "proof",
+												"nameLocation": "942:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 36,
+												"src": "927:20:0",
+												"stateVariable": false,
+												"storageLocation": "calldata",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_calldata_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 30,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "927:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "866:87:0"
+									},
+									"returnParameters": {
+										"id": 35,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 34,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 36,
+												"src": "977:4:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 33,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "977:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "976:6:0"
+									},
+									"scope": 115,
+									"src": "836:147:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"functionSelector": "c2655925",
+									"id": 51,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "verifyBridgeProof",
+									"nameLocation": "997:17:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 47,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 38,
+												"mutability": "mutable",
+												"name": "messageHash",
+												"nameLocation": "1032:11:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 51,
+												"src": "1024:19:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 37,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1024:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 40,
+												"mutability": "mutable",
+												"name": "nullifier",
+												"nameLocation": "1061:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 51,
+												"src": "1053:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 39,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1053:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 42,
+												"mutability": "mutable",
+												"name": "sender",
+												"nameLocation": "1088:6:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 51,
+												"src": "1080:14:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 41,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "1080:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 44,
+												"mutability": "mutable",
+												"name": "recipient",
+												"nameLocation": "1112:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 51,
+												"src": "1104:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 43,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "1104:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 46,
+												"mutability": "mutable",
+												"name": "proof",
+												"nameLocation": "1144:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 51,
+												"src": "1131:18:0",
+												"stateVariable": false,
+												"storageLocation": "memory",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_memory_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 45,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "1131:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1014:141:0"
+									},
+									"returnParameters": {
+										"id": 50,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 49,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 51,
+												"src": "1179:4:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 48,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "1179:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1178:6:0"
+									},
+									"scope": 115,
+									"src": "988:197:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"functionSelector": "9cc06848",
+									"id": 68,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "verifyMessageProof",
+									"nameLocation": "1199:18:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 64,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 53,
+												"mutability": "mutable",
+												"name": "commitment",
+												"nameLocation": "1235:10:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 68,
+												"src": "1227:18:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 52,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1227:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 55,
+												"mutability": "mutable",
+												"name": "nullifier",
+												"nameLocation": "1263:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 68,
+												"src": "1255:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 54,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1255:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 57,
+												"mutability": "mutable",
+												"name": "sender",
+												"nameLocation": "1290:6:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 68,
+												"src": "1282:14:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 56,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "1282:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 59,
+												"mutability": "mutable",
+												"name": "recipient",
+												"nameLocation": "1314:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 68,
+												"src": "1306:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 58,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "1306:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 61,
+												"mutability": "mutable",
+												"name": "encryptedContent",
+												"nameLocation": "1348:16:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 68,
+												"src": "1333:31:0",
+												"stateVariable": false,
+												"storageLocation": "calldata",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_calldata_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 60,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "1333:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 63,
+												"mutability": "mutable",
+												"name": "proof",
+												"nameLocation": "1389:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 68,
+												"src": "1374:20:0",
+												"stateVariable": false,
+												"storageLocation": "calldata",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_calldata_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 62,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "1374:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1217:183:0"
+									},
+									"returnParameters": {
+										"id": 67,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 66,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 68,
+												"src": "1424:4:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 65,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "1424:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1423:6:0"
+									},
+									"scope": 115,
+									"src": "1190:240:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 69,
+										"nodeType": "StructuredDocumentation",
+										"src": "1439:263:0",
+										"text": " @notice Verify deposit proof\n @param commitment The note commitment\n @param amount The deposit amount\n @param sender The depositor address\n @param proof The zero-knowledge proof\n @return bool True if proof is valid"
+									},
+									"functionSelector": "ebcb5584",
+									"id": 82,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "verifyDepositProof",
+									"nameLocation": "1716:18:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 78,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 71,
+												"mutability": "mutable",
+												"name": "commitment",
+												"nameLocation": "1752:10:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 82,
+												"src": "1744:18:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 70,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "1744:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 73,
+												"mutability": "mutable",
+												"name": "amount",
+												"nameLocation": "1780:6:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 82,
+												"src": "1772:14:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 72,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "1772:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 75,
+												"mutability": "mutable",
+												"name": "sender",
+												"nameLocation": "1804:6:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 82,
+												"src": "1796:14:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 74,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "1796:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 77,
+												"mutability": "mutable",
+												"name": "proof",
+												"nameLocation": "1835:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 82,
+												"src": "1820:20:0",
+												"stateVariable": false,
+												"storageLocation": "calldata",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_calldata_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 76,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "1820:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1734:112:0"
+									},
+									"returnParameters": {
+										"id": 81,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 80,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 82,
+												"src": "1870:4:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 79,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "1870:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "1869:6:0"
+									},
+									"scope": 115,
+									"src": "1707:169:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 83,
+										"nodeType": "StructuredDocumentation",
+										"src": "1882:318:0",
+										"text": " @notice Verify withdrawal proof\n @param nullifier The note nullifier\n @param commitment The note commitment\n @param recipient The withdrawal recipient\n @param amount The withdrawal amount\n @param proof The zero-knowledge proof\n @return bool True if proof is valid"
+									},
+									"functionSelector": "c53ed3bf",
+									"id": 98,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "verifyWithdrawProof",
+									"nameLocation": "2214:19:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 94,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 85,
+												"mutability": "mutable",
+												"name": "nullifier",
+												"nameLocation": "2251:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 98,
+												"src": "2243:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 84,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2243:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 87,
+												"mutability": "mutable",
+												"name": "commitment",
+												"nameLocation": "2278:10:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 98,
+												"src": "2270:18:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 86,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2270:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 89,
+												"mutability": "mutable",
+												"name": "recipient",
+												"nameLocation": "2306:9:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 98,
+												"src": "2298:17:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 88,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "2298:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 91,
+												"mutability": "mutable",
+												"name": "amount",
+												"nameLocation": "2333:6:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 98,
+												"src": "2325:14:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 90,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "2325:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 93,
+												"mutability": "mutable",
+												"name": "proof",
+												"nameLocation": "2364:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 98,
+												"src": "2349:20:0",
+												"stateVariable": false,
+												"storageLocation": "calldata",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_calldata_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 92,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "2349:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2233:142:0"
+									},
+									"returnParameters": {
+										"id": 97,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 96,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 98,
+												"src": "2399:4:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 95,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "2399:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2398:6:0"
+									},
+									"scope": 115,
+									"src": "2205:200:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								},
+								{
+									"documentation": {
+										"id": 99,
+										"nodeType": "StructuredDocumentation",
+										"src": "2411:319:0",
+										"text": " @notice Verify transfer proof\n @param nullifierFrom Input note nullifier\n @param commitmentFrom Input note commitment\n @param commitmentTo Output note commitment\n @param amount Transfer amount\n @param proof Zero-knowledge proof\n @return bool True if proof is valid"
+									},
+									"functionSelector": "1392de8f",
+									"id": 114,
+									"implemented": false,
+									"kind": "function",
+									"modifiers": [],
+									"name": "verifyTransferProof",
+									"nameLocation": "2744:19:0",
+									"nodeType": "FunctionDefinition",
+									"parameters": {
+										"id": 110,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 101,
+												"mutability": "mutable",
+												"name": "nullifierFrom",
+												"nameLocation": "2781:13:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 114,
+												"src": "2773:21:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 100,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2773:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 103,
+												"mutability": "mutable",
+												"name": "commitmentFrom",
+												"nameLocation": "2812:14:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 114,
+												"src": "2804:22:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 102,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2804:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 105,
+												"mutability": "mutable",
+												"name": "commitmentTo",
+												"nameLocation": "2844:12:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 114,
+												"src": "2836:20:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes32",
+													"typeString": "bytes32"
+												},
+												"typeName": {
+													"id": 104,
+													"name": "bytes32",
+													"nodeType": "ElementaryTypeName",
+													"src": "2836:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes32",
+														"typeString": "bytes32"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 107,
+												"mutability": "mutable",
+												"name": "amount",
+												"nameLocation": "2874:6:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 114,
+												"src": "2866:14:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 106,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "2866:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 109,
+												"mutability": "mutable",
+												"name": "proof",
+												"nameLocation": "2905:5:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 114,
+												"src": "2890:20:0",
+												"stateVariable": false,
+												"storageLocation": "calldata",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bytes_calldata_ptr",
+													"typeString": "bytes"
+												},
+												"typeName": {
+													"id": 108,
+													"name": "bytes",
+													"nodeType": "ElementaryTypeName",
+													"src": "2890:5:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bytes_storage_ptr",
+														"typeString": "bytes"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2763:153:0"
+									},
+									"returnParameters": {
+										"id": 113,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 112,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 114,
+												"src": "2940:4:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_bool",
+													"typeString": "bool"
+												},
+												"typeName": {
+													"id": 111,
+													"name": "bool",
+													"nodeType": "ElementaryTypeName",
+													"src": "2940:4:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_bool",
+														"typeString": "bool"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "2939:6:0"
+									},
+									"scope": 115,
+									"src": "2735:211:0",
+									"stateMutability": "view",
+									"virtual": false,
+									"visibility": "external"
+								}
+							],
+							"scope": 116,
+							"src": "58:2890:0",
+							"usedErrors": [],
+							"usedEvents": []
+						}
+					],
+					"src": "32:2916:0"
+				},
+				"id": 0
+			}
+		}
+	}
+}

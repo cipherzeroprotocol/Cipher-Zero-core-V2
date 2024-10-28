@@ -49,43 +49,289 @@
 		},
 		"gasEstimates": null,
 		"methodIdentifiers": {
-			"verificationKeyHash()": "9e8945d2",
-			"verify(uint256[],uint256[],uint256[])": "87d9d023"
+			"verifyBridgeProof(bytes32,bytes32,address,address,bytes)": "c2655925",
+			"verifyDepositProof(bytes32,uint256,address,bytes)": "ebcb5584",
+			"verifyFileProof(bytes32,address,bytes)": "dc983893",
+			"verifyFileProof(bytes32,bytes,address)": "e3d0a2be",
+			"verifyMessageProof(bytes32,bytes32,address,address,bytes,bytes)": "9cc06848",
+			"verifyPossessionProof(bytes32,address,bytes)": "126b1ee7",
+			"verifyTransferProof(bytes32,bytes32,bytes32,uint256,bytes)": "1392de8f",
+			"verifyWithdrawProof(bytes32,bytes32,address,uint256,bytes)": "c53ed3bf"
 		}
 	},
 	"abi": [
 		{
-			"inputs": [],
-			"name": "verificationKeyHash",
-			"outputs": [
+			"inputs": [
 				{
 					"internalType": "bytes32",
-					"name": "",
+					"name": "messageHash",
 					"type": "bytes32"
+				},
+				{
+					"internalType": "bytes32",
+					"name": "nullifier",
+					"type": "bytes32"
+				},
+				{
+					"internalType": "address",
+					"name": "sender",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "recipient",
+					"type": "address"
+				},
+				{
+					"internalType": "bytes",
+					"name": "proof",
+					"type": "bytes"
 				}
 			],
-			"stateMutability": "pure",
+			"name": "verifyBridgeProof",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
 			"type": "function"
 		},
 		{
 			"inputs": [
 				{
-					"internalType": "uint256[]",
-					"name": "_publicInputs",
-					"type": "uint256[]"
+					"internalType": "bytes32",
+					"name": "commitment",
+					"type": "bytes32"
 				},
 				{
-					"internalType": "uint256[]",
-					"name": "_proof",
-					"type": "uint256[]"
+					"internalType": "uint256",
+					"name": "amount",
+					"type": "uint256"
 				},
 				{
-					"internalType": "uint256[]",
-					"name": "_recursiveAggregationInput",
-					"type": "uint256[]"
+					"internalType": "address",
+					"name": "sender",
+					"type": "address"
+				},
+				{
+					"internalType": "bytes",
+					"name": "proof",
+					"type": "bytes"
 				}
 			],
-			"name": "verify",
+			"name": "verifyDepositProof",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes32",
+					"name": "fileHash",
+					"type": "bytes32"
+				},
+				{
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				},
+				{
+					"internalType": "bytes",
+					"name": "proof",
+					"type": "bytes"
+				}
+			],
+			"name": "verifyFileProof",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes32",
+					"name": "fileCommitment",
+					"type": "bytes32"
+				},
+				{
+					"internalType": "bytes",
+					"name": "proof",
+					"type": "bytes"
+				},
+				{
+					"internalType": "address",
+					"name": "sender",
+					"type": "address"
+				}
+			],
+			"name": "verifyFileProof",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes32",
+					"name": "commitment",
+					"type": "bytes32"
+				},
+				{
+					"internalType": "bytes32",
+					"name": "nullifier",
+					"type": "bytes32"
+				},
+				{
+					"internalType": "address",
+					"name": "sender",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "recipient",
+					"type": "address"
+				},
+				{
+					"internalType": "bytes",
+					"name": "encryptedContent",
+					"type": "bytes"
+				},
+				{
+					"internalType": "bytes",
+					"name": "proof",
+					"type": "bytes"
+				}
+			],
+			"name": "verifyMessageProof",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes32",
+					"name": "fileHash",
+					"type": "bytes32"
+				},
+				{
+					"internalType": "address",
+					"name": "claimer",
+					"type": "address"
+				},
+				{
+					"internalType": "bytes",
+					"name": "proof",
+					"type": "bytes"
+				}
+			],
+			"name": "verifyPossessionProof",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes32",
+					"name": "nullifierFrom",
+					"type": "bytes32"
+				},
+				{
+					"internalType": "bytes32",
+					"name": "commitmentFrom",
+					"type": "bytes32"
+				},
+				{
+					"internalType": "bytes32",
+					"name": "commitmentTo",
+					"type": "bytes32"
+				},
+				{
+					"internalType": "uint256",
+					"name": "amount",
+					"type": "uint256"
+				},
+				{
+					"internalType": "bytes",
+					"name": "proof",
+					"type": "bytes"
+				}
+			],
+			"name": "verifyTransferProof",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes32",
+					"name": "nullifier",
+					"type": "bytes32"
+				},
+				{
+					"internalType": "bytes32",
+					"name": "commitment",
+					"type": "bytes32"
+				},
+				{
+					"internalType": "address",
+					"name": "recipient",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "amount",
+					"type": "uint256"
+				},
+				{
+					"internalType": "bytes",
+					"name": "proof",
+					"type": "bytes"
+				}
+			],
+			"name": "verifyWithdrawProof",
 			"outputs": [
 				{
 					"internalType": "bool",

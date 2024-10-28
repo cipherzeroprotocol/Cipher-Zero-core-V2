@@ -1,0 +1,976 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "initialOwner",
+						"type": "address"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					}
+				],
+				"name": "OwnableInvalidOwner",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "OwnableUnauthorizedAccount",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "ReentrancyGuardReentrantCall",
+				"type": "error"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "chunkIndex",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "bytes32",
+						"name": "chunkHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "ChunkStored",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": false,
+						"internalType": "bytes32",
+						"name": "encryptionProof",
+						"type": "bytes32"
+					}
+				],
+				"name": "EncryptionUpdated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					}
+				],
+				"name": "FileRemoved",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "requester",
+						"type": "address"
+					}
+				],
+				"name": "FileRetrieved",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "size",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "chunks",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "encrypted",
+						"type": "bool"
+					}
+				],
+				"name": "FileStored",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "previousOwner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "OwnershipTransferred",
+				"type": "event"
+			},
+			{
+				"inputs": [],
+				"name": "MAX_CHUNK_SIZE",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "MAX_FILE_SIZE",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "fileExists",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getChunkCount",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "getChunkInfo",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "index",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "size",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bytes32",
+								"name": "hash",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "bytes32",
+								"name": "proof",
+								"type": "bytes32"
+							}
+						],
+						"internalType": "struct IStorage.ChunkInfo",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getFileMetadata",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "bytes32",
+								"name": "fileHash",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "address",
+								"name": "owner",
+								"type": "address"
+							},
+							{
+								"internalType": "uint256",
+								"name": "size",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "created",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isEncrypted",
+								"type": "bool"
+							},
+							{
+								"internalType": "bytes32",
+								"name": "encryptionProof",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "uint256",
+								"name": "chunks",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "exists",
+								"type": "bool"
+							}
+						],
+						"internalType": "struct IStorage.FileMetadata",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getFileSize",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "hasAccess",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "removeFile",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "renounceOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "retrieveChunk",
+				"outputs": [
+					{
+						"internalType": "bytes",
+						"name": "",
+						"type": "bytes"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "retrieveFile",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "bytes32",
+								"name": "fileHash",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "address",
+								"name": "owner",
+								"type": "address"
+							},
+							{
+								"internalType": "uint256",
+								"name": "size",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "created",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "isEncrypted",
+								"type": "bool"
+							},
+							{
+								"internalType": "bytes32",
+								"name": "encryptionProof",
+								"type": "bytes32"
+							},
+							{
+								"internalType": "uint256",
+								"name": "chunks",
+								"type": "uint256"
+							},
+							{
+								"internalType": "bool",
+								"name": "exists",
+								"type": "bool"
+							}
+						],
+						"internalType": "struct IStorage.FileMetadata",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
+					},
+					{
+						"internalType": "bool",
+						"name": "isEncrypted",
+						"type": "bool"
+					}
+				],
+				"name": "storeChunk",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
+					}
+				],
+				"name": "storeChunk",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "chunkIndex",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "proof",
+						"type": "bytes32"
+					}
+				],
+				"name": "storeChunk",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
+					},
+					{
+						"internalType": "bool",
+						"name": "isEncrypted",
+						"type": "bool"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "encryptionProof",
+						"type": "bytes32"
+					}
+				],
+				"name": "storeFile",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "size",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "chunks",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "encrypted",
+						"type": "bool"
+					},
+					{
+						"internalType": "string",
+						"name": "contentType",
+						"type": "string"
+					}
+				],
+				"name": "storeFile",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "size",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "chunkCount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "contentType",
+						"type": "string"
+					},
+					{
+						"internalType": "bool",
+						"name": "isEncrypted",
+						"type": "bool"
+					},
+					{
+						"internalType": "string",
+						"name": "encryptionType",
+						"type": "string"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "encryptionKey",
+						"type": "bytes32"
+					}
+				],
+				"name": "storeFile",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "transferOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "encryptionProof",
+						"type": "bytes32"
+					}
+				],
+				"name": "updateEncryption",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bool",
+						"name": "encrypted",
+						"type": "bool"
+					}
+				],
+				"name": "updateEncryption",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "chunkHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "verifyChunk",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "chunkIndex",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "proof",
+						"type": "bytes32"
+					}
+				],
+				"name": "verifyChunk",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"errors": {
+				"OwnableInvalidOwner(address)": [
+					{
+						"details": "The owner is not a valid owner account. (eg. `address(0)`)"
+					}
+				],
+				"OwnableUnauthorizedAccount(address)": [
+					{
+						"details": "The caller account is not authorized to perform an operation."
+					}
+				],
+				"ReentrancyGuardReentrantCall()": [
+					{
+						"details": "Unauthorized reentrant call."
+					}
+				]
+			},
+			"events": {
+				"ChunkStored(bytes32,uint256,bytes32)": {
+					"details": "Emitted when a chunk is stored"
+				},
+				"EncryptionUpdated(bytes32,bytes32)": {
+					"details": "Emitted when encryption status changes"
+				},
+				"FileRemoved(bytes32,address)": {
+					"details": "Emitted when a file is removed"
+				},
+				"FileRetrieved(bytes32,address)": {
+					"details": "Emitted when a file is retrieved"
+				},
+				"FileStored(bytes32,address,uint256,uint256,bool)": {
+					"details": "Emitted when a file is stored"
+				}
+			},
+			"kind": "dev",
+			"methods": {
+				"owner()": {
+					"details": "Returns the address of the current owner."
+				},
+				"renounceOwnership()": {
+					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
+				},
+				"storeFile(bytes32,bytes,bool,bytes32)": {
+					"params": {
+						"data": "File data to store",
+						"encryptionProof": "Proof of encryption if encrypted",
+						"fileHash": "Hash of the file",
+						"isEncrypted": "Whether the file is encrypted"
+					}
+				},
+				"transferOwnership(address)": {
+					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+				},
+				"updateEncryption(bytes32,bytes32)": {
+					"params": {
+						"encryptionProof": "New encryption proof",
+						"fileHash": "Hash of the file"
+					}
+				}
+			},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {
+				"storeFile(bytes32,bytes,bool,bytes32)": {
+					"notice": "Store file data"
+				},
+				"updateEncryption(bytes32,bytes32)": {
+					"notice": "Update file encryption status"
+				}
+			},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"core/Storage.sol": "Storage"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"@openzeppelin/contracts/access/Ownable.sol": {
+			"keccak256": "0xff6d0bb2e285473e5311d9d3caacb525ae3538a80758c10649a4d61029b017bb",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8ed324d3920bb545059d66ab97d43e43ee85fd3bd52e03e401f020afb0b120f6",
+				"dweb:/ipfs/QmfEckWLmZkDDcoWrkEvMWhms66xwTLff9DDhegYpvHo1a"
+			]
+		},
+		"@openzeppelin/contracts/utils/Context.sol": {
+			"keccak256": "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://6a708e8a5bdb1011c2c381c9a5cfd8a9a956d7d0a9dc1bd8bcdaf52f76ef2f12",
+				"dweb:/ipfs/Qmax9WHBnVsZP46ZxEMNRQpLQnrdE4dK8LehML1Py8FowF"
+			]
+		},
+		"@openzeppelin/contracts/utils/ReentrancyGuard.sol": {
+			"keccak256": "0x11a5a79827df29e915a12740caf62fe21ebe27c08c9ae3e09abe9ee3ba3866d3",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://3cf0c69ab827e3251db9ee6a50647d62c90ba580a4d7bbff21f2bea39e7b2f4a",
+				"dweb:/ipfs/QmZiKwtKU1SBX4RGfQtY7PZfiapbbu6SZ9vizGQD9UHjRA"
+			]
+		},
+		"core/Storage.sol": {
+			"keccak256": "0x711a0ad59672544ad186bccd4d135891392c90b5ae89867b0d8d91992a046ac2",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://22bd81907be8f6ca24fac0dfc9266c43d302e8903f080e347cc2f0953192fe2a",
+				"dweb:/ipfs/QmPBxBRc2AGgB2eXy4wNjrw6V5Zj87V2C3Fkv5Xz4zhduQ"
+			]
+		},
+		"interfaces/IStorage.sol": {
+			"keccak256": "0xe3ca4cc34efed11253562c68616f0db4032815438861dc04768327e92fa024ca",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://39435f7950ae1339d769e8cb17c701860fbbbb771ba98ecf8203711c9be9a7be",
+				"dweb:/ipfs/QmZ9cyME1EotqLbP7T2tNVJoGQDqX4ohUU4FAfugsBEPRW"
+			]
+		}
+	},
+	"version": 1
+}

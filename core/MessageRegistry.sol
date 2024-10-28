@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
+
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
@@ -7,26 +8,13 @@ import "../interfaces/IVerifier.sol";
 import "../interfaces/IMessaging.sol";
 
 contract MessageRegistry is IMessaging, Ownable, ReentrancyGuard, Pausable {
-    // Verifier contract for message proofs
+    // State variables
     IVerifier public verifier;
     
-    // Events
-    event MessageStored(
-        bytes32 indexed commitment,
-        address indexed recipient,
-        uint256 timestamp
-    );
-    event MessageRead(bytes32 indexed commitment, uint256 timestamp);
-    
-    // Mappings
     mapping(bytes32 => Message) public messages;
     mapping(bytes32 => bool) public nullifierUsed;
     mapping(address => bytes32[]) public userMessages;
     
-    /**
-     * @param _verifier Address of the verifier contract
-     * @param _owner Address of the contract owner
-     */
     constructor(
         address _verifier,
         address _owner
@@ -35,9 +23,6 @@ contract MessageRegistry is IMessaging, Ownable, ReentrancyGuard, Pausable {
         verifier = IVerifier(_verifier);
     }
 
-    /**
-     * Store encrypted message with ZK proof
-     */
     function storeMessage(
         bytes32 commitment,
         bytes32 nullifier,
@@ -45,17 +30,14 @@ contract MessageRegistry is IMessaging, Ownable, ReentrancyGuard, Pausable {
         bytes calldata encryptedContent,
         bytes calldata proof
     ) external override nonReentrant whenNotPaused {
-        // Input validation
         require(commitment != bytes32(0), "Invalid commitment");
         require(nullifier != bytes32(0), "Invalid nullifier");
         require(recipient != address(0), "Invalid recipient");
         require(encryptedContent.length > 0, "Empty message");
         require(proof.length > 0, "Empty proof");
         
-        // Verify nullifier hasn't been used
         require(!nullifierUsed[nullifier], "Nullifier already used");
         
-        // Verify ZK proof
         require(
             verifier.verifyMessageProof(
                 commitment,
@@ -68,7 +50,6 @@ contract MessageRegistry is IMessaging, Ownable, ReentrancyGuard, Pausable {
             "Invalid proof"
         );
 
-        // Store message
         messages[commitment] = Message({
             commitment: commitment,
             nullifier: nullifier,
@@ -80,18 +61,40 @@ contract MessageRegistry is IMessaging, Ownable, ReentrancyGuard, Pausable {
             proof: proof
         });
 
-        // Mark nullifier as used
         nullifierUsed[nullifier] = true;
-
-        // Add to user's messages
         userMessages[recipient].push(commitment);
 
         emit MessageStored(commitment, recipient, block.timestamp);
     }
 
-    /**
-     * Mark message as read
-     */
+    function sendMessage(
+        address recipient,
+        bytes calldata encryptedMessage,
+        bytes32 messageHash
+    ) external override nonReentrant whenNotPaused {
+        require(recipient != address(0), "Invalid recipient");
+        require(encryptedMessage.length > 0, "Empty message");
+
+        bytes32 commitment = keccak256(
+            abi.encodePacked(messageHash, msg.sender, recipient)
+        );
+        
+        messages[commitment] = Message({
+            commitment: commitment,
+            nullifier: messageHash,
+            sender: msg.sender,
+            recipient: recipient,
+            encryptedContent: encryptedMessage,
+            timestamp: block.timestamp,
+            isRead: false,
+            proof: ""
+        });
+
+        userMessages[recipient].push(commitment);
+        
+        emit MessageStored(commitment, recipient, block.timestamp);
+    }
+
     function markMessageRead(bytes32 commitment) external override {
         require(commitment != bytes32(0), "Invalid commitment");
         
@@ -104,9 +107,6 @@ contract MessageRegistry is IMessaging, Ownable, ReentrancyGuard, Pausable {
         emit MessageRead(commitment, block.timestamp);
     }
 
-    /**
-     * Get user's messages
-     */
     function getUserMessages(
         address user,
         uint256 offset,
@@ -130,31 +130,33 @@ contract MessageRegistry is IMessaging, Ownable, ReentrancyGuard, Pausable {
         return result;
     }
 
-    /**
-     * Update verifier contract
-     */
+    function getMessage(bytes32 commitment) 
+        external 
+        view 
+        override 
+        returns (Message memory) 
+    {
+        require(commitment != bytes32(0), "Invalid commitment");
+        Message storage message = messages[commitment];
+        require(message.commitment != bytes32(0), "Message not found");
+        return message;
+    }
+
+    // Admin functions
     function setVerifier(address _verifier) external onlyOwner {
         require(_verifier != address(0), "Invalid verifier address");
         verifier = IVerifier(_verifier);
     }
 
-    /**
-     * Emergency pause
-     */
     function pause() external onlyOwner {
         _pause();
     }
 
-    /**
-     * Unpause
-     */
     function unpause() external onlyOwner {
         _unpause();
     }
 
-    /**
-     * Get total messages for a user
-     */
+    // View functions
     function getUserMessageCount(address user) external view returns (uint256) {
         return userMessages[user].length;
     }

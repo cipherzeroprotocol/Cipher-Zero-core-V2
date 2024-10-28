@@ -6,37 +6,277 @@
 	"output": {
 		"abi": [
 			{
-				"inputs": [],
-				"name": "verificationKeyHash",
-				"outputs": [
+				"inputs": [
 					{
 						"internalType": "bytes32",
-						"name": "",
+						"name": "messageHash",
 						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "nullifier",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
 					}
 				],
-				"stateMutability": "pure",
+				"name": "verifyBridgeProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
 				"inputs": [
 					{
-						"internalType": "uint256[]",
-						"name": "_publicInputs",
-						"type": "uint256[]"
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
 					},
 					{
-						"internalType": "uint256[]",
-						"name": "_proof",
-						"type": "uint256[]"
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
 					},
 					{
-						"internalType": "uint256[]",
-						"name": "_recursiveAggregationInput",
-						"type": "uint256[]"
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
 					}
 				],
-				"name": "verify",
+				"name": "verifyDepositProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyFileProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileCommitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					},
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					}
+				],
+				"name": "verifyFileProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "nullifier",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "encryptedContent",
+						"type": "bytes"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyMessageProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "claimer",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyPossessionProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "nullifierFrom",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "commitmentFrom",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "commitmentTo",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyTransferProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "nullifier",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyWithdrawProof",
 				"outputs": [
 					{
 						"internalType": "bool",
@@ -50,12 +290,84 @@
 		],
 		"devdoc": {
 			"kind": "dev",
-			"methods": {},
+			"methods": {
+				"verifyDepositProof(bytes32,uint256,address,bytes)": {
+					"params": {
+						"amount": "The deposit amount",
+						"commitment": "The note commitment",
+						"proof": "The zero-knowledge proof",
+						"sender": "The depositor address"
+					},
+					"returns": {
+						"_0": "bool True if proof is valid"
+					}
+				},
+				"verifyFileProof(bytes32,address,bytes)": {
+					"params": {
+						"fileHash": "Hash of the file",
+						"owner": "Address of the file owner",
+						"proof": "Zero-knowledge proof"
+					},
+					"returns": {
+						"_0": "bool True if proof is valid"
+					}
+				},
+				"verifyPossessionProof(bytes32,address,bytes)": {
+					"params": {
+						"claimer": "Address claiming possession",
+						"fileHash": "Hash of the file",
+						"proof": "Zero-knowledge proof"
+					},
+					"returns": {
+						"_0": "bool True if proof is valid"
+					}
+				},
+				"verifyTransferProof(bytes32,bytes32,bytes32,uint256,bytes)": {
+					"params": {
+						"amount": "Transfer amount",
+						"commitmentFrom": "Input note commitment",
+						"commitmentTo": "Output note commitment",
+						"nullifierFrom": "Input note nullifier",
+						"proof": "Zero-knowledge proof"
+					},
+					"returns": {
+						"_0": "bool True if proof is valid"
+					}
+				},
+				"verifyWithdrawProof(bytes32,bytes32,address,uint256,bytes)": {
+					"params": {
+						"amount": "The withdrawal amount",
+						"commitment": "The note commitment",
+						"nullifier": "The note nullifier",
+						"proof": "The zero-knowledge proof",
+						"recipient": "The withdrawal recipient"
+					},
+					"returns": {
+						"_0": "bool True if proof is valid"
+					}
+				}
+			},
 			"version": 1
 		},
 		"userdoc": {
 			"kind": "user",
-			"methods": {},
+			"methods": {
+				"verifyDepositProof(bytes32,uint256,address,bytes)": {
+					"notice": "Verify deposit proof"
+				},
+				"verifyFileProof(bytes32,address,bytes)": {
+					"notice": "Verify a file proof"
+				},
+				"verifyPossessionProof(bytes32,address,bytes)": {
+					"notice": "Verify possession proof"
+				},
+				"verifyTransferProof(bytes32,bytes32,bytes32,uint256,bytes)": {
+					"notice": "Verify transfer proof"
+				},
+				"verifyWithdrawProof(bytes32,bytes32,address,uint256,bytes)": {
+					"notice": "Verify withdrawal proof"
+				}
+			},
 			"version": 1
 		}
 	},
@@ -76,11 +388,11 @@
 	},
 	"sources": {
 		"interfaces/IVerifier.sol": {
-			"keccak256": "0x8081ccc8639780f78d8ceb784d43e7b901e0c56d5c1bacc817bfe60d6331f8c8",
+			"keccak256": "0xae76efa2fa55c8cde5964ae2ee8407487381132c066857df62321b65b0c1cb47",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://e20cfab7a489773b00f9ab3b8bc663d67612c68e255c6ebde8a5609c9abb4bb2",
-				"dweb:/ipfs/QmRS6XRZ721pwom2uCAhyetyxZNoykacATUGvV9JiNvAnG"
+				"bzz-raw://e645f9d03250f39f99eec6a17dd52f7b90f2589145ba4bb9545790d37b02315c",
+				"dweb:/ipfs/QmZcz5Q18gB81YqCvTHRoi8LKDYgsB1QVyfTSfapZtusQa"
 			]
 		}
 	},

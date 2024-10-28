@@ -488,11 +488,11 @@
 			]
 		},
 		"interfaces/IMessaging.sol": {
-			"keccak256": "0x06e3ed418695de27688579033bcb5f9894663b8dbe447c818bedebb8f0be7bd5",
+			"keccak256": "0xd498a6f15abab87102ca13d81054171e451a058edded747261474e4aa321bc2f",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://c021027d26a1983b98ef2cdd87861ee4c6a0524e1ad5eee336d9d2d4a8d99c79",
-				"dweb:/ipfs/QmRAKSGQVBgnVSk647m69BJJKrZURURQj27GauP6ek3LRw"
+				"bzz-raw://1ef1538d51fbf5684a3ed8d472c5af15db9d9592a25fa043de827312bf38489e",
+				"dweb:/ipfs/Qmd9FWVFHJgd1mpHzodzdNB3c2oXqMTVjyLP3VaXA6AT79"
 			]
 		},
 		"interfaces/IStorageContract.sol": {

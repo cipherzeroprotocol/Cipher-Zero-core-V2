@@ -108,33 +108,7 @@ contract BitTorrentRegistry is IBitTorrent, Ownable, ReentrancyGuard, Pausable {
      * @param piecesRoot Merkle root of piece hashes
      * @param proof ZK proof for file
      */
-    function registerTorrent(
-        bytes32 infoHash,
-        bytes32 fileCommitment,
-        uint256 size,
-        uint256 pieceSize,
-        bytes32 piecesRoot,
-        bytes calldata proof
-    ) external nonReentrant whenNotPaused {
-        require(pieceSize <= MAX_PIECE_SIZE, "Piece size too large");
-        require(pieceSize > 0 && size > 0, "Invalid sizes");
-        require(torrents[infoHash].infoHash == bytes32(0), "Torrent exists");
-
-        // Verify file proof
-        require(
-            verifier.verifyFileProof(fileCommitment, proof),
-            "Invalid file proof"
-        );
-
-        // Register torrent
-        _registerTorrent(
-            infoHash,
-            fileCommitment,
-            size,
-            pieceSize,
-            piecesRoot
-        );
-    }
+    
 
     /**
      * @notice Add a new torrent to the registry
@@ -169,33 +143,61 @@ contract BitTorrentRegistry is IBitTorrent, Ownable, ReentrancyGuard, Pausable {
      * @notice Register as a peer
      * @param proof ZK proof for peer anonymity
      */
-    function registerPeer(
-        bytes calldata proof
-    ) external nonReentrant whenNotPaused {
-        require(peers[msg.sender].peerId == bytes32(0), "Peer exists");
+    function registerTorrent(
+    bytes32 infoHash,
+    bytes32 fileCommitment,
+    uint256 size,
+    uint256 pieceSize,
+    bytes32 piecesRoot,
+    bytes calldata proof
+) external nonReentrant whenNotPaused {
+    require(pieceSize <= MAX_PIECE_SIZE, "Piece size too large");
+    require(pieceSize > 0 && size > 0, "Invalid sizes");
+    require(torrents[infoHash].infoHash == bytes32(0), "Torrent exists");
 
-        // Generate anonymous ID
-        bytes32 anonymousId = _generateAnonymousId(msg.sender, proof);
+    // Verify file proof with additional parameter (e.g., msg.sender)
+    require(
+        verifier.verifyFileProof(fileCommitment, proof, msg.sender),
+        "Invalid file proof"
+    );
 
-        // Create peer
-        peers[msg.sender] = Peer({
-            peerId: keccak256(abi.encodePacked(msg.sender, block.timestamp)),
-            reputation: MIN_REPUTATION_SCORE,
-            uploadCount: 0,
-            downloadCount: 0,
-            lastSeen: block.timestamp,
-            isActive: true
-        });
+    // Register torrent
+    _registerTorrent(
+        infoHash,
+        fileCommitment,
+        size,
+        pieceSize,
+        piecesRoot
+    );
+}
 
-        // Store anonymous ID mapping
-        peerAnonymousIds[keccak256(abi.encodePacked(msg.sender))] = anonymousId;
+// For the Peer struct initialization, split it into separate assignments:
+function registerPeer(bytes calldata proof) external nonReentrant whenNotPaused {
+    require(peers[msg.sender].peerId == bytes32(0), "Peer exists");
 
-        emit PeerRegistered(
-            peers[msg.sender].peerId,
-            anonymousId,
-            block.timestamp
-        );
-    }
+    // Generate anonymous ID
+    bytes32 anonymousId = _generateAnonymousId(msg.sender, proof);
+    
+    // Initialize peer data separately
+    peers[msg.sender].peerId = keccak256(abi.encodePacked(msg.sender, block.timestamp));
+    peers[msg.sender].reputation = MIN_REPUTATION_SCORE;
+    peers[msg.sender].uploadCount = 0;
+    peers[msg.sender].downloadCount = 0;
+    peers[msg.sender].lastSeen = block.timestamp;
+    peers[msg.sender].isActive = true;
+
+    // Store anonymous ID mapping
+    peerAnonymousIds[keccak256(abi.encodePacked(msg.sender))] = anonymousId;
+
+    emit PeerRegistered(
+        peers[msg.sender].peerId,
+        anonymousId,
+        block.timestamp
+    );
+}
+
+
+        
 
     /**
      * @notice Join a torrent swarm

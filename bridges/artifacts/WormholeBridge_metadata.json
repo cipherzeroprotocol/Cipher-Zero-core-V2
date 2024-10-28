@@ -9,7 +9,7 @@
 				"inputs": [
 					{
 						"internalType": "address",
-						"name": "_wormholeAddress",
+						"name": "_wormhole",
 						"type": "address"
 					}
 				],
@@ -167,9 +167,46 @@
 						"internalType": "address",
 						"name": "destinationAddress",
 						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint64",
+						"name": "sequence",
+						"type": "uint64"
 					}
 				],
 				"name": "TokensBridged",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "token",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint16",
+						"name": "sourceChainId",
+						"type": "uint16"
+					}
+				],
+				"name": "TokensReceived",
 				"type": "event"
 			},
 			{
@@ -193,6 +230,19 @@
 						"internalType": "bytes32",
 						"name": "",
 						"type": "bytes32"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "CONSISTENCY_LEVEL",
+				"outputs": [
+					{
+						"internalType": "uint8",
+						"name": "",
+						"type": "uint8"
 					}
 				],
 				"stateMutability": "view",
@@ -236,7 +286,7 @@
 				],
 				"name": "bridgeTokens",
 				"outputs": [],
-				"stateMutability": "nonpayable",
+				"stateMutability": "payable",
 				"type": "function"
 			},
 			{
@@ -323,19 +373,9 @@
 			{
 				"inputs": [
 					{
-						"internalType": "address",
-						"name": "token",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "amount",
-						"type": "uint256"
-					},
-					{
-						"internalType": "address",
-						"name": "recipient",
-						"type": "address"
+						"internalType": "bytes",
+						"name": "encodedVM",
+						"type": "bytes"
 					}
 				],
 				"name": "receiveTokens",
@@ -382,30 +422,6 @@
 			{
 				"inputs": [
 					{
-						"internalType": "bytes",
-						"name": "message",
-						"type": "bytes"
-					},
-					{
-						"internalType": "uint32",
-						"name": "nonce",
-						"type": "uint32"
-					}
-				],
-				"name": "sendMessageToWormhole",
-				"outputs": [
-					{
-						"internalType": "uint64",
-						"name": "",
-						"type": "uint64"
-					}
-				],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
 						"internalType": "bytes4",
 						"name": "interfaceId",
 						"type": "bytes4"
@@ -430,6 +446,47 @@
 				"type": "function"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "address payable",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "withdrawETH",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "token",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "withdrawTokens",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
 				"inputs": [],
 				"name": "wormhole",
 				"outputs": [
@@ -443,17 +500,8 @@
 				"type": "function"
 			},
 			{
-				"inputs": [],
-				"name": "wormholeTokenBridge",
-				"outputs": [
-					{
-						"internalType": "contract IWormhole",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
+				"stateMutability": "payable",
+				"type": "receive"
 			}
 		],
 		"devdoc": {
@@ -498,6 +546,15 @@
 			},
 			"kind": "dev",
 			"methods": {
+				"bridgeTokens(address,uint256,uint16,address)": {
+					"details": "Must send enough ETH to cover Wormhole fee",
+					"params": {
+						"amount": "Amount of tokens to bridge ",
+						"destinationAddress": "Recipient address on target chain",
+						"destinationChainId": "Target chain ID",
+						"token": "Token address to bridge"
+					}
+				},
 				"getRoleAdmin(bytes32)": {
 					"details": "Returns the admin role that controls `role`. See {grantRole} and {revokeRole}. To change a role's admin, use {_setRoleAdmin}."
 				},
@@ -518,13 +575,36 @@
 				},
 				"supportsInterface(bytes4)": {
 					"details": "See {IERC165-supportsInterface}."
+				},
+				"withdrawETH(address,uint256)": {
+					"params": {
+						"amount": "Amount to withdraw",
+						"to": "Address to send ETH to"
+					}
+				},
+				"withdrawTokens(address,address,uint256)": {
+					"params": {
+						"amount": "Amount to withdraw",
+						"to": "Address to send tokens to",
+						"token": "Token address to withdraw"
+					}
 				}
 			},
 			"version": 1
 		},
 		"userdoc": {
 			"kind": "user",
-			"methods": {},
+			"methods": {
+				"bridgeTokens(address,uint256,uint16,address)": {
+					"notice": "Bridge tokens to another chain"
+				},
+				"withdrawETH(address,uint256)": {
+					"notice": "Withdraw accidentally sent ETH"
+				},
+				"withdrawTokens(address,address,uint256)": {
+					"notice": "Withdraw accidentally sent tokens"
+				}
+			},
 			"version": 1
 		}
 	},
@@ -633,19 +713,19 @@
 			]
 		},
 		"bridges/WormholeBridge.sol": {
-			"keccak256": "0x7fa1e6b6a86443d7d9fbf73defc7fa228c87816c63eb9335c930602e52eb6b8c",
+			"keccak256": "0x0d03df7a807f1a2a66e524037291e5e7324db59ff31ac9842f7c3ddb9dbeb9d0",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://d413f53625b4ed5824be3c77dee164de2a5b8577e862bdeae8d748c8dac70110",
-				"dweb:/ipfs/QmRHYrTKWYFFq5F1awQRiKLRBj2g7Ri2TXpnzE6khA6LEf"
+				"bzz-raw://721f7d2afab135a35cd3ce0760f6d3666a7d368a4e993f8a6bf2e0af8e279072",
+				"dweb:/ipfs/QmZ8hrSN4rr9vUHDimBJkKwS266vmQc4fn8QgTaJty5J6v"
 			]
 		},
 		"interfaces/IWormhole.sol": {
-			"keccak256": "0xf21af1b96c0c8f2ceb6454718ad02ebd1ad7671e7376123429b2f52b81f40869",
+			"keccak256": "0x35dac9ad7d78af571f820e7458e8d247482219a92038e3c466a82828147e2790",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://1fd370d6283a17bb0b23584eb5871f2af6f1bacae396c21f10d470004df5991e",
-				"dweb:/ipfs/QmRCqq33nnvMao3z2WZACKe7tB2GLL5t4T5CPUp5C4p9nC"
+				"bzz-raw://c732a9bff2d45c610a8b096cba39218912f2fef2ccb6dcf2feb66cdda065a0ff",
+				"dweb:/ipfs/QmRSJSrUgUXnxX3GHdKZweq6GbugoCyuQuryR8B7YZbLxG"
 			]
 		}
 	},

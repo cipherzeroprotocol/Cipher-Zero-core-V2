@@ -2,11 +2,10 @@
 pragma solidity ^0.8.26;
 
 interface IMessaging {
-    // Message structure
     struct Message {
         bytes32 commitment;      // Message commitment
         bytes32 nullifier;       // Uniqueness nullifier
-        address sender;          // Sender address (encrypted)
+        address sender;          // Sender address
         address recipient;       // Recipient address
         bytes encryptedContent;  // Encrypted message content
         uint256 timestamp;       // Message timestamp
@@ -14,14 +13,6 @@ interface IMessaging {
         bytes proof;            // ZK proof
     }
 
-    /**
-     * @notice Store encrypted message with ZK proof
-     * @param commitment Message commitment
-     * @param nullifier Unique nullifier
-     * @param recipient Recipient address
-     * @param encryptedContent Encrypted message content
-     * @param proof ZK proof
-     */
     function storeMessage(
         bytes32 commitment,
         bytes32 nullifier,
@@ -30,24 +21,24 @@ interface IMessaging {
         bytes calldata proof
     ) external;
 
-    /**
-     * @notice Mark message as read
-     * @param commitment Message commitment
-     */
+    function sendMessage(
+        address recipient,
+        bytes calldata encryptedMessage,
+        bytes32 messageHash
+    ) external;
+
     function markMessageRead(bytes32 commitment) external;
 
-    /**
-     * @notice Get user's messages with pagination
-     * @param user User address
-     * @param offset Starting index
-     * @param limit Maximum number of messages to return
-     * @return Message[] Array of messages
-     */
     function getUserMessages(
         address user,
         uint256 offset,
         uint256 limit
     ) external view returns (Message[] memory);
+
+    function getMessage(bytes32 commitment) 
+        external 
+        view 
+        returns (Message memory);
 
     // Events
     event MessageStored(
@@ -55,7 +46,7 @@ interface IMessaging {
         address indexed recipient,
         uint256 timestamp
     );
-    
+
     event MessageRead(
         bytes32 indexed commitment,
         uint256 timestamp

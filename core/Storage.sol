@@ -5,142 +5,249 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../interfaces/IStorage.sol";
 
-/**
- * @title Storage
- * @dev Manages on-chain storage of small files or metadata and interacts with off-chain storage solutions
- */
 contract Storage is IStorage, Ownable, ReentrancyGuard {
-    uint256 public constant MAX_ON_CHAIN_DATA_SIZE = 1024; // 1 KB
+    uint256 public constant MAX_CHUNK_SIZE = 1024 * 1024; // 1MB
+    uint256 public constant MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1GB
 
-    struct StorageItem {
-        bytes data;
-        string offChainIdentifier;
-        bool isOffChain;
+    mapping(bytes32 => FileMetadata) private files;
+    mapping(bytes32 => mapping(uint256 => ChunkInfo)) private chunks;
+    mapping(bytes32 => mapping(address => bool)) private accessControl;
+
+    constructor(address initialOwner) Ownable(initialOwner) {}
+
+    // File existence check
+    function fileExists(bytes32 fileHash) public view override returns (bool) {
+        return files[fileHash].exists;
     }
 
-    mapping(bytes32 => StorageItem) private storageItems;
+    // Access control check
+    function hasAccess(bytes32 fileHash, address user) public view override returns (bool) {
+        return accessControl[fileHash][user];
+    }
 
-    event DataStored(bytes32 indexed dataHash, uint256 size, bool isOffChain);
-    event OffChainStorageLinked(
-        bytes32 indexed dataHash,
-        string storageIdentifier
-    );
+    // Get file metadata
+    function getFileMetadata(bytes32 fileHash) external view override returns (FileMetadata memory) {
+        require(fileExists(fileHash), "File not found");
+        return files[fileHash];
+    }
 
-    /**
-     * @dev Stores small amounts of data on-chain
-     * @param _data The data to be stored
-     * @return dataHash The hash of the stored data
-     */
-    function storeData(
-        bytes calldata _data,
-    ) external nonReentrant returns (bytes32) {
-        require(_data.length > 0, "Data cannot be empty");
-        require(
-            _data.length <= MAX_ON_CHAIN_DATA_SIZE,
-            "Data too large for on-chain storage"
-        );
+    // Get chunk info
+    function getChunkInfo(bytes32 fileHash, uint256 index) external view override returns (ChunkInfo memory) {
+        require(fileExists(fileHash), "File not found");
+        require(index < files[fileHash].chunks, "Invalid chunk index");
+        return chunks[fileHash][index];
+    }
 
-        bytes32 dataHash = keccak256(_data);
-        require(storageItems[dataHash].data.length == 0, "Data already exists");
+    // Get chunk count
+    function getChunkCount(bytes32 fileHash) external view override returns (uint256) {
+        require(fileExists(fileHash), "File not found");
+        return files[fileHash].chunks;
+    }
 
-        storageItems[dataHash] = StorageItem({
-            data: _data,
-            offChainIdentifier: "",
-            isOffChain: false
+    // Get file size
+    function getFileSize(bytes32 fileHash) external view override returns (uint256) {
+        require(fileExists(fileHash), "File not found");
+        return files[fileHash].size;
+    }
+
+    // Store file implementation
+    function storeFile(
+        bytes32 fileHash,
+        bytes calldata data,
+        bool isEncrypted,
+        bytes32 encryptionProof
+    ) external override {
+        require(data.length <= MAX_FILE_SIZE, "File too large");
+        uint256 chunkCount = (data.length + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE;
+        
+        _createFile(fileHash, data.length, chunkCount, isEncrypted, encryptionProof);
+    }
+
+    // Alternative store file implementation
+    function storeFile(
+        bytes32 fileHash,
+        uint256 size,
+        uint256 chunks,
+        bool encrypted,
+        string calldata contentType
+    ) external override returns (bool) {
+        _createFile(fileHash, size, chunks, encrypted, bytes32(0));
+        return true;
+    }
+
+    // Store chunk
+    function storeChunk(
+        bytes32 fileHash,
+        uint256 chunkIndex,
+        bytes calldata data,
+        bytes32 proof
+    ) external override {
+        _storeChunk(fileHash, chunkIndex, data, proof);
+    }
+
+    // Alternative store chunk implementation
+    function storeChunk(
+        bytes32 fileHash,
+        uint256 index,
+        bytes calldata data
+    ) external override returns (bool) {
+        _storeChunk(fileHash, index, data, bytes32(0));
+        return true;
+    }
+
+    // Retrieve file
+    function retrieveFile(bytes32 fileHash) external view override returns (FileMetadata memory) {
+        require(fileExists(fileHash), "File not found");
+        require(hasAccess(fileHash, msg.sender), "No access");
+        return files[fileHash];
+    }
+
+    // Remove file
+    function removeFile(bytes32 fileHash) external override {
+        require(fileExists(fileHash), "File not found");
+        require(files[fileHash].owner == msg.sender, "Not owner");
+        
+        delete files[fileHash];
+        emit FileRemoved(fileHash, msg.sender);
+    }
+
+    // Internal functions
+    function _createFile(
+        bytes32 fileHash,
+        uint256 size,
+        uint256 chunkCount,
+        bool encrypted,
+        bytes32 encryptionProof
+    ) internal {
+        require(size > 0 && size <= MAX_FILE_SIZE, "Invalid file size");
+        require(chunkCount > 0, "Invalid chunk count");
+        require(!fileExists(fileHash), "File already exists");
+
+        files[fileHash] = FileMetadata({
+            fileHash: fileHash,
+            owner: msg.sender,
+            size: size,
+            created: block.timestamp,
+            isEncrypted: encrypted,
+            encryptionProof: encryptionProof,
+            chunks: chunkCount,
+            exists: true
         });
 
-        emit DataStored(dataHash, _data.length, false);
-        return dataHash;
+        accessControl[fileHash][msg.sender] = true;
+        emit FileStored(fileHash, msg.sender, size, chunkCount, encrypted);
     }
 
-    /**
-     * @dev Retrieves stored data
-     * @param _dataHash The hash of the data to retrieve
-     * @return The stored data and a boolean indicating if it's off-chain
-     */
-    function retrieveData(
-        bytes32 _dataHash
-    ) external view override returns (bytes memory, bool) {
-        StorageItem storage item = storageItems[_dataHash];
-        require(
-            item.data.length > 0 || bytes(item.offChainIdentifier).length > 0,
-            "Data not found"
-        );
+    function _storeChunk(
+        bytes32 fileHash,
+        uint256 index,
+        bytes calldata data,
+        bytes32 proof
+    ) internal {
+        require(fileExists(fileHash), "File not found");
+        require(hasAccess(fileHash, msg.sender), "No access");
+        require(data.length <= MAX_CHUNK_SIZE, "Chunk too large");
+        require(index < files[fileHash].chunks, "Invalid chunk index");
 
-        return (item.data, item.isOffChain);
-    }
-
-    /**
-     * @dev Links off-chain stored data
-     * @param _dataHash The hash of the data
-     * @param _storageIdentifier The identifier for the off-chain storage location
-     */
-    function linkOffChainStorage(
-        bytes32 _dataHash,
-        string calldata _storageIdentifier
-    ) external nonReentrant {
-        require(
-            bytes(_storageIdentifier).length > 0,
-            "Invalid storage identifier"
-        );
-        require(
-            storageItems[_dataHash].data.length == 0 &&
-                bytes(storageItems[_dataHash].offChainIdentifier).length == 0,
-            "Data already exists"
-        );
-
-        storageItems[_dataHash] = StorageItem({
-            data: "",
-            offChainIdentifier: _storageIdentifier,
-            isOffChain: true
+        bytes32 chunkHash = keccak256(data);
+        chunks[fileHash][index] = ChunkInfo({
+            index: index,
+            size: data.length,
+            hash: chunkHash,
+            proof: proof
         });
 
-        emit OffChainStorageLinked(_dataHash, _storageIdentifier);
+        emit ChunkStored(fileHash, index, chunkHash);
     }
 
-    /**
-     * @dev Checks if data exists (either on-chain or off-chain)
-     * @param _dataHash The hash of the data to check
-     * @return bool indicating if the data exists
-     */
-    function dataExists(bytes32 _dataHash) external view returns (bool) {
-        return
-            storageItems[_dataHash].data.length > 0 ||
-            bytes(storageItems[_dataHash].offChainIdentifier).length > 0;
+    // Implement remaining interface functions
+    function storeFile(
+        bytes32 fileHash,
+        uint256 size,
+        uint256 chunkCount,
+        string calldata contentType,
+        bool isEncrypted,
+        string calldata encryptionType,
+        bytes32 encryptionKey
+    ) external override returns (bool) {
+        _createFile(fileHash, size, chunkCount, isEncrypted, encryptionKey);
+        return true;
     }
 
-    /**
-     * @dev Retrieves the off-chain storage identifier for a given data hash
-     * @param _dataHash The hash of the data
-     * @return The off-chain storage identifier
-     */
-    function getOffChainIdentifier(
-        bytes32 _dataHash
-    ) external view returns (string memory) {
-        require(
-            storageItems[_dataHash].isOffChain,
-            "Data is not stored off-chain"
-        );
-        return storageItems[_dataHash].offChainIdentifier;
+    function storeChunk(
+        bytes32 fileHash,
+        uint256 index,
+        bytes calldata data,
+        bool isEncrypted
+    ) external override returns (bool) {
+        _storeChunk(fileHash, index, data, bytes32(0));
+        return true;
     }
 
-    function storeData(
-        bytes32 dataHash,
-        string calldata dataUri
-    ) external {}
+    function retrieveChunk(
+        bytes32 fileHash,
+        uint256 index
+    ) external view override returns (bytes memory) {
+        require(fileExists(fileHash), "File not found");
+        require(hasAccess(fileHash, msg.sender), "No access");
+        require(index < files[fileHash].chunks, "Invalid chunk index");
+        // Note: Actual chunk data retrieval would be implemented differently
+        // This is just a placeholder
+        return "";
+    }
+    function updateEncryption(
+        bytes32 fileHash,
+        bytes32 encryptionProof
+    ) external override {
+        require(fileExists(fileHash), "File not found");
+        require(files[fileHash].owner == msg.sender, "Not owner");
+        
+        files[fileHash].encryptionProof = encryptionProof;
+        emit EncryptionUpdated(fileHash, encryptionProof);
+    }
 
-    function updateData(
-        bytes32 dataHash,
-        string calldata newUri
-    ) external {}
+    // Second updateEncryption implementation
+    function updateEncryption(
+        bytes32 fileHash,
+        bool encrypted
+    ) external override returns (bool) {
+        require(fileExists(fileHash), "File not found");
+        require(files[fileHash].owner == msg.sender, "Not owner");
+        
+        files[fileHash].isEncrypted = encrypted;
+        emit EncryptionUpdated(fileHash, files[fileHash].encryptionProof);
+        return true;
+    }
 
-    function deleteData(bytes32 dataHash) external {}
+    // First verifyChunk implementation
+    function verifyChunk(
+        bytes32 fileHash,
+        uint256 chunkIndex,
+        bytes calldata data,
+        bytes32 proof
+    ) external view override returns (bool) {
+        require(fileExists(fileHash), "File not found");
+        require(chunkIndex < files[fileHash].chunks, "Invalid chunk index");
+        
+        ChunkInfo storage chunk = chunks[fileHash][chunkIndex];
+        bytes32 computedHash = keccak256(data);
+        
+        if (proof != bytes32(0)) {
+            return chunk.proof == proof && chunk.hash == computedHash;
+        }
+        
+        return chunk.hash == computedHash;
+    }
 
-    function getDataOwner(
-        bytes32 dataHash
-    ) external view returns (address) {}
-
-    function getDataMetadata(
-        bytes32 dataHash
-    ) external view returns (string memory, uint256) {}
+    // Second verifyChunk implementation
+    function verifyChunk(
+        bytes32 fileHash,
+        uint256 index,
+        bytes32 chunkHash
+    ) external view override returns (bool) {
+        require(fileExists(fileHash), "File not found");
+        require(index < files[fileHash].chunks, "Invalid chunk index");
+        
+        return chunks[fileHash][index].hash == chunkHash;
+    }
 }

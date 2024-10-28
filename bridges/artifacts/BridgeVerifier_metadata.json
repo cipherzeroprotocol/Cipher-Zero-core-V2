@@ -349,6 +349,46 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "getVerifyingKey",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "uint256[2]",
+								"name": "alpha",
+								"type": "uint256[2]"
+							},
+							{
+								"internalType": "uint256[2][2]",
+								"name": "beta",
+								"type": "uint256[2][2]"
+							},
+							{
+								"internalType": "uint256[2]",
+								"name": "gamma",
+								"type": "uint256[2]"
+							},
+							{
+								"internalType": "uint256[2]",
+								"name": "delta",
+								"type": "uint256[2]"
+							},
+							{
+								"internalType": "uint256[2][]",
+								"name": "ic",
+								"type": "uint256[2][]"
+							}
+						],
+						"internalType": "struct IBridgeVerifier.VerifyingKey",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "uint32",
@@ -752,11 +792,11 @@
 			]
 		},
 		"bridges/BridgeVerifier.sol": {
-			"keccak256": "0xe5d07047277a6044a829e85968cedaac4dddaea23d35b8fa315050f8413592a6",
+			"keccak256": "0x18312d36476539c9224c608c6f5dfbb20cc55e6eea84eab257dbe3f9a5d8fe08",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://cffd03e62004472ad944b8b69c7b5f5861e0ccc0d9d85d7bb26950b1c5db930a",
-				"dweb:/ipfs/QmXmQkzPpeNAsxRSo6KZHmo43CiNfhcZVuQ91CTJoHxVKd"
+				"bzz-raw://42980f0a8082fdf82f37a1454e65b700605153e07365a989528f6750b9d2281d",
+				"dweb:/ipfs/QmafCov71iGiYvUTsdCeWUKm8hSifE1LMAsWasvpJdygAV"
 			]
 		},
 		"interfaces/IBridgeVerifier.sol": {

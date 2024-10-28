@@ -16,6 +16,32 @@ interface IWormhole {
         bytes32 hash;
     }
 
+    /**
+     * @notice Publish a message to be attested by the Wormhole network
+     * @param nonce Unique nonce for the message
+     * @param message Message bytes to be attested
+     * @param consistencyLevel Desired finality (0 = instant, 1 = finalized)
+     * @return sequence Sequence number of the published message
+     */
+    function publishMessage(
+        uint32 nonce,
+        bytes memory message,
+        uint8 consistencyLevel
+    ) external payable returns (uint64 sequence);
+
+    /**
+     * @notice Get the fee required to publish a message
+     * @return fee The required fee in wei
+     */
+    function messageFee() external view returns (uint256);
+
+    /**
+     * @notice Parse and verify a VAA (Verified Action Approval)
+     * @param encodedVM The encoded VAA
+     * @return vm The parsed VM struct
+     * @return valid Whether the VAA is valid
+     * @return reason Reason for invalidity if not valid
+     */
     function parseAndVerifyVM(bytes calldata encodedVM) 
         external 
         view 

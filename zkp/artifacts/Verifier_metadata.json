@@ -46,6 +46,634 @@
 				],
 				"stateMutability": "view",
 				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyAppealProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyBanProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "proof",
+						"type": "bytes32"
+					}
+				],
+				"name": "verifyBanProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "messageHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "nullifier",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyBridgeProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyDepositProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyFileProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileCommitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					},
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					}
+				],
+				"name": "verifyFileProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyIdentityProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "proof",
+						"type": "bytes32"
+					}
+				],
+				"name": "verifyIdentityProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "nullifier",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "encryptedContent",
+						"type": "bytes"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyMessageProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "peerId",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyMisbehaviorProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "sessionId",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "proof",
+						"type": "bytes32"
+					}
+				],
+				"name": "verifyMixingProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "sessionId",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyMixingProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "pieceHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "piecesRoot",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyPieceProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "fileHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "claimer",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyPossessionProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "peerId1",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "peerId2",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyRelationshipProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyReputationProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "proof",
+						"type": "bytes32"
+					}
+				],
+				"name": "verifyReputationProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "proof",
+						"type": "bytes32"
+					}
+				],
+				"name": "verifyStatusProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyStatusProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "nullifierFrom",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "commitmentFrom",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "commitmentTo",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyTransferProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "nullifier",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "commitment",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "recipient",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "proof",
+						"type": "bytes"
+					}
+				],
+				"name": "verifyWithdrawProof",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
 			}
 		],
 		"devdoc": {
@@ -63,6 +691,61 @@
 					"returns": {
 						"_0": "A boolean value indicating whether the zk-SNARK proof is valid. Note: The function may revert execution instead of returning false in some cases."
 					}
+				},
+				"verifyDepositProof(bytes32,uint256,address,bytes)": {
+					"params": {
+						"amount": "The deposit amount",
+						"commitment": "The note commitment",
+						"proof": "The zero-knowledge proof",
+						"sender": "The depositor address"
+					},
+					"returns": {
+						"_0": "bool True if proof is valid"
+					}
+				},
+				"verifyFileProof(bytes32,address,bytes)": {
+					"params": {
+						"fileHash": "Hash of the file",
+						"owner": "Address of the file owner",
+						"proof": "Zero-knowledge proof"
+					},
+					"returns": {
+						"_0": "bool True if proof is valid"
+					}
+				},
+				"verifyPossessionProof(bytes32,address,bytes)": {
+					"params": {
+						"claimer": "Address claiming possession",
+						"fileHash": "Hash of the file",
+						"proof": "Zero-knowledge proof"
+					},
+					"returns": {
+						"_0": "bool True if proof is valid"
+					}
+				},
+				"verifyTransferProof(bytes32,bytes32,bytes32,uint256,bytes)": {
+					"params": {
+						"amount": "Transfer amount",
+						"commitmentFrom": "Input note commitment",
+						"commitmentTo": "Output note commitment",
+						"nullifierFrom": "Input note nullifier",
+						"proof": "Zero-knowledge proof"
+					},
+					"returns": {
+						"_0": "bool True if proof is valid"
+					}
+				},
+				"verifyWithdrawProof(bytes32,bytes32,address,uint256,bytes)": {
+					"params": {
+						"amount": "The withdrawal amount",
+						"commitment": "The note commitment",
+						"nullifier": "The note nullifier",
+						"proof": "The zero-knowledge proof",
+						"recipient": "The withdrawal recipient"
+					},
+					"returns": {
+						"_0": "bool True if proof is valid"
+					}
 				}
 			},
 			"stateVariables": {
@@ -77,6 +760,21 @@
 			"methods": {
 				"verificationKeyHash()": {
 					"notice": "Calculates a keccak256 hash of the runtime loaded verification keys."
+				},
+				"verifyDepositProof(bytes32,uint256,address,bytes)": {
+					"notice": "Verify deposit proof"
+				},
+				"verifyFileProof(bytes32,address,bytes)": {
+					"notice": "Verify a file proof"
+				},
+				"verifyPossessionProof(bytes32,address,bytes)": {
+					"notice": "Verify possession proof"
+				},
+				"verifyTransferProof(bytes32,bytes32,bytes32,uint256,bytes)": {
+					"notice": "Verify transfer proof"
+				},
+				"verifyWithdrawProof(bytes32,bytes32,address,uint256,bytes)": {
+					"notice": "Verify withdrawal proof"
 				}
 			},
 			"notice": "Modified version of the Permutations over Lagrange-bases for Oecumenical Noninteractive arguments of Knowledge (PLONK) verifier. Modifications have been made to optimize the proof system for zkSync Era circuits.",
@@ -100,19 +798,19 @@
 	},
 	"sources": {
 		"interfaces/IVerifier.sol": {
-			"keccak256": "0x8081ccc8639780f78d8ceb784d43e7b901e0c56d5c1bacc817bfe60d6331f8c8",
+			"keccak256": "0x2467bbb66e2536abd6ee14569eb1f59e462b282380c1db88e9d91e127e796eb0",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://e20cfab7a489773b00f9ab3b8bc663d67612c68e255c6ebde8a5609c9abb4bb2",
-				"dweb:/ipfs/QmRS6XRZ721pwom2uCAhyetyxZNoykacATUGvV9JiNvAnG"
+				"bzz-raw://dcdf9aff290371b6c693335a86ddde80e3c44c207cd9fab36d31d2ddca5a762d",
+				"dweb:/ipfs/QmcZNtoYmL5awvrDv78SXo6uvfZtfnvo79nZrYZT1FfHyM"
 			]
 		},
 		"zkp/Verifier.sol": {
-			"keccak256": "0x587f85babc4d5e2029bdd741a697b7c612030269a7b7dcbf9fe0893cbdd56826",
+			"keccak256": "0x60f9b708affc74c4be7cccfde6742024e89f768e04334a6f8c0df1d977b3aabb",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://1d11fcc7395b7861f27d28b981b49b858e73a3baf0355cf3807f1263703edf89",
-				"dweb:/ipfs/QmVs3MF33Deqw7xGEN57wvwGApWqMm4NRzd2EFGE1bgmR4"
+				"bzz-raw://70fd0ebeee7181efbea8d1d072e16f85b9e58c4645d982c5c11f0897d6005e1a",
+				"dweb:/ipfs/QmSbfX8ufTQcBX2QSzKzLanbQpRhTNapBLGcNgXJ4te7R1"
 			]
 		}
 	},

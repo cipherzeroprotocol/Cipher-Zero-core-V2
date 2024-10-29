@@ -90,11 +90,11 @@
 			]
 		},
 		"zkp/ZKVerifier.sol": {
-			"keccak256": "0x4c083bb16dcf71533e3be18042a916fa83735f08c98fcfe6ecd460ed161b8ae4",
+			"keccak256": "0xf0c709ca1b6d11a57e90bdf3e32ed1b9084f84dd18f3b84437c1f988d2098c69",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://3e8ca94a42e001ea46baf6cf232144ae417ae7d4600003fe4bc126878d3bbd6e",
-				"dweb:/ipfs/QmW58KdnJa7cKeyx7WjgNNegxPrgaPFgwDkd5y74rKKnJg"
+				"bzz-raw://61ee88b3399dda2316af01e930e0ebbc0946a8f24c6064a9ff2b8dbbda9e3f5e",
+				"dweb:/ipfs/QmZjo1Wg6p95AA5LU44DZ6RE7K5w4WrbEhUAX9tyJkCdrY"
 			]
 		}
 	},

@@ -1,83 +1,179 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.26;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title EncryptionManager
- * @dev Manages encryption keys for the protocol, including key generation, storage, and rotation.
- *      Only the contract owner can perform certain sensitive operations such as rotating or revoking keys.
+ * @dev Advanced encryption key management system with optimized operations
  */
-contract EncryptionManager is Ownable {
-    constructor() Ownable(msg.sender) {}
-    // Mapping to store encrypted keys associated with their hashes
-    mapping(bytes32 => bytes32) private encryptionKeys;
+contract EncryptionManager is Ownable, ReentrancyGuard, Pausable {
+    // Storage mappings
+    mapping(bytes32 => bytes32) private encryptedKeys;
+    mapping(bytes32 => KeyMetadata) private keyMetadata;
 
-    // Event emitted when a new encryption key is generated
-    event EncryptionKeyGenerated(bytes32 indexed keyHash);
+    // Key status flags
+    uint8 private constant STATUS_ACTIVE = 1;
+    uint8 private constant STATUS_REVOKED = 2;
+    
+    // Cooling period for key rotations (24 hours)
+    uint256 private constant KEY_ROTATION_COOLING_PERIOD = 24 hours;
+    
+    struct KeyMetadata {
+        uint256 creationTime;
+        uint256 lastRotationTime;
+        uint8 status;
+        uint256 useCount;
+    }
 
-    // Event emitted when an encryption key is stored
-    event EncryptionKeyStored(bytes32 indexed keyHash);
+    // Events
+    event EncryptionKeyGenerated(
+        bytes32 indexed keyHash,
+        uint256 indexed timestamp,
+        bytes32 indexed publicPart
+    );
+    event EncryptionKeyStored(
+        bytes32 indexed keyHash,
+        uint256 indexed timestamp
+    );
+    event EncryptionKeyRotated(
+        bytes32 indexed oldKeyHash,
+        bytes32 indexed newKeyHash,
+        uint256 indexed timestamp
+    );
+    event EncryptionKeyRevoked(
+        bytes32 indexed keyHash,
+        uint256 indexed timestamp,
+        string reason
+    );
 
-    // Event emitted when an encryption key is rotated
-    event EncryptionKeyRotated(bytes32 indexed oldKeyHash, bytes32 indexed newKeyHash);
-
-    // Event emitted when an encryption key is revoked
-    event EncryptionKeyRevoked(bytes32 indexed keyHash);
-
-    /**
-     * @dev Generates a new encryption key by hashing random data.
-     * @param keyData The input data for the encryption key hash (should be a random value from the caller).
-     * @return keyHash The hash of the newly generated encryption key.
-     */
-    function generateEncryptionKey(bytes memory keyData) external onlyOwner returns (bytes32 keyHash) {
-        keyHash = keccak256(keyData);
-        emit EncryptionKeyGenerated(keyHash);
+    constructor(address initialOwner) Ownable(initialOwner) {
+        require(initialOwner != address(0), "Invalid owner");
+        _pause(); // Start paused for security
     }
 
     /**
-     * @dev Stores a generated encryption key securely.
-     * @param keyHash The hash of the encryption key to be stored.
-     * @param encryptedKey The actual encryption key, stored securely (should be encrypted off-chain).
+     * @dev Generates a new encryption key using assembly for gas optimization
      */
-    function storeEncryptionKey(bytes32 keyHash, bytes32 encryptedKey) external onlyOwner {
-        require(encryptionKeys[keyHash] == bytes32(0), "Encryption key already exists");
-        encryptionKeys[keyHash] = encryptedKey;
-        emit EncryptionKeyStored(keyHash);
+    function generateEncryptionKey(
+        bytes32 entropy
+    ) external nonReentrant whenNotPaused onlyOwner returns (bytes32 keyHash, bytes32 publicPart) {
+        require(entropy != bytes32(0), "Zero entropy");
+
+        assembly {
+            // Generate key hash using block data and entropy
+            let ptr := mload(0x40)
+            mstore(ptr, number())
+            mstore(add(ptr, 0x20), timestamp())
+            mstore(add(ptr, 0x40), entropy)
+            
+            keyHash := keccak256(ptr, 0x60)
+            publicPart := xor(keyHash, entropy)
+            
+            // Clear memory
+            mstore(ptr, 0)
+        }
+
+        // Store metadata
+        keyMetadata[keyHash] = KeyMetadata({
+            creationTime: block.timestamp,
+            lastRotationTime: block.timestamp,
+            status: STATUS_ACTIVE,
+            useCount: 0
+        });
+
+        emit EncryptionKeyGenerated(keyHash, block.timestamp, publicPart);
+        return (keyHash, publicPart);
     }
 
     /**
-     * @dev Rotates an encryption key, replacing the old key with a new one.
-     * @param oldKeyHash The hash of the old encryption key.
-     * @param newKeyHash The hash of the new encryption key.
-     * @param newEncryptedKey The new encryption key, securely stored (should be encrypted off-chain).
+     * @dev Stores an encrypted key
      */
-    function rotateEncryptionKey(bytes32 oldKeyHash, bytes32 newKeyHash, bytes32 newEncryptedKey) external onlyOwner {
-        require(encryptionKeys[oldKeyHash] != bytes32(0), "Old encryption key does not exist");
-        require(encryptionKeys[newKeyHash] == bytes32(0), "New encryption key already exists");
+    function storeEncryptionKey(
+        bytes32 keyHash,
+        bytes32 encryptedKey
+    ) external nonReentrant whenNotPaused onlyOwner {
+        require(keyHash != bytes32(0), "Invalid key hash");
+        require(encryptedKey != bytes32(0), "Invalid encrypted key");
+        require(encryptedKeys[keyHash] == bytes32(0), "Key already exists");
 
-        delete encryptionKeys[oldKeyHash];
-        encryptionKeys[newKeyHash] = newEncryptedKey;
-        emit EncryptionKeyRotated(oldKeyHash, newKeyHash);
+        encryptedKeys[keyHash] = encryptedKey;
+        
+        KeyMetadata storage metadata = keyMetadata[keyHash];
+        metadata.useCount++;
+
+        emit EncryptionKeyStored(keyHash, block.timestamp);
     }
 
     /**
-     * @dev Retrieves the encrypted encryption key corresponding to the key hash.
-     * @param keyHash The hash of the encryption key.
-     * @return The encrypted encryption key.
+     * @dev Rotates an encryption key with cooling period check
      */
-    function getEncryptionKey(bytes32 keyHash) external view onlyOwner returns (bytes32) {
-        return encryptionKeys[keyHash];
+    function rotateEncryptionKey(
+        bytes32 oldKeyHash,
+        bytes32 newKeyHash,
+        bytes32 newEncryptedKey
+    ) external nonReentrant whenNotPaused onlyOwner {
+        KeyMetadata storage oldMetadata = keyMetadata[oldKeyHash];
+        require(oldMetadata.status == STATUS_ACTIVE, "Invalid old key");
+        require(
+            block.timestamp >= oldMetadata.lastRotationTime + KEY_ROTATION_COOLING_PERIOD,
+            "Cooling period active"
+        );
+        require(encryptedKeys[newKeyHash] == bytes32(0), "New key already exists");
+
+        // Rotate keys
+        delete encryptedKeys[oldKeyHash];
+        encryptedKeys[newKeyHash] = newEncryptedKey;
+
+        // Update metadata
+        oldMetadata.status = STATUS_REVOKED;
+        keyMetadata[newKeyHash] = KeyMetadata({
+            creationTime: block.timestamp,
+            lastRotationTime: block.timestamp,
+            status: STATUS_ACTIVE,
+            useCount: 0
+        });
+
+        emit EncryptionKeyRotated(oldKeyHash, newKeyHash, block.timestamp);
     }
 
     /**
-     * @dev Revokes an encryption key, removing it from storage.
-     * @param keyHash The hash of the encryption key to be revoked.
+     * @dev Retrieves an encryption key with access control
      */
-    function revokeEncryptionKey(bytes32 keyHash) external onlyOwner {
-        require(encryptionKeys[keyHash] != bytes32(0), "Encryption key does not exist");
-        delete encryptionKeys[keyHash];
-        emit EncryptionKeyRevoked(keyHash);
+    function getEncryptionKey(
+        bytes32 keyHash
+    ) external view whenNotPaused onlyOwner returns (bytes32 encryptedKey, KeyMetadata memory metadata) {
+        metadata = keyMetadata[keyHash];
+        require(metadata.status == STATUS_ACTIVE, "Key not active");
+        
+        encryptedKey = encryptedKeys[keyHash];
+        require(encryptedKey != bytes32(0), "Key not found");
+    }
+
+    /**
+     * @dev Revokes an encryption key with reason
+     */
+    function revokeEncryptionKey(
+        bytes32 keyHash,
+        string calldata reason
+    ) external nonReentrant whenNotPaused onlyOwner {
+        KeyMetadata storage metadata = keyMetadata[keyHash];
+        require(metadata.status == STATUS_ACTIVE, "Key not active");
+
+        delete encryptedKeys[keyHash];
+        metadata.status = STATUS_REVOKED;
+
+        emit EncryptionKeyRevoked(keyHash, block.timestamp, reason);
+    }
+
+    // Emergency functions
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
     }
 }

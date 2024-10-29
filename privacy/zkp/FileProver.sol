@@ -7,50 +7,32 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
 import "../../interfaces/IZKVerifier.sol";
 import "../../interfaces/IBitTorrent.sol";
 
-/**
- * @title FileProver
- * @notice Handles verification of ZK proofs for file sharing in Cipher Zero Protocol
- * @dev Implements proof verification for file integrity and access control
- */
 contract FileProver is IZKVerifier, Ownable, ReentrancyGuard, Pausable {
-    // Verification key structure for file proofs
-    struct VerifyingKey {
-        uint256[2] alpha;
-        uint256[2][2] beta;
-        uint256[2] gamma;
-        uint256[2] delta;
-        uint256[2][] ic;
-    }
+    // Verification key components
+    mapping(uint256 => uint256) public alphaComponents;
+    mapping(uint256 => mapping(uint256 => uint256)) public betaComponents;
+    mapping(uint256 => uint256) public gammaComponents;
+    mapping(uint256 => uint256) public deltaComponents;
+    mapping(uint256 => mapping(uint256 => uint256)) public icComponents;
+    uint256 public icLength;
 
-    // File proof structure
-    struct FileProof {
-        uint256[2] a;
-        uint256[2][2] b;
-        uint256[2] c;
-    }
-
-    // File commitment structure
     struct FileCommitment {
-        bytes32 commitment;      // File content commitment
-        bytes32 metadataHash;   // IPFS/BitTorrent metadata hash
-        uint256 size;           // File size
-        address owner;          // File owner
-        mapping(bytes32 => bool) accessProofs;  // Track verified access proofs
-        bool isEncrypted;       // Encryption status
-        bytes32 encryptionProof; // Proof of correct encryption
-        uint256 timestamp;      // Creation timestamp
+        bytes32 commitment;      
+        bytes32 metadataHash;   
+        uint256 size;           
+        address owner;          
+        bool isEncrypted;       
+        bytes32 encryptionProof;
+        uint256 timestamp;      
     }
 
-    // BitTorrent integration
-    IBitTorrent public bitTorrent;
-    
     // State variables
+    IBitTorrent public immutable bitTorrent;
     mapping(bytes32 => FileCommitment) public files;
     mapping(bytes32 => bool) public nullifierUsed;
     mapping(address => mapping(bytes32 => bool)) public userAccess;
-    
-    VerifyingKey public verifyingKey;
-    
+    mapping(bytes32 => mapping(bytes32 => bool)) public fileAccessProofs;
+
     // Events
     event FileProofVerified(
         bytes32 indexed commitment,
@@ -73,53 +55,33 @@ contract FileProver is IZKVerifier, Ownable, ReentrancyGuard, Pausable {
         uint256 timestamp
     );
 
-    /**
-     * @notice Constructor
-     * @param _bitTorrent BitTorrent integration contract address
-     * @param _vk Initial verifying key components
-     */
     constructor(
         address _bitTorrent,
-        uint256[2] memory _alpha,
-        uint256[2][2] memory _beta,
-        uint256[2] memory _gamma,
-        uint256[2] memory _delta,
-        uint256[2][] memory _ic
-    ) {
+        address _initialOwner
+    ) Ownable(_initialOwner) {
+        require(_bitTorrent != address(0), "Invalid BitTorrent address");
         bitTorrent = IBitTorrent(_bitTorrent);
-        verifyingKey = VerifyingKey({
-            alpha: _alpha,
-            beta: _beta,
-            gamma: _gamma,
-            delta: _delta,
-            ic: _ic
-        });
     }
 
-    /**
-     * @notice Verify file commitment proof
-     * @param commitment File commitment
-     * @param metadataHash IPFS/BitTorrent metadata hash
-     * @param size File size
-     * @param proof ZK proof components
-     */
     function verifyFileProof(
         bytes32 commitment,
         bytes32 metadataHash,
         uint256 size,
-        bytes calldata proof
+        uint256[8] calldata proof
     ) external nonReentrant whenNotPaused returns (bool) {
-        // Decode proof
-        FileProof memory fileProof = abi.decode(proof, (FileProof));
+        require(commitment != bytes32(0), "Invalid commitment");
+        require(files[commitment].commitment == bytes32(0), "File already exists");
 
-        // Prepare inputs for verification
-        uint256[] memory inputs = new uint256[](3);
-        inputs[0] = uint256(commitment);
-        inputs[1] = uint256(metadataHash);
-        inputs[2] = size;
-
-        // Verify the proof
-        require(verifyProof(fileProof, inputs), "Invalid file proof");
+        // Convert proof array to expected format and verify
+        uint256[1] memory input = [uint256(uint160(msg.sender))];
+        
+     bool success = bitTorrent.addFile(commitment, metadataHash);
+     require(success, "BitTorrent registration failed");
+        
+        require(
+            this.verifyProof(proof, input),
+            "Invalid file proof"
+        );
 
         // Store file commitment
         FileCommitment storage newFile = files[commitment];
@@ -127,10 +89,12 @@ contract FileProver is IZKVerifier, Ownable, ReentrancyGuard, Pausable {
         newFile.metadataHash = metadataHash;
         newFile.size = size;
         newFile.owner = msg.sender;
+        newFile.isEncrypted = false;
+        newFile.encryptionProof = bytes32(0);
         newFile.timestamp = block.timestamp;
 
         // Register with BitTorrent integration
-        bitTorrent.registerFile(commitment, metadataHash);
+        
 
         emit FileProofVerified(
             commitment,
@@ -143,114 +107,66 @@ contract FileProver is IZKVerifier, Ownable, ReentrancyGuard, Pausable {
         return true;
     }
 
-    /**
-     * @notice Verify file access proof
-     * @param fileCommitment File commitment
-     * @param user User address
-     * @param accessProof Access proof components
-     */
-    function verifyAccessProof(
-        bytes32 fileCommitment,
-        address user,
-        bytes calldata accessProof
-    ) external nonReentrant whenNotPaused returns (bool) {
-        require(files[fileCommitment].commitment != bytes32(0), "File not found");
-        
-        // Decode and verify access proof
-        FileProof memory proof = abi.decode(accessProof, (FileProof));
-        
-        uint256[] memory inputs = new uint256[](2);
-        inputs[0] = uint256(fileCommitment);
-        inputs[1] = uint256(uint160(user));
-
-        require(verifyProof(proof, inputs), "Invalid access proof");
-
-        // Grant access
-        userAccess[user][fileCommitment] = true;
-        
-        // Store access proof
-        bytes32 proofHash = keccak256(accessProof);
-        files[fileCommitment].accessProofs[proofHash] = true;
-
-        emit AccessProofVerified(
-            fileCommitment,
-            user,
-            proofHash,
-            block.timestamp
-        );
-
-        return true;
-    }
-
-    /**
-     * @notice Verify file encryption proof
-     * @param fileCommitment File commitment
-     * @param encryptionProof Encryption proof components
-     */
-    function verifyEncryptionProof(
-        bytes32 fileCommitment,
-        bytes calldata encryptionProof
-    ) external nonReentrant whenNotPaused returns (bool) {
-        require(files[fileCommitment].commitment != bytes32(0), "File not found");
-        require(msg.sender == files[fileCommitment].owner, "Not file owner");
-
-        // Decode and verify encryption proof
-        FileProof memory proof = abi.decode(encryptionProof, (FileProof));
-        
-        uint256[] memory inputs = new uint256[](1);
-        inputs[0] = uint256(fileCommitment);
-
-        require(verifyProof(proof, inputs), "Invalid encryption proof");
-
-        // Update encryption status
-        files[fileCommitment].isEncrypted = true;
-        files[fileCommitment].encryptionProof = keccak256(encryptionProof);
-
-        emit EncryptionProofVerified(
-            fileCommitment,
-            files[fileCommitment].encryptionProof,
-            block.timestamp
-        );
-
-        return true;
-    }
-
-    /**
-     * @notice Check if user has access to file
-     * @param user User address
-     * @param fileCommitment File commitment
-     */
-    function hasAccess(
-        address user,
-        bytes32 fileCommitment
-    ) external view returns (bool) {
-        return userAccess[user][fileCommitment];
-    }
-
-    /**
-     * @notice Verify a proof against the verifying key
-     * @param proof Proof components
-     * @param inputs Public inputs
-     */
     function verifyProof(
-        FileProof memory proof,
-        uint256[] memory inputs
+        uint256[8] calldata proof,
+        uint256[1] calldata input
+    ) external view override returns (bool) {
+        return _verifyProof(
+            [proof[0], proof[1]],  // a
+            [[proof[2], proof[3]], [proof[4], proof[5]]], // b
+            [proof[6], proof[7]], // c
+            input
+        );
+    }
+
+    function initializeVerificationKey(
+        uint256[2] calldata _alpha,
+        uint256[2][2] calldata _beta,
+        uint256[2] calldata _gamma,
+        uint256[2] calldata _delta,
+        uint256[2][] calldata _ic
+    ) external onlyOwner {
+        require(_ic.length > 0, "Invalid IC length");
+        
+        alphaComponents[0] = _alpha[0];
+        alphaComponents[1] = _alpha[1];
+
+        for (uint256 i = 0; i < 2; i++) {
+            for (uint256 j = 0; j < 2; j++) {
+                betaComponents[i][j] = _beta[i][j];
+            }
+        }
+
+        gammaComponents[0] = _gamma[0];
+        gammaComponents[1] = _gamma[1];
+
+        deltaComponents[0] = _delta[0];
+        deltaComponents[1] = _delta[1];
+
+        icLength = _ic.length;
+        for (uint256 i = 0; i < _ic.length; i++) {
+            icComponents[i][0] = _ic[i][0];
+            icComponents[i][1] = _ic[i][1];
+        }
+    }
+
+    function _verifyProof(
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        uint256[1] memory input
     ) internal view returns (bool) {
-        require(inputs.length + 1 == verifyingKey.ic.length, "Invalid input length");
+        require(input.length + 1 == icLength, "Invalid input length");
 
-        // Compute linear combination of inputs
-        uint256[2] memory vk_x;
-        vk_x[0] = verifyingKey.ic[0][0];
-        vk_x[1] = verifyingKey.ic[0][1];
+        uint256[2] memory vk_x = [icComponents[0][0], icComponents[0][1]];
 
-        // Add contribution of inputs
-        for (uint256 i = 0; i < inputs.length; i++) {
-            (uint256 x, uint256 y) = scalarMul(
-                verifyingKey.ic[i + 1],
-                inputs[i]
+        for (uint256 i = 0; i < input.length; i++) {
+            (uint256 x, uint256 y) = _scalarMul(
+                [icComponents[i + 1][0], icComponents[i + 1][1]],
+                input[i]
             );
             
-            (vk_x[0], vk_x[1]) = pointAdd(
+            (vk_x[0], vk_x[1]) = _pointAdd(
                 vk_x[0],
                 vk_x[1],
                 x,
@@ -258,78 +174,137 @@ contract FileProver is IZKVerifier, Ownable, ReentrancyGuard, Pausable {
             );
         }
 
-        // Perform pairing verification
-        return verifyPairing(
-            proof.a,
-            proof.b,
-            verifyingKey.alpha,
-            verifyingKey.beta,
+        return _verifyPairing(
+            a,
+            b,
+            [alphaComponents[0], alphaComponents[1]],
+            [betaComponents[0][0], betaComponents[0][1]],
             vk_x,
-            verifyingKey.gamma,
-            [proof.c[0], proof.c[1]],
-            verifyingKey.delta
+            [gammaComponents[0], gammaComponents[1]],
+            c,
+            [deltaComponents[0], deltaComponents[1]]
         );
     }
 
-    /**
-     * @notice Update verifying key
-     * @param _vk New verifying key components
-     */
-    function updateVerifyingKey(
-        uint256[2] memory _alpha,
-        uint256[2][2] memory _beta,
-        uint256[2] memory _gamma,
-        uint256[2] memory _delta,
-        uint256[2][] memory _ic
-    ) external onlyOwner {
-        verifyingKey = VerifyingKey({
-            alpha: _alpha,
-            beta: _beta,
-            gamma: _gamma,
-            delta: _delta,
-            ic: _ic
-        });
+    function _scalarMul(uint256[2] memory p, uint256 s) internal pure returns (uint256, uint256) {
+        // TODO: Implement actual EC scalar multiplication
+        return (p[0] * s, p[1] * s);
     }
 
-    // Emergency control functions
+    function _pointAdd(uint256 x1, uint256 y1, uint256 x2, uint256 y2) internal pure returns (uint256, uint256) {
+        // TODO: Implement actual EC point addition
+        return (x1 + x2, y1 + y2);
+    }
+
+    /**
+ * @notice Verify pairing for proof verification
+ * @dev Uses bn128 precompiles for efficient pairing checks
+ */
+function _verifyPairing(
+    uint256[2] memory a,
+    uint256[2][2] memory b,
+    uint256[2] memory alpha,
+    uint256[2] memory beta,
+    uint256[2] memory vk_x,
+    uint256[2] memory gamma,
+    uint256[2] memory c,
+    uint256[2] memory delta
+) internal view returns (bool) {
+    // Initialize pairing points array
+    uint256[24] memory input;
+    
+    // Negate a and c for pairing check
+    (a[0], a[1]) = _negate(a[0], a[1]);
+    (c[0], c[1]) = _negate(c[0], c[1]);
+
+    // First pairing: e(A, B)
+    input[0] = a[0];
+    input[1] = a[1];
+    input[2] = b[0][0];
+    input[3] = b[0][1];
+    input[4] = b[1][0];
+    input[5] = b[1][1];
+
+    // Second pairing: e(alpha, beta)
+    input[6] = alpha[0];
+    input[7] = alpha[1];
+    input[8] = beta[0];
+    input[9] = beta[1];
+    input[10] = beta[0];
+    input[11] = beta[1];
+
+    // Third pairing: e(vk_x, gamma)
+    input[12] = vk_x[0];
+    input[13] = vk_x[1];
+    input[14] = gamma[0];
+    input[15] = gamma[1];
+    input[16] = gamma[0];
+    input[17] = gamma[1];
+
+    // Fourth pairing: e(C, delta)
+    input[18] = c[0];
+    input[19] = c[1];
+    input[20] = delta[0];
+    input[21] = delta[1];
+    input[22] = delta[0];
+    input[23] = delta[1];
+
+    // Perform pairing check using bn128 precompile
+    uint256[1] memory out;
+    bool success;
+
+    // solium-disable-next-line security/no-inline-assembly
+    assembly {
+        // Call bn128 pairing precompile at address 0x08
+        success := staticcall(gas(), 0x08, input, 0x180, out, 0x20)
+    }
+
+    require(success, "Pairing check failed");
+    return out[0] == 1;
+}
+
+/**
+ * @notice Negate a point on the curve
+ * @param x X coordinate
+ * @param y Y coordinate
+ * @return (negX, negY) Negated point
+ */
+function _negate(uint256 x, uint256 y) internal pure returns (uint256, uint256) {
+    // Field modulus
+    uint256 q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
+    
+    if (x == 0 && y == 0) {
+        return (0, 0);
+    }
+    
+    // Negate y-coordinate
+    return (x, q - (y % q));
+}
+
+/**
+ * @notice Check if a point is on the curve
+ * @param x X coordinate
+ * @param y Y coordinate
+ * @return valid True if point is on curve
+ */
+function _isOnCurve(uint256 x, uint256 y) internal pure returns (bool) {
+    uint256 p = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
+    
+    if (x >= p || y >= p) {
+        return false;
+    }
+
+    // Check y^2 = x^3 + 3 (curve equation for bn128)
+    uint256 lhs = mulmod(y, y, p);
+    uint256 rhs = addmod(mulmod(mulmod(x, x, p), x, p), 3, p);
+    
+    return lhs == rhs;
+}
     function pause() external onlyOwner {
         _pause();
     }
 
     function unpause() external onlyOwner {
         _unpause();
-    }
-
-    // Elliptic curve helper functions (implement actual operations)
-    function scalarMul(
-        uint256[2] memory p,
-        uint256 s
-    ) internal pure returns (uint256, uint256) {
-        // TODO: Implement actual EC scalar multiplication
-        return (p[0] * s, p[1] * s); // Simplified
-    }
-
-    function pointAdd(
-        uint256 x1,
-        uint256 y1,
-        uint256 x2,
-        uint256 y2
-    ) internal pure returns (uint256, uint256) {
-        // TODO: Implement actual EC point addition
-        return (x1 + x2, y1 + y2); // Simplified
-    }
-
-    function verifyPairing(
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory alpha,
-        uint256[2] memory beta,
-        uint256[2] memory vk_x,
-        uint256[2] memory gamma,
-        uint256[2] memory c,
-        uint256[2] memory delta
-    ) internal view returns (bool) {
-        // TODO: Implement actual pairing check
-        return true; // Simplified
     }
 }

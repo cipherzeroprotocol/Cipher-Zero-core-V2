@@ -11,10 +11,25 @@
 						"internalType": "address",
 						"name": "_verifier",
 						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "initialOwner",
+						"type": "address"
 					}
 				],
 				"stateMutability": "nonpayable",
 				"type": "constructor"
+			},
+			{
+				"inputs": [],
+				"name": "EnforcedPause",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "ExpectedPause",
+				"type": "error"
 			},
 			{
 				"inputs": [
@@ -39,12 +54,29 @@
 				"type": "error"
 			},
 			{
+				"inputs": [],
+				"name": "ReentrancyGuardReentrantCall",
+				"type": "error"
+			},
+			{
 				"anonymous": false,
 				"inputs": [
 					{
 						"indexed": true,
 						"internalType": "bytes32",
 						"name": "ipHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "proof",
 						"type": "bytes32"
 					}
 				],
@@ -74,14 +106,103 @@
 				"anonymous": false,
 				"inputs": [
 					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "Paused",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "ipHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "RevocationExecuted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "ipHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "executionTime",
+						"type": "uint256"
+					}
+				],
+				"name": "RevocationRequested",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "Unpaused",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "oldVerifier",
+						"type": "address"
+					},
+					{
 						"indexed": true,
 						"internalType": "address",
 						"name": "newVerifier",
 						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
 					}
 				],
 				"name": "VerifierUpdated",
 				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "blocksBack",
+						"type": "uint256"
+					}
+				],
+				"name": "clearOldBlockCounts",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
 			},
 			{
 				"inputs": [
@@ -91,12 +212,35 @@
 						"type": "bytes32"
 					}
 				],
-				"name": "isIPAnonymized",
+				"name": "executeRevocation",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "ipHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getIPStatus",
 				"outputs": [
 					{
 						"internalType": "bool",
-						"name": "",
+						"name": "isAnonymized",
 						"type": "bool"
+					},
+					{
+						"internalType": "uint256",
+						"name": "registrationTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "pendingRevocationTime",
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
@@ -110,6 +254,26 @@
 						"internalType": "address",
 						"name": "",
 						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "pause",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "paused",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
 					}
 				],
 				"stateMutability": "view",
@@ -153,7 +317,7 @@
 						"type": "bytes32"
 					}
 				],
-				"name": "revokeAnonymizedIP",
+				"name": "requestRevocation",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -167,6 +331,13 @@
 					}
 				],
 				"name": "transferOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "unpause",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -199,8 +370,18 @@
 			}
 		],
 		"devdoc": {
-			"details": "This contract enables the registration and verification of anonymized IP addresses      using zk-SNARKs for privacy-preserving proof. The contract owner can update      the zk-SNARK verifier if needed.",
+			"details": "Enhanced IP anonymization using zk-SNARKs with additional security features",
 			"errors": {
+				"EnforcedPause()": [
+					{
+						"details": "The operation failed because the contract is paused."
+					}
+				],
+				"ExpectedPause()": [
+					{
+						"details": "The operation failed because the contract is not paused."
+					}
+				],
 				"OwnableInvalidOwner(address)": [
 					{
 						"details": "The owner is not a valid owner account. (eg. `address(0)`)"
@@ -210,53 +391,55 @@
 					{
 						"details": "The caller account is not authorized to perform an operation."
 					}
+				],
+				"ReentrancyGuardReentrantCall()": [
+					{
+						"details": "Unauthorized reentrant call."
+					}
 				]
+			},
+			"events": {
+				"Paused(address)": {
+					"details": "Emitted when the pause is triggered by `account`."
+				},
+				"Unpaused(address)": {
+					"details": "Emitted when the pause is lifted by `account`."
+				}
 			},
 			"kind": "dev",
 			"methods": {
-				"constructor": {
-					"details": "Constructor that initializes the zk-SNARK verifier.",
-					"params": {
-						"_verifier": "Address of the zk-SNARK verifier contract"
-					}
+				"clearOldBlockCounts(uint256)": {
+					"details": "Clear old block registration counts"
 				},
-				"isIPAnonymized(bytes32)": {
-					"details": "Returns whether an IP address has been anonymized.",
-					"params": {
-						"ipHash": "The hash of the IP address to check"
-					},
-					"returns": {
-						"_0": "True if the IP has been anonymized, false otherwise"
-					}
+				"constructor": {
+					"details": "Constructor with enhanced validation"
+				},
+				"executeRevocation(bytes32)": {
+					"details": "Execute pending revocation after timelock"
+				},
+				"getIPStatus(bytes32)": {
+					"details": "Check IP anonymization status with metadata"
 				},
 				"owner()": {
 					"details": "Returns the address of the current owner."
 				},
+				"paused()": {
+					"details": "Returns true if the contract is paused, and false otherwise."
+				},
 				"registerAnonymizedIP(bytes32,uint256[8],uint256[1])": {
-					"details": "Registers an anonymized IP by verifying the zk-SNARK proof.",
-					"params": {
-						"ipHash": "The hash of the IP address to be anonymized",
-						"proof": "The zk-SNARK proof for anonymization",
-						"publicInputs": "The public inputs for the proof verification"
-					}
+					"details": "Register anonymized IP with enhanced security"
 				},
 				"renounceOwnership()": {
 					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
 				},
-				"revokeAnonymizedIP(bytes32)": {
-					"details": "Revokes the anonymization of an IP, if necessary. Restricted to the contract owner.",
-					"params": {
-						"ipHash": "The hash of the IP address to be de-anonymized"
-					}
+				"requestRevocation(bytes32)": {
+					"details": "Request IP anonymization revocation with timelock"
 				},
 				"transferOwnership(address)": {
 					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
 				},
 				"updateVerifier(address)": {
-					"details": "Updates the zk-SNARK verifier contract address. Restricted to the contract owner.",
-					"params": {
-						"_newVerifier": "The address of the new zk-SNARK verifier contract"
-					}
+					"details": "Update verifier with security checks"
 				}
 			},
 			"title": "IPAnonymizer",
@@ -300,6 +483,22 @@
 				"dweb:/ipfs/Qmax9WHBnVsZP46ZxEMNRQpLQnrdE4dK8LehML1Py8FowF"
 			]
 		},
+		"@openzeppelin/contracts/utils/Pausable.sol": {
+			"keccak256": "0xb2e5f50762c27fb4b123e3619c3c02bdcba5e515309382e5bfb6f7d6486510bd",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://1a4b83328c98d518a2699c2cbe9e9b055e78aa57fa8639f1b88deb8b3750b5dc",
+				"dweb:/ipfs/QmXdcYj5v7zQxXFPULShHkR5p4Wa2zYuupbHnFdV3cHYtc"
+			]
+		},
+		"@openzeppelin/contracts/utils/ReentrancyGuard.sol": {
+			"keccak256": "0x11a5a79827df29e915a12740caf62fe21ebe27c08c9ae3e09abe9ee3ba3866d3",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://3cf0c69ab827e3251db9ee6a50647d62c90ba580a4d7bbff21f2bea39e7b2f4a",
+				"dweb:/ipfs/QmZiKwtKU1SBX4RGfQtY7PZfiapbbu6SZ9vizGQD9UHjRA"
+			]
+		},
 		"interfaces/IZKVerifier.sol": {
 			"keccak256": "0xb17bdc18f4cc39289a458128deccb5cb04132793fea6e0625f6a73c1625685df",
 			"license": "MIT",
@@ -309,11 +508,11 @@
 			]
 		},
 		"security/IPAnonymizer.sol": {
-			"keccak256": "0x2bb81abf8fdc0e7878986c44c99553d5847210dfe35b11fe08d47d332bdd2717",
+			"keccak256": "0xa5753af04d500551a3dc7f96c1c5840dab9a551cc5d707780ccaf1ecb70c5247",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://0bae9def209ca3b581ddc7b5e10853e821c43108da5788ae891ac1ea314083d9",
-				"dweb:/ipfs/QmbjRciZrk2gQj1P9tQBi6fXhJVxY53ANSbMPG8VHmk6QJ"
+				"bzz-raw://da36b65234b79cb9264725ee30b4b4a3582c7db306d510c84044cdd8dc6c0a82",
+				"dweb:/ipfs/QmYkjxATo5kpMWJbfnVZp2MejPJFL5gv7RabBbK7hmurFd"
 			]
 		}
 	},

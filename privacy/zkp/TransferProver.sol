@@ -7,37 +7,21 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
 import "../../interfaces/IZKVerifier.sol";
 import "../../interfaces/IERC20.sol";
 
-/**
- * @title TransferProver
- * @notice Handles verification of ZK proofs for private token transfers
- * @dev Integrates with PrivacyPool for shielded transactions
- */
 contract TransferProver is IZKVerifier, Ownable, ReentrancyGuard, Pausable {
-    // Transfer note structure
+    // Verification key components stored separately
+    mapping(uint256 => uint256) public alphaComponents;
+    mapping(uint256 => mapping(uint256 => uint256)) public betaComponents;
+    mapping(uint256 => uint256) public gammaComponents;
+    mapping(uint256 => uint256) public deltaComponents;
+    mapping(uint256 => mapping(uint256 => uint256)) public icComponents;
+    uint256 public icLength;
+
     struct Note {
-        bytes32 commitment;    // Note commitment
-        bytes32 nullifier;     // Unique nullifier
-        uint256 amount;        // Transfer amount
-        address token;         // Token address
-        bool spent;           // Spent status
-    }
-
-    // Transfer proof structure
-    struct TransferProof {
-        uint256[2] a;
-        uint256[2][2] b;
-        uint256[2] c;
-        uint256[2] commitmentHash; // Hash of input and output commitments
-        bytes encryptedAmount;    // Amount encrypted for recipient
-    }
-
-    // Verification key for transfer proofs
-    struct VerifyingKey {
-        uint256[2] alpha;
-        uint256[2][2] beta;
-        uint256[2] gamma;
-        uint256[2] delta;
-        uint256[2][] ic;
+        bytes32 commitment;    
+        bytes32 nullifier;     
+        uint256 amount;        
+        address token;         
+        bool spent;           
     }
 
     // State variables
@@ -49,8 +33,7 @@ contract TransferProver is IZKVerifier, Ownable, ReentrancyGuard, Pausable {
     uint256 public constant MAX_TRANSFER_AMOUNT = 1000000 * 10**18;
     uint256 public constant MERKLE_TREE_LEVELS = 20;
     uint256 public currentRoot;
-    
-    VerifyingKey public verifyingKey;
+    uint256 private nextIndex;
 
     // Events
     event NoteCreated(
@@ -74,44 +57,85 @@ contract TransferProver is IZKVerifier, Ownable, ReentrancyGuard, Pausable {
     );
 
     /**
-     * @notice Constructor
-     * @param _vk Initial verifying key components
+     * @notice Constructor initializes with owner
+     * @param initialOwner Address of the contract owner
      */
-    constructor(
-        uint256[2] memory _alpha,
-        uint256[2][2] memory _beta,
-        uint256[2] memory _gamma,
-        uint256[2] memory _delta,
-        uint256[2][] memory _ic
-    ) {
-        verifyingKey = VerifyingKey({
-            alpha: _alpha,
-            beta: _beta,
-            gamma: _gamma,
-            delta: _delta,
-            ic: _ic
-        });
+    constructor(address initialOwner) Ownable(initialOwner) {
+        require(initialOwner != address(0), "Invalid owner address");
+    }
+
+    /**
+     * @inheritdoc IZKVerifier
+     */
+    function verifyProof(
+        uint256[8] calldata proof,
+        uint256[1] calldata input
+    ) external view override returns (bool) {
+        return _verifyProof(
+            [proof[0], proof[1]],  // a
+            [[proof[2], proof[3]], [proof[4], proof[5]]], // b
+            [proof[6], proof[7]], // c
+            input
+        );
+    }
+
+    /**
+     * @notice Internal proof verification
+     */
+    function _verifyProof(
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        uint256[1] memory input
+    ) internal view returns (bool) {
+        require(input.length + 1 == icLength, "Invalid input length");
+
+        uint256[2] memory vk_x = [icComponents[0][0], icComponents[0][1]];
+
+        for (uint256 i = 0; i < input.length; i++) {
+            (uint256 x, uint256 y) = _scalarMul(
+                [icComponents[i + 1][0], icComponents[i + 1][1]],
+                input[i]
+            );
+            
+            (vk_x[0], vk_x[1]) = _pointAdd(
+                vk_x[0],
+                vk_x[1],
+                x,
+                y
+            );
+        }
+
+        return _verifyPairing(
+            a,
+            b,
+            [alphaComponents[0], alphaComponents[1]],
+            [betaComponents[0][0], betaComponents[0][1]],
+            vk_x,
+            [gammaComponents[0], gammaComponents[1]],
+            c,
+            [deltaComponents[0], deltaComponents[1]]
+        );
     }
 
     /**
      * @notice Create a new shielded transfer note
-     * @param commitment Note commitment
-     * @param token Token address
-     * @param amount Transfer amount
-     * @param proof ZK proof components
      */
     function createNote(
         bytes32 commitment,
         address token,
         uint256 amount,
-        bytes calldata proof
+        uint256[8] calldata proof
     ) external nonReentrant whenNotPaused {
         require(amount <= MAX_TRANSFER_AMOUNT, "Amount exceeds maximum");
         require(notes[commitment].commitment == bytes32(0), "Commitment exists");
 
         // Verify deposit proof
-        TransferProof memory transferProof = abi.decode(proof, (TransferProof));
-        require(verifyDepositProof(transferProof, commitment, amount), "Invalid proof");
+        uint256[1] memory input = [uint256(uint160(msg.sender))];
+        require(
+            this.verifyProof(proof, input),
+            "Invalid proof"
+        );
 
         // Transfer tokens to contract
         IERC20(token).transferFrom(msg.sender, address(this), amount);
@@ -119,7 +143,7 @@ contract TransferProver is IZKVerifier, Ownable, ReentrancyGuard, Pausable {
         // Create note
         notes[commitment] = Note({
             commitment: commitment,
-            nullifier: bytes32(0), // Set when spent
+            nullifier: bytes32(0),
             amount: amount,
             token: token,
             spent: false
@@ -133,92 +157,56 @@ contract TransferProver is IZKVerifier, Ownable, ReentrancyGuard, Pausable {
 
     /**
      * @notice Spend a note in a private transfer
-     * @param nullifier Note nullifier
-     * @param newCommitment New note commitment
-     * @param proof Transfer proof
      */
     function spendNote(
         bytes32 nullifier,
-        bytes32 newCommitment,
-        bytes calldata proof
+        bytes32 inputCommitment,
+        bytes32 outputCommitment,
+        uint256[8] calldata proof
     ) external nonReentrant whenNotPaused {
         require(!nullifierSpent[nullifier], "Nullifier already spent");
+        
+        Note storage spentNote = notes[inputCommitment];
+        require(spentNote.commitment == inputCommitment, "Note not found");
+        require(!spentNote.spent, "Note already spent");
 
         // Verify transfer proof
-        TransferProof memory transferProof = abi.decode(proof, (TransferProof));
-        require(verifyTransferProof(transferProof, nullifier, newCommitment), "Invalid proof");
+        uint256[1] memory input = [uint256(uint160(msg.sender))];
+        require(
+            this.verifyProof(proof, input),
+            "Invalid proof"
+        );
 
         // Mark nullifier as spent
         nullifierSpent[nullifier] = true;
+        spentNote.spent = true;
+        spentNote.nullifier = nullifier;
 
         // Create new note
-        Note storage spentNote = notes[transferProof.commitmentHash[0]];
-        notes[newCommitment] = Note({
-            commitment: newCommitment,
-            nullifier: nullifier,
+        notes[outputCommitment] = Note({
+            commitment: outputCommitment,
+            nullifier: bytes32(0),
             amount: spentNote.amount,
             token: spentNote.token,
             spent: false
         });
 
         // Add new note to merkle tree
-        insertIntoMerkleTree(newCommitment);
+        insertIntoMerkleTree(outputCommitment);
 
         emit NoteSpent(nullifier, spentNote.token, block.timestamp);
         emit TransferProofVerified(
-            transferProof.commitmentHash[0],
-            newCommitment,
+            inputCommitment,
+            outputCommitment,
             spentNote.token,
             block.timestamp
         );
     }
 
     /**
-     * @notice Verify deposit proof
-     * @param proof Transfer proof components
-     * @param commitment Note commitment
-     * @param amount Transfer amount
-     */
-    function verifyDepositProof(
-        TransferProof memory proof,
-        bytes32 commitment,
-        uint256 amount
-    ) internal view returns (bool) {
-        uint256[] memory inputs = new uint256[](3);
-        inputs[0] = uint256(commitment);
-        inputs[1] = amount;
-        inputs[2] = uint256(uint160(msg.sender));
-
-        return verifyProof(proof, inputs);
-    }
-
-    /**
-     * @notice Verify transfer proof
-     * @param proof Transfer proof components
-     * @param nullifier Note nullifier
-     * @param newCommitment New note commitment
-     */
-    function verifyTransferProof(
-        TransferProof memory proof,
-        bytes32 nullifier,
-        bytes32 newCommitment
-    ) internal view returns (bool) {
-        uint256[] memory inputs = new uint256[](3);
-        inputs[0] = uint256(nullifier);
-        inputs[1] = uint256(newCommitment);
-        inputs[2] = currentRoot;
-
-        return verifyProof(proof, inputs);
-    }
-
-    /**
      * @notice Insert commitment into merkle tree
-     * @param commitment Note commitment
-     * @return Index in merkle tree
      */
-    function insertIntoMerkleTree(
-        bytes32 commitment
-    ) internal returns (uint256) {
+    function insertIntoMerkleTree(bytes32 commitment) internal returns (uint256) {
         uint256 index = getNextIndex();
         merkleTree[commitment][0] = commitment;
 
@@ -231,17 +219,120 @@ contract TransferProver is IZKVerifier, Ownable, ReentrancyGuard, Pausable {
             merkleTree[commitment][i + 1] = currentHash;
         }
 
-        currentRoot = uint256(currentHash);
+        currentRoot = uint256(uint160(bytes20(currentHash)));
         return index;
     }
 
     /**
-     * @notice Get the next available index in merkle tree
-     */
-    function getNextIndex() internal view returns (uint256) {
-        // Implement index tracking
-        return 0; // Placeholder
+ * @notice Get the next available index in merkle tree
+ * @return index The next available index
+ */
+function getNextIndex() internal returns (uint256) {
+    uint256 index = nextIndex;
+    
+    // Ensure we don't exceed max tree capacity
+    require(index < 2**MERKLE_TREE_LEVELS, "Merkle tree full");
+    
+    // Increment index for next use
+    nextIndex++;
+    
+    return index;
+}
+
+/**
+ * @notice Get current number of elements in the tree
+ * @return count Current element count
+ */
+function getMerkleTreeSize() external view returns (uint256) {
+    return nextIndex;
+}
+
+/**
+ * @notice Check if a commitment exists at given index
+ * @param index Position to check
+ * @return exists Whether a commitment exists at index
+ */
+function hasCommitmentAtIndex(uint256 index) public view returns (bool) {
+    require(index < 2**MERKLE_TREE_LEVELS, "Index out of bounds");
+    
+    // Check if there's a non-zero commitment at this index
+    bytes32 commitment = merkleTree[bytes32(0)][index];
+    return commitment != bytes32(0);
+}
+
+/**
+ * @notice Get the merkle root
+ * @return root Current merkle root
+ */
+function getMerkleRoot() external view returns (bytes32) {
+    return bytes32(currentRoot);
+}
+
+/**
+ * @notice Get merkle proof for a commitment
+ * @param commitment Target commitment
+ * @return siblings Array of sibling hashes for proof
+ * @return indices Array of indices for proof construction
+ */
+function getMerkleProof(bytes32 commitment) external view returns (
+    bytes32[] memory siblings,
+    uint256[] memory indices
+) {
+    require(notes[commitment].commitment != bytes32(0), "Note not found");
+
+    siblings = new bytes32[](MERKLE_TREE_LEVELS);
+    indices = new uint256[](MERKLE_TREE_LEVELS);
+
+    uint256 index = 0;
+    // Find index of commitment
+    for (uint256 i = 0; i < nextIndex; i++) {
+        if (merkleTree[bytes32(0)][i] == commitment) {
+            index = i;
+            break;
+        }
     }
+
+    // Build proof
+    for (uint256 i = 0; i < MERKLE_TREE_LEVELS; i++) {
+        uint256 siblingIndex = getSiblingIndex(index, i);
+        siblings[i] = merkleTree[bytes32(0)][siblingIndex];
+        indices[i] = index % 2; // Left or right position
+        index = index / 2; // Move up to parent level
+    }
+
+    return (siblings, indices);
+}
+
+/**
+ * @notice Verify a merkle proof
+ * @param commitment Target commitment
+ * @param siblings Sibling hashes in proof
+ * @param indices Position indicators (left/right)
+ * @return valid Whether the proof is valid
+ */
+function verifyMerkleProof(
+    bytes32 commitment,
+    bytes32[] calldata siblings,
+    uint256[] calldata indices
+) public view returns (bool) {
+    require(siblings.length == MERKLE_TREE_LEVELS, "Invalid proof length");
+    require(indices.length == MERKLE_TREE_LEVELS, "Invalid indices length");
+
+    bytes32 currentHash = commitment;
+    
+    for (uint256 i = 0; i < MERKLE_TREE_LEVELS; i++) {
+        bytes32 sibling = siblings[i];
+        
+        // Order the hashing based on position indicator
+        if (indices[i] == 0) {
+            currentHash = hashPair(currentHash, sibling);
+        } else {
+            currentHash = hashPair(sibling, currentHash);
+        }
+    }
+
+    return bytes32(currentRoot) == currentHash;
+}
 
     /**
      * @notice Get sibling index in merkle tree
@@ -263,107 +354,120 @@ contract TransferProver is IZKVerifier, Ownable, ReentrancyGuard, Pausable {
         return keccak256(abi.encodePacked(left, right));
     }
 
-    /**
-     * @notice Verify a proof against the verifying key
-     */
-    function verifyProof(
-        TransferProof memory proof,
-        uint256[] memory inputs
-    ) internal view returns (bool) {
-        require(inputs.length + 1 == verifyingKey.ic.length, "Invalid input length");
+    function _scalarMul(uint256[2] memory p, uint256 s) internal pure returns (uint256, uint256) {
+        // TODO: Implement actual EC scalar multiplication
+        return (p[0] * s, p[1] * s);
+    }
 
-        // Compute linear combination
-        uint256[2] memory vk_x = computeLinearCombination(inputs);
-
-        // Verify pairing
-        return verifyPairing(
-            proof.a,
-            proof.b,
-            verifyingKey.alpha,
-            verifyingKey.beta,
-            vk_x,
-            verifyingKey.gamma,
-            [proof.c[0], proof.c[1]],
-            verifyingKey.delta
-        );
+    function _pointAdd(uint256 x1, uint256 y1, uint256 x2, uint256 y2) internal pure returns (uint256, uint256) {
+        // TODO: Implement actual EC point addition
+        return (x1 + x2, y1 + y2);
     }
 
     /**
-     * @notice Compute linear combination for proof verification
-     */
-    function computeLinearCombination(
-        uint256[] memory inputs
-    ) internal view returns (uint256[2] memory) {
-        uint256[2] memory vk_x;
-        vk_x[0] = verifyingKey.ic[0][0];
-        vk_x[1] = verifyingKey.ic[0][1];
+ * @notice Verify pairing for proof verification
+ * @dev Uses bn128 precompiles for efficient pairing checks
+ */
+function _verifyPairing(
+    uint256[2] memory a,
+    uint256[2][2] memory b,
+    uint256[2] memory alpha,
+    uint256[2] memory beta,
+    uint256[2] memory vk_x,
+    uint256[2] memory gamma,
+    uint256[2] memory c,
+    uint256[2] memory delta
+) internal view returns (bool) {
+    // Initialize pairing points array
+    uint256[24] memory input;
+    
+    // Negate a and c for pairing check
+    (a[0], a[1]) = _negate(a[0], a[1]);
+    (c[0], c[1]) = _negate(c[0], c[1]);
 
-        for (uint256 i = 0; i < inputs.length; i++) {
-            (uint256 x, uint256 y) = scalarMul(
-                verifyingKey.ic[i + 1],
-                inputs[i]
-            );
-            
-            (vk_x[0], vk_x[1]) = pointAdd(
-                vk_x[0],
-                vk_x[1],
-                x,
-                y
-            );
-        }
+    // First pairing: e(A, B)
+    input[0] = a[0];
+    input[1] = a[1];
+    input[2] = b[0][0];
+    input[3] = b[0][1];
+    input[4] = b[1][0];
+    input[5] = b[1][1];
 
-        return vk_x;
+    // Second pairing: e(alpha, beta)
+    input[6] = alpha[0];
+    input[7] = alpha[1];
+    input[8] = beta[0];
+    input[9] = beta[1];
+    input[10] = beta[0];
+    input[11] = beta[1];
+
+    // Third pairing: e(vk_x, gamma)
+    input[12] = vk_x[0];
+    input[13] = vk_x[1];
+    input[14] = gamma[0];
+    input[15] = gamma[1];
+    input[16] = gamma[0];
+    input[17] = gamma[1];
+
+    // Fourth pairing: e(C, delta)
+    input[18] = c[0];
+    input[19] = c[1];
+    input[20] = delta[0];
+    input[21] = delta[1];
+    input[22] = delta[0];
+    input[23] = delta[1];
+
+    // Perform pairing check using bn128 precompile
+    uint256[1] memory out;
+    bool success;
+
+    // solium-disable-next-line security/no-inline-assembly
+    assembly {
+        // Call bn128 pairing precompile at address 0x08
+        success := staticcall(gas(), 0x08, input, 0x180, out, 0x20)
     }
 
-    // Elliptic curve operations (implement actual operations)
-    function scalarMul(
-        uint256[2] memory p,
-        uint256 s
-    ) internal pure returns (uint256, uint256) {
-        // TODO: Implement EC scalar multiplication
-        return (p[0] * s, p[1] * s); // Simplified
+    require(success, "Pairing check failed");
+    return out[0] == 1;
+}
+
+/**
+ * @notice Negate a point on the curve
+ * @param x X coordinate
+ * @param y Y coordinate
+ * @return (negX, negY) Negated point
+ */
+function _negate(uint256 x, uint256 y) internal pure returns (uint256, uint256) {
+    // Field modulus
+    uint256 q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
+    
+    if (x == 0 && y == 0) {
+        return (0, 0);
+    }
+    
+    // Negate y-coordinate
+    return (x, q - (y % q));
+}
+
+/**
+ * @notice Check if a point is on the curve
+ * @param x X coordinate
+ * @param y Y coordinate
+ * @return valid True if point is on curve
+ */
+function _isOnCurve(uint256 x, uint256 y) internal pure returns (bool) {
+    uint256 p = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
+    
+    if (x >= p || y >= p) {
+        return false;
     }
 
-    function pointAdd(
-        uint256 x1,
-        uint256 y1,
-        uint256 x2,
-        uint256 y2
-    ) internal pure returns (uint256, uint256) {
-        // TODO: Implement EC point addition
-        return (x1 + x2, y1 + y2); // Simplified
-    }
-
-    function verifyPairing(
-        uint256[2] memory a,
-        uint256[2][2] memory b,
-        uint256[2] memory alpha,
-        uint256[2] memory beta,
-        uint256[2] memory vk_x,
-        uint256[2] memory gamma,
-        uint256[2] memory c,
-        uint256[2] memory delta
-    ) internal view returns (bool) {
-        // TODO: Implement pairing check
-        return true; // Simplified
-    }
-
-    // Admin functions
-    function updateVerifyingKey(
-        uint256[2] memory _alpha,
-        uint256[2][2] memory _beta,
-        uint256[2] memory _gamma,
-        uint256[2] memory _delta,
-        uint256[2][] memory _ic
-    ) external onlyOwner {
-        verifyingKey = VerifyingKey({
-            alpha: _alpha,
-            beta: _beta,
-            gamma: _gamma,
-            delta: _delta,
-            ic: _ic
-        });
-    }
+    // Check y^2 = x^3 + 3 (curve equation for bn128)
+    uint256 lhs = mulmod(y, y, p);
+    uint256 rhs = addmod(mulmod(mulmod(x, x, p), x, p), 3, p);
+    
+    return lhs == rhs;
+}
 
     function pause() external onlyOwner {
         _pause();

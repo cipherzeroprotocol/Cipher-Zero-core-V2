@@ -21,6 +21,11 @@
 						"internalType": "address",
 						"name": "_proofVerifier",
 						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "admin",
+						"type": "address"
 					}
 				],
 				"stateMutability": "nonpayable",
@@ -49,7 +54,22 @@
 			},
 			{
 				"inputs": [],
+				"name": "EnforcedPause",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "ExpectedPause",
+				"type": "error"
+			},
+			{
+				"inputs": [],
 				"name": "InvalidShortString",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "ReentrancyGuardReentrantCall",
 				"type": "error"
 			},
 			{
@@ -73,19 +93,94 @@
 				"anonymous": false,
 				"inputs": [
 					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "Paused",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
 						"indexed": true,
 						"internalType": "address",
 						"name": "user",
 						"type": "address"
 					},
 					{
-						"indexed": false,
+						"indexed": true,
 						"internalType": "string",
 						"name": "proofId",
 						"type": "string"
+					},
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "proofHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
 					}
 				],
 				"name": "ProofGenerated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "string",
+						"name": "proofId",
+						"type": "string"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "revokedBy",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "ProofRevoked",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "oldVerifier",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newVerifier",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "updater",
+						"type": "address"
+					}
+				],
+				"name": "ProofVerifierUpdated",
 				"type": "event"
 			},
 			{
@@ -164,6 +259,19 @@
 				"type": "event"
 			},
 			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "Unpaused",
+				"type": "event"
+			},
+			{
 				"inputs": [],
 				"name": "ADMIN_ROLE",
 				"outputs": [
@@ -191,6 +299,32 @@
 			},
 			{
 				"inputs": [],
+				"name": "MAX_PROOFS_PER_BLOCK",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "PAUSER_ROLE",
+				"outputs": [
+					{
+						"internalType": "bytes32",
+						"name": "",
+						"type": "bytes32"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "VERIFIER_ROLE",
 				"outputs": [
 					{
@@ -200,6 +334,19 @@
 					}
 				],
 				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "blocksBack",
+						"type": "uint256"
+					}
+				],
+				"name": "clearOldBlockCounts",
+				"outputs": [],
+				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -343,19 +490,39 @@
 				"type": "function"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "account",
-						"type": "address"
-					}
-				],
-				"name": "hasVerifierRole",
+				"inputs": [],
+				"name": "pause",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "paused",
 				"outputs": [
 					{
 						"internalType": "bool",
 						"name": "",
 						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"name": "proofHashes",
+				"outputs": [
+					{
+						"internalType": "bytes32",
+						"name": "",
+						"type": "bytes32"
 					}
 				],
 				"stateMutability": "view",
@@ -388,6 +555,19 @@
 					}
 				],
 				"name": "renounceRole",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "proofId",
+						"type": "string"
+					}
+				],
+				"name": "revokeProof",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -454,10 +634,55 @@
 				],
 				"stateMutability": "view",
 				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "unpause",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "",
+						"type": "bytes32"
+					}
+				],
+				"name": "usedProofs",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "userProofCount",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
 			}
 		],
 		"devdoc": {
-			"details": "This contract is responsible for generating zk-SNARKs proofs for transactions and data validation.",
+			"details": "Enhanced zk-SNARKs proof generation with security features",
 			"errors": {
 				"AccessControlBadConfirmation()": [
 					{
@@ -468,11 +693,29 @@
 					{
 						"details": "The `account` is missing a role."
 					}
+				],
+				"EnforcedPause()": [
+					{
+						"details": "The operation failed because the contract is paused."
+					}
+				],
+				"ExpectedPause()": [
+					{
+						"details": "The operation failed because the contract is not paused."
+					}
+				],
+				"ReentrancyGuardReentrantCall()": [
+					{
+						"details": "Unauthorized reentrant call."
+					}
 				]
 			},
 			"events": {
 				"EIP712DomainChanged()": {
 					"details": "MAY be emitted to signal that the domain could have changed."
+				},
+				"Paused(address)": {
+					"details": "Emitted when the pause is triggered by `account`."
 				},
 				"RoleAdminChanged(bytes32,bytes32,bytes32)": {
 					"details": "Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole` `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite {RoleAdminChanged} not being emitted signaling this."
@@ -482,20 +725,24 @@
 				},
 				"RoleRevoked(bytes32,address,address)": {
 					"details": "Emitted when `account` is revoked `role`. `sender` is the account that originated the contract call:   - if using `revokeRole`, it is the admin role bearer   - if using `renounceRole`, it is the role bearer (i.e. `account`)"
+				},
+				"Unpaused(address)": {
+					"details": "Emitted when the pause is lifted by `account`."
 				}
 			},
 			"kind": "dev",
 			"methods": {
+				"clearOldBlockCounts(uint256)": {
+					"details": "Clear old block proof counts"
+				},
+				"constructor": {
+					"details": "Constructor with enhanced initialization"
+				},
 				"eip712Domain()": {
 					"details": "See {IERC-5267}."
 				},
 				"generateProof(bytes,uint256[],string)": {
-					"details": "Generate zk-SNARK proof for a transaction or data.",
-					"params": {
-						"inputs": "The inputs used for the proof.",
-						"proof": "The zk-SNARK proof.",
-						"proofId": "Unique identifier for the proof."
-					}
+					"details": "Generate and verify zk-SNARK proof"
 				},
 				"getRoleAdmin(bytes32)": {
 					"details": "Returns the admin role that controls `role`. See {grantRole} and {revokeRole}. To change a role's admin, use {_setRoleAdmin}."
@@ -503,41 +750,23 @@
 				"grantRole(bytes32,address)": {
 					"details": "Grants `role` to `account`. If `account` had not been already granted `role`, emits a {RoleGranted} event. Requirements: - the caller must have ``role``'s admin role. May emit a {RoleGranted} event."
 				},
-				"grantVerifierRole(address)": {
-					"details": "Grant the verifier role to an account.",
-					"params": {
-						"account": "The account to grant the verifier role to."
-					}
-				},
 				"hasRole(bytes32,address)": {
 					"details": "Returns `true` if `account` has been granted `role`."
 				},
-				"hasVerifierRole(address)": {
-					"details": "Check if an account has the verifier role.",
-					"params": {
-						"account": "The account to check."
-					},
-					"returns": {
-						"_0": "True if the account has the verifier role, false otherwise."
-					}
+				"paused()": {
+					"details": "Returns true if the contract is paused, and false otherwise."
 				},
 				"renounceRole(bytes32,address)": {
 					"details": "Revokes `role` from the calling account. Roles are often managed via {grantRole} and {revokeRole}: this function's purpose is to provide a mechanism for accounts to lose their privileges if they are compromised (such as when a trusted device is misplaced). If the calling account had been revoked `role`, emits a {RoleRevoked} event. Requirements: - the caller must be `callerConfirmation`. May emit a {RoleRevoked} event."
 				},
+				"revokeProof(string)": {
+					"details": "Revoke a previously generated proof"
+				},
 				"revokeRole(bytes32,address)": {
 					"details": "Revokes `role` from `account`. If `account` had been granted `role`, emits a {RoleRevoked} event. Requirements: - the caller must have ``role``'s admin role. May emit a {RoleRevoked} event."
 				},
-				"revokeVerifierRole(address)": {
-					"details": "Revoke the verifier role from an account.",
-					"params": {
-						"account": "The account to revoke the verifier role from."
-					}
-				},
 				"setProofVerifier(address)": {
-					"details": "Set a new proof verifier contract address.",
-					"params": {
-						"_proofVerifier": "The address of the new proof verifier contract."
-					}
+					"details": "Update proof verifier with security checks"
 				},
 				"supportsInterface(bytes4)": {
 					"details": "See {IERC165-supportsInterface}."
@@ -584,14 +813,6 @@
 				"dweb:/ipfs/QmUrFSGkTDJ7WaZ6qPVVe3Gn5uN2viPb7x7QQ35UX4DofX"
 			]
 		},
-		"@openzeppelin/contracts/interfaces/IERC1271.sol": {
-			"keccak256": "0x4aaaf1c0737dd16e81f0d2b9833c549747a5ede6873bf1444bc72aa572d03e98",
-			"license": "MIT",
-			"urls": [
-				"bzz-raw://eada27d7668eebaea16c3b890aa1b38ffc53965292e26c96f7c44834623f4710",
-				"dweb:/ipfs/QmVSWuLtxyCqNbLyY89ptxkvsk4CLLKDQYigEne5Qj8k1L"
-			]
-		},
 		"@openzeppelin/contracts/interfaces/IERC5267.sol": {
 			"keccak256": "0x92aa1df62dc3d33f1656d63bede0923e0df0b706ad4137c8b10b0a8fe549fd92",
 			"license": "MIT",
@@ -614,6 +835,22 @@
 			"urls": [
 				"bzz-raw://c6a5ff4f9fd8649b7ee20800b7fa387d3465bd77cf20c2d1068cd5c98e1ed57a",
 				"dweb:/ipfs/QmVSaVJf9FXFhdYEYeCEfjMVHrxDh5qL4CGkxdMWpQCrqG"
+			]
+		},
+		"@openzeppelin/contracts/utils/Pausable.sol": {
+			"keccak256": "0xb2e5f50762c27fb4b123e3619c3c02bdcba5e515309382e5bfb6f7d6486510bd",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://1a4b83328c98d518a2699c2cbe9e9b055e78aa57fa8639f1b88deb8b3750b5dc",
+				"dweb:/ipfs/QmXdcYj5v7zQxXFPULShHkR5p4Wa2zYuupbHnFdV3cHYtc"
+			]
+		},
+		"@openzeppelin/contracts/utils/ReentrancyGuard.sol": {
+			"keccak256": "0x11a5a79827df29e915a12740caf62fe21ebe27c08c9ae3e09abe9ee3ba3866d3",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://3cf0c69ab827e3251db9ee6a50647d62c90ba580a4d7bbff21f2bea39e7b2f4a",
+				"dweb:/ipfs/QmZiKwtKU1SBX4RGfQtY7PZfiapbbu6SZ9vizGQD9UHjRA"
 			]
 		},
 		"@openzeppelin/contracts/utils/ShortStrings.sol": {
@@ -640,14 +877,6 @@
 				"dweb:/ipfs/QmeC953H4sj88ZRFdJNFdmpf7J9SksP1wK4jyMHLo66z49"
 			]
 		},
-		"@openzeppelin/contracts/utils/cryptography/ECDSA.sol": {
-			"keccak256": "0x69f54c02b7d81d505910ec198c11ed4c6a728418a868b906b4a0cf29946fda84",
-			"license": "MIT",
-			"urls": [
-				"bzz-raw://8e25e4bdb7ae1f21d23bfee996e22736fc0ab44cfabedac82a757b1edc5623b9",
-				"dweb:/ipfs/QmQdWQvB6JCP9ZMbzi8EvQ1PTETqkcTWrbcVurS7DKpa5n"
-			]
-		},
 		"@openzeppelin/contracts/utils/cryptography/EIP712.sol": {
 			"keccak256": "0x10eb97d047f8d84fe263a02bb4a656ac6674f6679d74532cc37546289e073a9d",
 			"license": "MIT",
@@ -662,14 +891,6 @@
 			"urls": [
 				"bzz-raw://60601f91440125727244fffd2ba84da7caafecaae0fd887c7ccfec678e02b61e",
 				"dweb:/ipfs/QmZnKPBtVDiQS9Dp8gZ4sa3ZeTrWVfqF7yuUd6Y8hwm1Rs"
-			]
-		},
-		"@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol": {
-			"keccak256": "0xbdc3bb48ccedb818cd75a6d74a16df55a822e9f6d3cc54c59f576f10aab67b5f",
-			"license": "MIT",
-			"urls": [
-				"bzz-raw://2284f25f2478f419d7781573b17a89d0e7c5589a865d55e2d6ed5163aee23aa8",
-				"dweb:/ipfs/QmNsr2625APBQiNKpYnX5VcSnYgfUHR9Uzzp9pRXjoDqK7"
 			]
 		},
 		"@openzeppelin/contracts/utils/introspection/ERC165.sol": {
@@ -713,11 +934,11 @@
 			]
 		},
 		"zkp/ProofGeneration.sol": {
-			"keccak256": "0xb09baf0179eb01236ca0e6bb5f60d91ad11345f9d2fb194d89af8a7eaa170c37",
+			"keccak256": "0x846df926c8f10537498453bec6daa73c4468cbf267c141f8faef7d8de54da21f",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://351cee2f48e26db17032b2c10aaffb7633d650ba9629a89c4c95fa561cad9a1f",
-				"dweb:/ipfs/QmWJpKA3Evs1AvNktjpV3ePBcaWBLAvSLmgUC17zLAS19J"
+				"bzz-raw://2305d438fcce31d31579bacc905b7d8abc9c98eb34a88562642597123ed41f02",
+				"dweb:/ipfs/QmTTET3kPmzMz4TXLfSqHh1wqH2QCYSyBbDRw4be7Y6CM3"
 			]
 		}
 	},

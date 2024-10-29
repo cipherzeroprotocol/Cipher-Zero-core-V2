@@ -95,10 +95,22 @@
 						"type": "bytes32"
 					},
 					{
-						"indexed": false,
+						"indexed": true,
+						"internalType": "address",
+						"name": "verifier",
+						"type": "address"
+					},
+					{
+						"indexed": true,
 						"internalType": "bool",
 						"name": "success",
 						"type": "bool"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
 					}
 				],
 				"name": "ProofVerified",
@@ -131,10 +143,53 @@
 						"internalType": "string",
 						"name": "reason",
 						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
 					}
 				],
 				"name": "VerifierError",
 				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "blocksBack",
+						"type": "uint256"
+					}
+				],
+				"name": "clearOldBlockCounts",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "proofHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "getVerificationInfo",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "verified",
+						"type": "bool"
+					},
+					{
+						"internalType": "uint256",
+						"name": "verificationTime",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
 			},
 			{
 				"inputs": [],
@@ -313,38 +368,13 @@
 				},
 				"transferOwnership(address)": {
 					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
-				},
-				"verifyAndRecordProof(uint256[8],uint256[1])": {
-					"params": {
-						"input": "Array containing public inputs",
-						"proof": "Array containing proof elements"
-					},
-					"returns": {
-						"_0": "bool indicating if proof is valid"
-					}
-				},
-				"verifyProof(uint256[8],uint256[1])": {
-					"params": {
-						"input": "Array containing public inputs",
-						"proof": "Array containing proof elements [a1, a2, b11, b12, b21, b22, c1, c2]"
-					},
-					"returns": {
-						"_0": "bool indicating if proof is valid"
-					}
 				}
 			},
 			"version": 1
 		},
 		"userdoc": {
 			"kind": "user",
-			"methods": {
-				"verifyAndRecordProof(uint256[8],uint256[1])": {
-					"notice": "Verify and record proof (non-view version that updates state)"
-				},
-				"verifyProof(uint256[8],uint256[1])": {
-					"notice": "Verify a ZK proof (view function)"
-				}
-			},
+			"methods": {},
 			"version": 1
 		}
 	},
@@ -397,11 +427,11 @@
 			]
 		},
 		"zkp/ZKVerifier.sol": {
-			"keccak256": "0x4c083bb16dcf71533e3be18042a916fa83735f08c98fcfe6ecd460ed161b8ae4",
+			"keccak256": "0xf0c709ca1b6d11a57e90bdf3e32ed1b9084f84dd18f3b84437c1f988d2098c69",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://3e8ca94a42e001ea46baf6cf232144ae417ae7d4600003fe4bc126878d3bbd6e",
-				"dweb:/ipfs/QmW58KdnJa7cKeyx7WjgNNegxPrgaPFgwDkd5y74rKKnJg"
+				"bzz-raw://61ee88b3399dda2316af01e930e0ebbc0946a8f24c6064a9ff2b8dbbda9e3f5e",
+				"dweb:/ipfs/QmZjo1Wg6p95AA5LU44DZ6RE7K5w4WrbEhUAX9tyJkCdrY"
 			]
 		}
 	},

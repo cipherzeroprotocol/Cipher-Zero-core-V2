@@ -6,9 +6,25 @@
 	"output": {
 		"abi": [
 			{
-				"inputs": [],
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "initialOwner",
+						"type": "address"
+					}
+				],
 				"stateMutability": "nonpayable",
 				"type": "constructor"
+			},
+			{
+				"inputs": [],
+				"name": "EnforcedPause",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "ExpectedPause",
+				"type": "error"
 			},
 			{
 				"inputs": [
@@ -33,12 +49,29 @@
 				"type": "error"
 			},
 			{
+				"inputs": [],
+				"name": "ReentrancyGuardReentrantCall",
+				"type": "error"
+			},
+			{
 				"anonymous": false,
 				"inputs": [
 					{
 						"indexed": true,
 						"internalType": "bytes32",
 						"name": "keyHash",
+						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "bytes32",
+						"name": "publicPart",
 						"type": "bytes32"
 					}
 				],
@@ -53,6 +86,18 @@
 						"internalType": "bytes32",
 						"name": "keyHash",
 						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "reason",
+						"type": "string"
 					}
 				],
 				"name": "EncryptionKeyRevoked",
@@ -72,6 +117,12 @@
 						"internalType": "bytes32",
 						"name": "newKeyHash",
 						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
 					}
 				],
 				"name": "EncryptionKeyRotated",
@@ -85,6 +136,12 @@
 						"internalType": "bytes32",
 						"name": "keyHash",
 						"type": "bytes32"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
 					}
 				],
 				"name": "EncryptionKeyStored",
@@ -110,11 +167,37 @@
 				"type": "event"
 			},
 			{
+				"anonymous": false,
 				"inputs": [
 					{
-						"internalType": "bytes",
-						"name": "keyData",
-						"type": "bytes"
+						"indexed": false,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "Paused",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "Unpaused",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "entropy",
+						"type": "bytes32"
 					}
 				],
 				"name": "generateEncryptionKey",
@@ -122,6 +205,11 @@
 					{
 						"internalType": "bytes32",
 						"name": "keyHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "publicPart",
 						"type": "bytes32"
 					}
 				],
@@ -140,8 +228,35 @@
 				"outputs": [
 					{
 						"internalType": "bytes32",
-						"name": "",
+						"name": "encryptedKey",
 						"type": "bytes32"
+					},
+					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "creationTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "lastRotationTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint8",
+								"name": "status",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint256",
+								"name": "useCount",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct EncryptionManager.KeyMetadata",
+						"name": "metadata",
+						"type": "tuple"
 					}
 				],
 				"stateMutability": "view",
@@ -162,6 +277,26 @@
 			},
 			{
 				"inputs": [],
+				"name": "pause",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "paused",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "renounceOwnership",
 				"outputs": [],
 				"stateMutability": "nonpayable",
@@ -173,6 +308,11 @@
 						"internalType": "bytes32",
 						"name": "keyHash",
 						"type": "bytes32"
+					},
+					{
+						"internalType": "string",
+						"name": "reason",
+						"type": "string"
 					}
 				],
 				"name": "revokeEncryptionKey",
@@ -233,11 +373,28 @@
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "unpause",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
 			}
 		],
 		"devdoc": {
-			"details": "Manages encryption keys for the protocol, including key generation, storage, and rotation.      Only the contract owner can perform certain sensitive operations such as rotating or revoking keys.",
+			"details": "Advanced encryption key management system with optimized operations",
 			"errors": {
+				"EnforcedPause()": [
+					{
+						"details": "The operation failed because the contract is paused."
+					}
+				],
+				"ExpectedPause()": [
+					{
+						"details": "The operation failed because the contract is not paused."
+					}
+				],
 				"OwnableInvalidOwner(address)": [
 					{
 						"details": "The owner is not a valid owner account. (eg. `address(0)`)"
@@ -247,54 +404,46 @@
 					{
 						"details": "The caller account is not authorized to perform an operation."
 					}
+				],
+				"ReentrancyGuardReentrantCall()": [
+					{
+						"details": "Unauthorized reentrant call."
+					}
 				]
+			},
+			"events": {
+				"Paused(address)": {
+					"details": "Emitted when the pause is triggered by `account`."
+				},
+				"Unpaused(address)": {
+					"details": "Emitted when the pause is lifted by `account`."
+				}
 			},
 			"kind": "dev",
 			"methods": {
-				"generateEncryptionKey(bytes)": {
-					"details": "Generates a new encryption key by hashing random data.",
-					"params": {
-						"keyData": "The input data for the encryption key hash (should be a random value from the caller)."
-					},
-					"returns": {
-						"keyHash": "The hash of the newly generated encryption key."
-					}
+				"generateEncryptionKey(bytes32)": {
+					"details": "Generates a new encryption key using assembly for gas optimization"
 				},
 				"getEncryptionKey(bytes32)": {
-					"details": "Retrieves the encrypted encryption key corresponding to the key hash.",
-					"params": {
-						"keyHash": "The hash of the encryption key."
-					},
-					"returns": {
-						"_0": "The encrypted encryption key."
-					}
+					"details": "Retrieves an encryption key with access control"
 				},
 				"owner()": {
 					"details": "Returns the address of the current owner."
 				},
+				"paused()": {
+					"details": "Returns true if the contract is paused, and false otherwise."
+				},
 				"renounceOwnership()": {
 					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
 				},
-				"revokeEncryptionKey(bytes32)": {
-					"details": "Revokes an encryption key, removing it from storage.",
-					"params": {
-						"keyHash": "The hash of the encryption key to be revoked."
-					}
+				"revokeEncryptionKey(bytes32,string)": {
+					"details": "Revokes an encryption key with reason"
 				},
 				"rotateEncryptionKey(bytes32,bytes32,bytes32)": {
-					"details": "Rotates an encryption key, replacing the old key with a new one.",
-					"params": {
-						"newEncryptedKey": "The new encryption key, securely stored (should be encrypted off-chain).",
-						"newKeyHash": "The hash of the new encryption key.",
-						"oldKeyHash": "The hash of the old encryption key."
-					}
+					"details": "Rotates an encryption key with cooling period check"
 				},
 				"storeEncryptionKey(bytes32,bytes32)": {
-					"details": "Stores a generated encryption key securely.",
-					"params": {
-						"encryptedKey": "The actual encryption key, stored securely (should be encrypted off-chain).",
-						"keyHash": "The hash of the encryption key to be stored."
-					}
+					"details": "Stores an encrypted key"
 				},
 				"transferOwnership(address)": {
 					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
@@ -341,12 +490,28 @@
 				"dweb:/ipfs/Qmax9WHBnVsZP46ZxEMNRQpLQnrdE4dK8LehML1Py8FowF"
 			]
 		},
-		"security/EncryptionManager.sol": {
-			"keccak256": "0xdbd921cb1d398f6f2a6986a7fe86c69449aba0a82c92ca2e2457914bdec36c17",
+		"@openzeppelin/contracts/utils/Pausable.sol": {
+			"keccak256": "0xb2e5f50762c27fb4b123e3619c3c02bdcba5e515309382e5bfb6f7d6486510bd",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://e19787dedfd4adbca73263868c02bf2e72038318aa23f905febfea16fc4157aa",
-				"dweb:/ipfs/QmYWc2PLuF8K9WGNgRTZtwQpy1ks14ndY5UgDkhdhHcqdA"
+				"bzz-raw://1a4b83328c98d518a2699c2cbe9e9b055e78aa57fa8639f1b88deb8b3750b5dc",
+				"dweb:/ipfs/QmXdcYj5v7zQxXFPULShHkR5p4Wa2zYuupbHnFdV3cHYtc"
+			]
+		},
+		"@openzeppelin/contracts/utils/ReentrancyGuard.sol": {
+			"keccak256": "0x11a5a79827df29e915a12740caf62fe21ebe27c08c9ae3e09abe9ee3ba3866d3",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://3cf0c69ab827e3251db9ee6a50647d62c90ba580a4d7bbff21f2bea39e7b2f4a",
+				"dweb:/ipfs/QmZiKwtKU1SBX4RGfQtY7PZfiapbbu6SZ9vizGQD9UHjRA"
+			]
+		},
+		"security/EncryptionManager.sol": {
+			"keccak256": "0xd9dbcf201a0e8a5bfd1e12e4a92641b5d0e510470f748e3aeb1dcaf801b0df63",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://1062239b1910d1d94406c2cfad2406375b97e5a4b3cd7a84cc2cad01c2ddc01b",
+				"dweb:/ipfs/QmYSrdkuHAeJqUQgnWk7gkGUxnf7C7s1YaSLC1F7aiLZNC"
 			]
 		}
 	},

@@ -2,6 +2,12 @@
 pragma solidity ^0.8.26;
 
 interface IVerifier {
+          function verifyPieceProof(
+        bytes32 pieceHash,
+        bytes32 piecesRoot,
+        bytes calldata proof
+    ) external view returns (bool);
+
     /**
      * @notice Verify a file proof
      * @param fileHash Hash of the file
@@ -97,6 +103,77 @@ interface IVerifier {
         bytes32 commitmentFrom,
         bytes32 commitmentTo,
         uint256 amount,
+        bytes calldata proof
+    ) external view returns (bool);
+      
+    
+    function verifyRelationshipProof(
+        bytes32 peerId1,
+        bytes32 peerId2,
+        bytes calldata proof
+    ) external view returns (bool);
+    
+    function verifyMisbehaviorProof(
+        bytes32 peerId,
+        bytes calldata proof
+    ) external view returns (bool);
+    
+   
+
+
+
+
+    function verifyIdentityProof(
+        bytes32 commitment,
+        bytes32 proof
+    ) external view returns (bool);
+    
+    function verifyStatusProof(
+        bytes32 commitment,
+        bytes32 proof
+    ) external view returns (bool);
+    
+    function verifyReputationProof(
+        bytes32 commitment,
+        bytes32 proof
+    ) external view returns (bool);
+    
+    function verifyBanProof(
+        bytes32 commitment,
+        bytes32 proof
+    ) external view returns (bool);
+    
+    function verifyMixingProof(
+        bytes32 sessionId,
+        bytes32 proof
+    ) external view returns (bool);
+    function verifyIdentityProof(
+        bytes32 commitment,
+        bytes calldata proof
+    ) external view returns (bool);
+    
+    function verifyStatusProof(
+        bytes32 commitment,
+        bytes calldata proof
+    ) external view returns (bool);
+    
+    function verifyReputationProof(
+        bytes32 commitment,
+        bytes calldata proof
+    ) external view returns (bool);
+    
+    function verifyBanProof(
+        bytes32 commitment,
+        bytes calldata proof
+    ) external view returns (bool);
+    
+    function verifyAppealProof(
+        bytes32 commitment,
+        bytes calldata proof
+    ) external view returns (bool);
+    
+    function verifyMixingProof(
+        bytes32 sessionId,
         bytes calldata proof
     ) external view returns (bool);
 }

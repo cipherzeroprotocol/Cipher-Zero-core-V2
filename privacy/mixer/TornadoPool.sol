@@ -77,7 +77,11 @@ contract TornadoPool is Ownable, ReentrancyGuard, Pausable {
      * @param _token Token to be mixed
      * @param _verifier Verifier contract
      */
-    constructor(address _token, address _verifier) {
+     constructor(
+        address initialOwner,
+        address _token, 
+        address _verifier
+    ) Ownable(initialOwner) {
         token = IERC20(_token);
         verifier = IMixerVerifier(_verifier);
         merkleTree.nextIndex = 0;
@@ -133,51 +137,52 @@ contract TornadoPool is Ownable, ReentrancyGuard, Pausable {
      * @param denomination Withdrawal denomination
      */
     function withdraw(
-        bytes calldata proof,
-        bytes32 nullifierHash,
-        address recipient,
-        address relayer,
-        uint256 fee,
-        uint256 denomination
-    ) external nonReentrant whenNotPaused {
-        // Verify inputs
-        require(fee <= denomination * MAX_FEE_PERCENT / 100, "Fee too high");
-        require(!nullifierHashes[nullifierHash], "Note already spent");
-        require(denominations[denomination].enabled, "Invalid denomination");
+    uint256[8] calldata proof,
+    bytes32 nullifierHash,
+    address recipient,
+    address relayer,
+    uint256 fee,
+    uint256 denomination
+) external nonReentrant whenNotPaused {
+    // Verify inputs
+    require(fee <= denomination * MAX_FEE_PERCENT / 100, "Fee too high");
+    require(!nullifierHashes[nullifierHash], "Note already spent");
+    require(denominations[denomination].enabled, "Invalid denomination");
 
-        // Verify the proof
-        require(
-            verifier.verifyProof(
-                proof,
-                [
-                    uint256(nullifierHash),
-                    uint256(uint160(recipient)),
-                    uint256(uint160(relayer)),
-                    fee,
-                    denomination
-                ],
-                merkleTree.root
-            ),
-            "Invalid proof"
-        );
+    // Prepare inputs for proof verification
+    uint256[1] memory inputs;
+    inputs[0] = uint256(uint256(nullifierHash)) +
+                uint256(uint160(recipient)) * (2 ** 160) +
+                uint256(uint160(relayer)) * (2 ** 208) +
+                fee * (2 ** 248) +
+                denomination;
 
-        // Mark nullifier as spent
-        nullifierHashes[nullifierHash] = true;
+    // Verify the proof
+    require(
+        verifier.verifyProof(proof, inputs),
+        "Invalid proof"
+    );
 
-        // Transfer tokens
-        if (fee > 0) {
-            token.transfer(relayer, fee);
-        }
-        token.transfer(recipient, denomination - fee);
+    // Mark nullifier as spent
+    nullifierHashes[nullifierHash] = true;
 
-        emit Withdrawal(
-            recipient,
-            nullifierHash,
-            relayer,
-            denomination,
-            fee
-        );
+    // Transfer tokens
+    if (fee > 0) {
+        token.transfer(relayer, fee);
     }
+    token.transfer(recipient, denomination - fee);
+
+    emit Withdrawal(
+        recipient,
+        nullifierHash,
+        relayer,
+        denomination,
+        fee
+    );
+}
+
+        
+    
 
     /**
      * @notice Add new denomination
@@ -314,4 +319,6 @@ contract TornadoPool is Ownable, ReentrancyGuard, Pausable {
     function unpause() external onlyOwner {
         _unpause();
     }
+
+
 }

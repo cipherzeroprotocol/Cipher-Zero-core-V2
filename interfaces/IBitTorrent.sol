@@ -1,42 +1,55 @@
-// IBitTorrent.sol
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
+/**
+ * @title IBitTorrent
+ * @notice Interface for BitTorrent integration functionality
+ */
 interface IBitTorrent {
     /**
-     * @notice Register a file in the BitTorrent network
-     * @param commitment File commitment hash
-     * @param metadataHash IPFS/BitTorrent metadata hash
-     * @return success Whether the file was successfully registered
+     * @notice Adds a new torrent to the system
+     * @param torrentHash The hash of the torrent
+     * @param metadata The metadata associated with the torrent
      */
-    function addFile(bytes32 commitment, bytes32 metadataHash) external returns (bool);
-
+    function addTorrent(bytes32 torrentHash, bytes calldata metadata) external;
+    
     /**
-     * @notice Remove a file from the BitTorrent network
-     * @param commitment File commitment hash
-     * @return success Whether the file was successfully removed
+     * @notice Allows a peer to join a torrent swarm
+     * @param torrentHash The hash of the torrent to join
      */
-    function removeFile(bytes32 commitment) external returns (bool);
-
+    function joinSwarm(bytes32 torrentHash) external;
+    
     /**
-     * @notice Check if a file exists in the BitTorrent network
-     * @param commitment File commitment hash
-     * @return exists Whether the file exists
+     * @notice Allows a peer to leave a torrent swarm
+     * @param torrentHash The hash of the torrent to leave
      */
-    function fileExists(bytes32 commitment) external view returns (bool);
-
+    function leaveSwarm(bytes32 torrentHash) external;
+    
     /**
-     * @notice Get file metadata hash
-     * @param commitment File commitment hash
-     * @return metadataHash IPFS/BitTorrent metadata hash
+     * @notice Gets the metadata for a specific torrent
+     * @param torrentHash The hash of the torrent
+     * @return The torrent metadata
      */
-    function getFileMetadataHash(bytes32 commitment) external view returns (bytes32);
-
+    function getTorrentMetadata(bytes32 torrentHash) external view returns (bytes memory);
+    
     /**
-     * @notice Update file metadata hash
-     * @param commitment File commitment hash
-     * @param newMetadataHash New IPFS/BitTorrent metadata hash
-     * @return success Whether the metadata was successfully updated
+     * @notice Gets all peers in a torrent swarm
+     * @param torrentHash The hash of the torrent
+     * @return Array of peer addresses
      */
-    function updateFileMetadata(bytes32 commitment, bytes32 newMetadataHash) external returns (bool);
+    function getSwarmPeers(bytes32 torrentHash) external view returns (address[] memory);
+    
+    /**
+     * @notice Checks if a peer is in a specific swarm
+     * @param torrentHash The hash of the torrent
+     * @param peer The address of the peer to check
+     * @return bool indicating if the peer is in the swarm
+     */
+    function isPeerInSwarm(bytes32 torrentHash, address peer) external view returns (bool);
+    
+    /**
+     * @notice Removes a torrent from the system
+     * @param torrentHash The hash of the torrent to remove
+     */
+    function removeTorrent(bytes32 torrentHash) external;
 }

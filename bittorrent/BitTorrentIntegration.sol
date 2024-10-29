@@ -7,49 +7,66 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../interfaces/IBitTorrent.sol";
 import "../interfaces/IVerifier.sol";
 
+/**
+ * @title BitTorrentIntegration
+ * @notice Manages BitTorrent swarm participation and metadata on-chain
+ * @dev Implements access control, pause functionality, and reentrancy protection
+ */
 contract BitTorrentIntegration is IBitTorrent, AccessControl, Pausable, ReentrancyGuard {
+    // Role definitions
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
     
-    // Verifier contract for proofs
+    // Events
+    event TorrentAdded(bytes32 indexed torrentHash, address indexed creator);
+    event TorrentRemoved(bytes32 indexed torrentHash, address indexed operator);
+    event SwarmJoined(bytes32 indexed torrentHash, address indexed peer);
+    event SwarmLeft(bytes32 indexed torrentHash, address indexed peer);
+    event VerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+    
+    // State variables
     IVerifier public verifier;
-
+    
     // Swarm storage
     mapping(bytes32 => address[]) private swarmPeers;
     mapping(bytes32 => mapping(address => uint256)) private peerIndices;
     mapping(bytes32 => bytes) private torrentMetadata;
+    
+    // Error messages
+    error TorrentAlreadyExists();
+    error TorrentNotFound();
+    error EmptyMetadata();
+    error AlreadyInSwarm();
+    error NotInSwarm();
+    error InvalidVerifierAddress();
 
     constructor(address _verifier) {
+        if (_verifier == address(0)) revert InvalidVerifierAddress();
+        
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(OPERATOR_ROLE, msg.sender);
         verifier = IVerifier(_verifier);
     }
 
-    /**
-     * @inheritdoc IBitTorrent
-     */
-    function addTorrent(bytes32 torrentHash, bytes memory metadata) 
+    function addTorrent(bytes32 torrentHash, bytes calldata metadata) 
         external 
         override 
         whenNotPaused 
         nonReentrant 
     {
-        require(torrentMetadata[torrentHash].length == 0, "Torrent already exists");
-        require(metadata.length > 0, "Empty metadata");
+        if (torrentMetadata[torrentHash].length > 0) revert TorrentAlreadyExists();
+        if (metadata.length == 0) revert EmptyMetadata();
         
         torrentMetadata[torrentHash] = metadata;
         emit TorrentAdded(torrentHash, msg.sender);
     }
 
-    /**
-     * @inheritdoc IBitTorrent
-     */
     function joinSwarm(bytes32 torrentHash) 
         external 
         override 
         whenNotPaused 
     {
-        require(torrentMetadata[torrentHash].length > 0, "Torrent not found");
-        require(!_isPeerInSwarm(torrentHash, msg.sender), "Already in swarm");
+        if (torrentMetadata[torrentHash].length == 0) revert TorrentNotFound();
+        if (_isPeerInSwarm(torrentHash, msg.sender)) revert AlreadyInSwarm();
         
         swarmPeers[torrentHash].push(msg.sender);
         peerIndices[torrentHash][msg.sender] = swarmPeers[torrentHash].length - 1;
@@ -57,14 +74,11 @@ contract BitTorrentIntegration is IBitTorrent, AccessControl, Pausable, Reentran
         emit SwarmJoined(torrentHash, msg.sender);
     }
 
-    /**
-     * @inheritdoc IBitTorrent
-     */
     function leaveSwarm(bytes32 torrentHash) 
         external 
         override 
     {
-        require(_isPeerInSwarm(torrentHash, msg.sender), "Not in swarm");
+        if (!_isPeerInSwarm(torrentHash, msg.sender)) revert NotInSwarm();
         
         uint256 index = peerIndices[torrentHash][msg.sender];
         uint256 lastIndex = swarmPeers[torrentHash].length - 1;
@@ -81,9 +95,6 @@ contract BitTorrentIntegration is IBitTorrent, AccessControl, Pausable, Reentran
         emit SwarmLeft(torrentHash, msg.sender);
     }
 
-    /**
-     * @inheritdoc IBitTorrent
-     */
     function getTorrentMetadata(bytes32 torrentHash) 
         external 
         view 
@@ -93,9 +104,6 @@ contract BitTorrentIntegration is IBitTorrent, AccessControl, Pausable, Reentran
         return torrentMetadata[torrentHash];
     }
 
-    /**
-     * @inheritdoc IBitTorrent
-     */
     function getSwarmPeers(bytes32 torrentHash) 
         external 
         view 
@@ -105,9 +113,6 @@ contract BitTorrentIntegration is IBitTorrent, AccessControl, Pausable, Reentran
         return swarmPeers[torrentHash];
     }
 
-    /**
-     * @inheritdoc IBitTorrent
-     */
     function isPeerInSwarm(bytes32 torrentHash, address peer) 
         external 
         view 
@@ -117,15 +122,12 @@ contract BitTorrentIntegration is IBitTorrent, AccessControl, Pausable, Reentran
         return _isPeerInSwarm(torrentHash, peer);
     }
 
-    /**
-     * @inheritdoc IBitTorrent
-     */
     function removeTorrent(bytes32 torrentHash) 
         external 
         override 
         onlyRole(OPERATOR_ROLE) 
     {
-        require(torrentMetadata[torrentHash].length > 0, "Torrent not found");
+        if (torrentMetadata[torrentHash].length == 0) revert TorrentNotFound();
         
         delete torrentMetadata[torrentHash];
         delete swarmPeers[torrentHash];
@@ -135,6 +137,9 @@ contract BitTorrentIntegration is IBitTorrent, AccessControl, Pausable, Reentran
 
     /**
      * @dev Internal function to check if a peer is in a swarm
+     * @param torrentHash The hash of the torrent
+     * @param peer The address of the peer to check
+     * @return bool True if the peer is in the swarm, false otherwise
      */
     function _isPeerInSwarm(bytes32 torrentHash, address peer) 
         internal 
@@ -148,12 +153,20 @@ contract BitTorrentIntegration is IBitTorrent, AccessControl, Pausable, Reentran
 
     // Admin functions
 
+    /**
+     * @notice Updates the verifier contract address
+     * @param _verifier The new verifier contract address
+     */
     function updateVerifier(address _verifier)
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        require(_verifier != address(0), "Invalid verifier address");
+        if (_verifier == address(0)) revert InvalidVerifierAddress();
+        
+        address oldVerifier = address(verifier);
         verifier = IVerifier(_verifier);
+        
+        emit VerifierUpdated(oldVerifier, _verifier);
     }
 
     function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {

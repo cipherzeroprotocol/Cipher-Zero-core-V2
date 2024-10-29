@@ -39,6 +39,16 @@
 			},
 			{
 				"inputs": [],
+				"name": "AlreadyInSwarm",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "EmptyMetadata",
+				"type": "error"
+			},
+			{
+				"inputs": [],
 				"name": "EnforcedPause",
 				"type": "error"
 			},
@@ -49,7 +59,27 @@
 			},
 			{
 				"inputs": [],
+				"name": "InvalidVerifierAddress",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "NotInSwarm",
+				"type": "error"
+			},
+			{
+				"inputs": [],
 				"name": "ReentrancyGuardReentrantCall",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "TorrentAlreadyExists",
+				"type": "error"
+			},
+			{
+				"inputs": [],
+				"name": "TorrentNotFound",
 				"type": "error"
 			},
 			{
@@ -190,7 +220,7 @@
 					{
 						"indexed": true,
 						"internalType": "address",
-						"name": "owner",
+						"name": "creator",
 						"type": "address"
 					}
 				],
@@ -209,7 +239,7 @@
 					{
 						"indexed": true,
 						"internalType": "address",
-						"name": "remover",
+						"name": "operator",
 						"type": "address"
 					}
 				],
@@ -227,6 +257,25 @@
 					}
 				],
 				"name": "Unpaused",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "oldVerifier",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newVerifier",
+						"type": "address"
+					}
+				],
+				"name": "VerifierUpdated",
 				"type": "event"
 			},
 			{
@@ -545,6 +594,7 @@
 			}
 		],
 		"devdoc": {
+			"details": "Implements access control, pause functionality, and reentrancy protection",
 			"errors": {
 				"AccessControlBadConfirmation()": [
 					{
@@ -591,8 +641,30 @@
 			},
 			"kind": "dev",
 			"methods": {
+				"addTorrent(bytes32,bytes)": {
+					"params": {
+						"metadata": "The metadata associated with the torrent",
+						"torrentHash": "The hash of the torrent"
+					}
+				},
 				"getRoleAdmin(bytes32)": {
 					"details": "Returns the admin role that controls `role`. See {grantRole} and {revokeRole}. To change a role's admin, use {_setRoleAdmin}."
+				},
+				"getSwarmPeers(bytes32)": {
+					"params": {
+						"torrentHash": "The hash of the torrent"
+					},
+					"returns": {
+						"_0": "Array of peer addresses"
+					}
+				},
+				"getTorrentMetadata(bytes32)": {
+					"params": {
+						"torrentHash": "The hash of the torrent"
+					},
+					"returns": {
+						"_0": "The torrent metadata"
+					}
 				},
 				"grantRole(bytes32,address)": {
 					"details": "Grants `role` to `account`. If `account` had not been already granted `role`, emits a {RoleGranted} event. Requirements: - the caller must have ``role``'s admin role. May emit a {RoleGranted} event."
@@ -600,8 +672,32 @@
 				"hasRole(bytes32,address)": {
 					"details": "Returns `true` if `account` has been granted `role`."
 				},
+				"isPeerInSwarm(bytes32,address)": {
+					"params": {
+						"peer": "The address of the peer to check",
+						"torrentHash": "The hash of the torrent"
+					},
+					"returns": {
+						"_0": "bool indicating if the peer is in the swarm"
+					}
+				},
+				"joinSwarm(bytes32)": {
+					"params": {
+						"torrentHash": "The hash of the torrent to join"
+					}
+				},
+				"leaveSwarm(bytes32)": {
+					"params": {
+						"torrentHash": "The hash of the torrent to leave"
+					}
+				},
 				"paused()": {
 					"details": "Returns true if the contract is paused, and false otherwise."
+				},
+				"removeTorrent(bytes32)": {
+					"params": {
+						"torrentHash": "The hash of the torrent to remove"
+					}
 				},
 				"renounceRole(bytes32,address)": {
 					"details": "Revokes `role` from the calling account. Roles are often managed via {grantRole} and {revokeRole}: this function's purpose is to provide a mechanism for accounts to lose their privileges if they are compromised (such as when a trusted device is misplaced). If the calling account had been revoked `role`, emits a {RoleRevoked} event. Requirements: - the caller must be `callerConfirmation`. May emit a {RoleRevoked} event."
@@ -611,13 +707,45 @@
 				},
 				"supportsInterface(bytes4)": {
 					"details": "See {IERC165-supportsInterface}."
+				},
+				"updateVerifier(address)": {
+					"params": {
+						"_verifier": "The new verifier contract address"
+					}
 				}
 			},
+			"title": "BitTorrentIntegration",
 			"version": 1
 		},
 		"userdoc": {
 			"kind": "user",
-			"methods": {},
+			"methods": {
+				"addTorrent(bytes32,bytes)": {
+					"notice": "Adds a new torrent to the system"
+				},
+				"getSwarmPeers(bytes32)": {
+					"notice": "Gets all peers in a torrent swarm"
+				},
+				"getTorrentMetadata(bytes32)": {
+					"notice": "Gets the metadata for a specific torrent"
+				},
+				"isPeerInSwarm(bytes32,address)": {
+					"notice": "Checks if a peer is in a specific swarm"
+				},
+				"joinSwarm(bytes32)": {
+					"notice": "Allows a peer to join a torrent swarm"
+				},
+				"leaveSwarm(bytes32)": {
+					"notice": "Allows a peer to leave a torrent swarm"
+				},
+				"removeTorrent(bytes32)": {
+					"notice": "Removes a torrent from the system"
+				},
+				"updateVerifier(address)": {
+					"notice": "Updates the verifier contract address"
+				}
+			},
+			"notice": "Manages BitTorrent swarm participation and metadata on-chain",
 			"version": 1
 		}
 	},
@@ -694,27 +822,27 @@
 			]
 		},
 		"bittorrent/BitTorrentIntegration.sol": {
-			"keccak256": "0x991d43eca3081f2e83234dd3dcbaa2e4695bdda850cbc4963b1ca02323f07ef0",
+			"keccak256": "0x40ac72326dec66724d834078bb491a8148b6965855ffcb053eb2598e615d6a71",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://297bd8855338d46f5816494cf9416a474c3116cfb5baf85311a1dd3a153d27d9",
-				"dweb:/ipfs/Qmf8Cxm5kjsUW5r7nV5sBYhshB4mPGoHCUe3kvFWQpuuFf"
+				"bzz-raw://90ad2d6ce7829b0c9772afbbfcdc4a06b4c250a9c3932954970ba945696651e5",
+				"dweb:/ipfs/QmNmp2X9pRqhuasSq3PudbFVqp6xoP5ag6jVxvvjwaLyFs"
 			]
 		},
 		"interfaces/IBitTorrent.sol": {
-			"keccak256": "0x173e15507ae09094cb399900613aae7145f3ce7d70376b381eafd93baf7b8f51",
+			"keccak256": "0xa64d2cb8f51fc304942f3102b37597eef8d359741b72942a50f446106e82f685",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://a64292bc08f8c1d87013fa6d60aea90154c3098a0503f3e7deba4769901a4368",
-				"dweb:/ipfs/QmcrQqq5VazxfHwKTDC6qCWUjmLxU2uyZsQFfQKGnqypHL"
+				"bzz-raw://586f2a5c4a98ae36c4562cd8bfbf5d39b4668c07a26e416fe819880254c7f4d3",
+				"dweb:/ipfs/QmUTydrSdKN52mU1YLSG4dj2okuMuwwR5LdMKwNcLEankc"
 			]
 		},
 		"interfaces/IVerifier.sol": {
-			"keccak256": "0xe4d3698b0e3b0132cb154368a2304b1df6f2cd07083e8442de02de21a51c724a",
+			"keccak256": "0x2467bbb66e2536abd6ee14569eb1f59e462b282380c1db88e9d91e127e796eb0",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://2336136b9297d786c59f0a1038d7a61a6f5ca225262034dea220622bfa0e0b9a",
-				"dweb:/ipfs/QmexjE58kTXsQbHtUu1LaBR4CJMufHbPsQmMYvymw6uge1"
+				"bzz-raw://dcdf9aff290371b6c693335a86ddde80e3c44c207cd9fab36d31d2ddca5a762d",
+				"dweb:/ipfs/QmcZNtoYmL5awvrDv78SXo6uvfZtfnvo79nZrYZT1FfHyM"
 			]
 		}
 	},

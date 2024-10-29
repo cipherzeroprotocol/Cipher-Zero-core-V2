@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title TokenVesting
@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
  * @dev Supports multiple beneficiaries with different vesting schedules
  */
 contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
-    using SafeMath for uint256;
+    using Math for uint256;
 
     // Vesting schedule structure
     struct VestingSchedule {
@@ -74,10 +74,18 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
 
     /**
      * @notice Constructor
+     * @param initialOwner Initial owner address
      * @param _token CipherZeroToken address
      * @param _treasury Treasury address
      */
-    constructor(address _token, address _treasury) {
+    constructor(
+        address initialOwner,
+        address _token,
+        address _treasury
+    ) Ownable(initialOwner) {
+        require(_token != address(0), "Invalid token address");
+        require(_treasury != address(0), "Invalid treasury address");
+        
         token = IERC20(_token);
         treasury = _treasury;
 
@@ -91,14 +99,6 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
 
     /**
      * @notice Create a new vesting schedule
-     * @param beneficiary Beneficiary address
-     * @param scheduleType Type of vesting schedule
-     * @param amount Total amount of tokens to vest
-     * @param startTime Start time of vesting period
-     * @param duration Duration of vesting period
-     * @param cliffDuration Cliff duration
-     * @param slicePeriod Period between releases
-     * @param revocable Whether schedule can be revoked
      */
     function createVestingSchedule(
         address beneficiary,
@@ -119,7 +119,7 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
         
         // Check vesting cap for schedule type
         require(
-            totalVestedByType[scheduleType].add(amount) <= maxVestingByType[scheduleType],
+            totalVestedByType[scheduleType] + amount <= maxVestingByType[scheduleType],
             "Exceeds max vesting"
         );
 
@@ -144,7 +144,7 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
         // Update counters
         vestingScheduleCount[beneficiary]++;
         vestingSchedulesCount++;
-        totalVestedByType[scheduleType] = totalVestedByType[scheduleType].add(amount);
+        totalVestedByType[scheduleType] = totalVestedByType[scheduleType] + amount;
 
         emit VestingScheduleCreated(
             beneficiary,
@@ -156,7 +156,6 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
 
     /**
      * @notice Release vested tokens for a schedule
-     * @param scheduleId Schedule ID
      */
     function release(uint256 scheduleId) external nonReentrant {
         VestingSchedule storage schedule = vestingSchedules[msg.sender][scheduleId];
@@ -164,11 +163,11 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
         require(!schedule.revoked, "Schedule revoked");
 
         uint256 vestedAmount = _computeVestedAmount(schedule);
-        uint256 releasableAmount = vestedAmount.sub(schedule.releasedAmount);
+        uint256 releasableAmount = vestedAmount - schedule.releasedAmount;
         require(releasableAmount > 0, "No tokens to release");
 
         // Update released amount
-        schedule.releasedAmount = schedule.releasedAmount.add(releasableAmount);
+        schedule.releasedAmount = schedule.releasedAmount + releasableAmount;
 
         // Transfer tokens
         require(
@@ -181,8 +180,6 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
 
     /**
      * @notice Revoke a vesting schedule
-     * @param beneficiary Beneficiary address
-     * @param scheduleId Schedule ID
      */
     function revoke(
         address beneficiary,
@@ -195,7 +192,7 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
 
         // Calculate vested amount before revocation
         uint256 vestedAmount = _computeVestedAmount(schedule);
-        uint256 refundAmount = schedule.totalAmount.sub(vestedAmount);
+        uint256 refundAmount = schedule.totalAmount - vestedAmount;
 
         // Mark as revoked
         schedule.revoked = true;
@@ -213,7 +210,6 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
 
     /**
      * @notice Compute vested amount for a schedule
-     * @param schedule Vesting schedule
      */
     function _computeVestedAmount(
         VestingSchedule memory schedule
@@ -222,31 +218,25 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
             return 0;
         }
 
-        if (block.timestamp < schedule.startTime.add(schedule.cliffDuration)) {
+        if (block.timestamp < schedule.startTime + schedule.cliffDuration) {
             return 0;
         }
 
-        if (block.timestamp >= schedule.startTime.add(schedule.duration)) {
+        if (block.timestamp >= schedule.startTime + schedule.duration) {
             return schedule.totalAmount;
         }
 
-        uint256 timeFromStart = block.timestamp.sub(schedule.startTime);
+        uint256 timeFromStart = block.timestamp - schedule.startTime;
         uint256 secondsPerSlice = schedule.slicePeriod;
-        uint256 vestedSlices = timeFromStart.div(secondsPerSlice);
-        uint256 vestedSeconds = vestedSlices.mul(secondsPerSlice);
+        uint256 vestedSlices = timeFromStart / secondsPerSlice;
+        uint256 vestedSeconds = vestedSlices * secondsPerSlice;
 
-        uint256 vestedAmount = schedule.totalAmount
-            .mul(vestedSeconds)
-            .div(schedule.duration);
+        uint256 vestedAmount = (schedule.totalAmount * vestedSeconds) / schedule.duration;
 
         return vestedAmount;
     }
 
-    /**
-     * @notice Get vesting schedule info
-     * @param beneficiary Beneficiary address
-     * @param scheduleId Schedule ID
-     */
+    // View functions remain unchanged...
     function getVestingSchedule(
         address beneficiary,
         uint256 scheduleId
@@ -273,28 +263,22 @@ contract TokenVesting is Ownable, ReentrancyGuard, Pausable {
         );
     }
 
+    function computeReleasableAmount(
+        address beneficiary,
+        uint256 scheduleId
+    ) external view returns (uint256) {
+        VestingSchedule memory schedule = vestingSchedules[beneficiary][scheduleId];
+        return _computeVestedAmount(schedule) - schedule.releasedAmount;
+    }
+
     /**
      * @notice Update treasury address
-     * @param newTreasury New treasury address
      */
     function updateTreasury(address newTreasury) external onlyOwner {
         require(newTreasury != address(0), "Invalid address");
         address oldTreasury = treasury;
         treasury = newTreasury;
         emit TreasuryUpdated(oldTreasury, newTreasury);
-    }
-
-    /**
-     * @notice Compute releasable amount for a schedule
-     * @param beneficiary Beneficiary address
-     * @param scheduleId Schedule ID
-     */
-    function computeReleasableAmount(
-        address beneficiary,
-        uint256 scheduleId
-    ) external view returns (uint256) {
-        VestingSchedule memory schedule = vestingSchedules[beneficiary][scheduleId];
-        return _computeVestedAmount(schedule).sub(schedule.releasedAmount);
     }
 
     // Emergency functions

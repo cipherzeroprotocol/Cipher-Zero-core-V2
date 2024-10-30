@@ -1,110 +1,589 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-
 import "../interfaces/DividendPayingToken.sol";
 import "../interfaces/Ownable.sol";
 import "../interfaces/IDex.sol";
 import "../interfaces/IERC20.sol";
+import "../interfaces/IZKVerifier.sol";
+import "./CipherDividendTracker.sol";
+import "./Address.sol";
+import "../interfaces/IZKVerifier.sol";
 
 
-library Address{
-    function sendValue(address payable recipient, uint256 amount) internal {
-        require(address(this).balance >= amount, "Address: insufficient balance");
-
-        (bool success, ) = recipient.call{value: amount}("");
-        require(success, "Address: unable to send value, recipient may have reverted");
-    }
-}
-
-
-contract VIRAL is ERC20, Ownable {
+/**
+ * @title CipherZeroToken
+ * @dev Token for Cipher Zero Protocol with privacy features and zk-SNARK integration
+ */
+contract CipherZeroToken is ERC20, Ownable {
     using Address for address payable;
 
     IRouter public router;
-    address public  pair;
+    address public pair;
+    IZKVerifier public zkVerifier;
 
     bool private swapping;
     bool public swapEnabled = true;
-    bool public claimEnabled;
+    bool public privacyEnabled;
     bool public tradingEnabled;
     
-    VIRALDividendTracker public dividendTracker;
+    CipherDividendTracker public dividendTracker;
 
-    address public treasuryWallet = 0x73fA5dDF2aB78D92bB723D92Ab98aF7A0A4Fde8F;
-    address public devWallet = 0x16023072c6a88555736B654629fC807d623617A5;
+    address public treasuryWallet;
+    address public devWallet;
 
+    uint256 public constant PRIVACY_POOL_MIN = 1000 * 10**18;
     uint256 public swapTokensAtAmount = 500_000 * 10**18;
     uint256 public maxBuyAmount = 1_000_000 * 10**18;
     uint256 public maxSellAmount = 1_000_000 * 10**18;
 
-            ///////////////
-           //   Fees    //
-          ///////////////
-    
     struct Taxes {
         uint256 rewards;
         uint256 treasury;
-        uint256 liquidity;
+        uint256 privacy;
         uint256 dev;
     }
+    
+    struct ExcludeMultipleAccountsFromFeesData{
+        address[] accounts;
+        bool excluded;
+    }
+    
+    struct PrivacyPool {
+    uint256 balance;
+    uint256 lastMixTime;
+    uint256 participantCount;
+    bytes32 merkleRoot;
+    }
 
-    Taxes public buyTaxes = Taxes(0,0,0,2);
-    Taxes public sellTaxes = Taxes(5,10,3,2);
+    Taxes public buyTaxes = Taxes(2,2,2,2);
+    Taxes public sellTaxes = Taxes(3,3,3,1);
 
-    uint256 public totalBuyTax = 2;
-    uint256 public totalSellTax = 20;
+    uint256 public totalBuyTax = 8;
+    uint256 public totalSellTax = 10;
 
-    mapping (address => bool) public _isBot;
-      
-    mapping (address => bool) private _isExcludedFromFees;
-    mapping (address => bool) public automatedMarketMakerPairs;
+    // Privacy mappings
+    mapping(bytes32 => bool) public usedNullifiers;
+    mapping(address => bool) public isPrivacyPool;
+    mapping(address => bool) private _isExcludedFromFees;
+    mapping(address => bool) public automatedMarketMakerPairs;
+    mapping(uint256 => PrivacyPool) public privacyPools;
+mapping(uint256 => mapping(bytes32 => bool)) public poolCommitments; // denomination => commitment => exists
+mapping(uint256 => mapping(bytes32 => bool)) public poolNullifiers; // denomination => nullifier => used
+mapping(uint256 => bytes32[]) private poolCommitmentsList; // denomination => list of commitments
+  uint256[] public supportedDenominations; // Valid pool sizes (e.g., 100, 1000, 10000)
+uint256 public constant MIN_PARTICIPANTS = 3; // Minimum participants for mixing
+uint256 public constant MIX_COOLDOWN = 1 hours; // Time between mixes
+event SetAutomatedMarketMakerPair(address indexed pair, bool indexed value);
+event SendDividends(uint256 tokensSwapped, uint256 amount);
+event ExcludeMultipleAccountsFromFees(address[] accounts, bool excluded);
 
-        ///////////////
-       //   Events  //
-      ///////////////
-      
+// Add with other state variables
+bool public claimEnabled;
+mapping(address => bool) public _isBot;
+event PrivacyPoolDeposit(uint256 indexed denomination, bytes32 commitment);
+event PrivacyPoolMix(uint256 indexed denomination, bytes32 merkleRoot);
+event PrivacyPoolWithdraw(uint256 indexed denomination, bytes32 nullifier);
+    // Events
+    event PrivateTransfer(bytes32 indexed nullifier, bytes32 indexed commitment);
+    event PrivacyPoolCreated(address indexed creator, uint256 amount);
+    event PrivacyPoolClosed(address indexed pool);
     event ExcludeFromFees(address indexed account, bool isExcluded);
-    event ExcludeMultipleAccountsFromFees(address[] accounts, bool isExcluded);
-    event SetAutomatedMarketMakerPair(address indexed pair, bool indexed value);
-    event GasForProcessingUpdated(uint256 indexed newValue, uint256 indexed oldValue);
-    event SendDividends(uint256 tokensSwapped,uint256 amount);
-    event ProcessedDividendTracker(uint256 iterations,uint256 claims,uint256 lastProcessedIndex,bool indexed automatic,uint256 gas,address indexed processor);
 
+    struct PrivateTransferData {
+        bytes32 nullifier;
+        bytes32 commitment;
+        bytes proof;
+        address recipient;
+        uint256 amount;
+    }
 
-    constructor() ERC20("VIRAL", "VIRAL") {
+    constructor(
+        address _zkVerifier,
+        address _router,
+        address _treasury,
+        address _dev
+    ) ERC20("CipherZero", "CZT") {
+        zkVerifier = IZKVerifier(_zkVerifier);
+        treasuryWallet = _treasury;
+        devWallet = _dev;
 
-        dividendTracker = new VIRALDividendTracker();
+        dividendTracker = new CipherDividendTracker();
 
-        IRouter _router = IRouter(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
-        address _pair = IFactory(_router.factory()).createPair(address(this), _router.WETH());
+        IRouter router_ = IRouter(_router);
+        address pair_ = IFactory(router_.factory()).createPair(address(this), router_.WETH());
 
-        router = _router;
-        pair = _pair;
+        router = router_;
+        pair = pair_;
 
-        _setAutomatedMarketMakerPair(_pair, true);
-
-        dividendTracker.updateLP_Token(pair);
-
-        // exclude from receiving dividends
-        dividendTracker.excludeFromDividends(address(dividendTracker), true);
-        dividendTracker.excludeFromDividends(address(this), true);
-        dividendTracker.excludeFromDividends(owner(), true);
-        dividendTracker.excludeFromDividends(address(0xdead), true);
-        dividendTracker.excludeFromDividends(address(_router), true);
-
-        // exclude from paying fees or having max transaction amount
+        _setAutomatedMarketMakerPair(pair_, true);
+        
+        // Setup exclusions
         excludeFromFees(owner(), true);
         excludeFromFees(address(this), true);
         excludeFromFees(treasuryWallet, true);
         excludeFromFees(devWallet, true);
 
-        /*
-            _mint is an internal function in ERC20.sol that is only called here,
-            and CANNOT be called ever again
-        */
-        _mint(owner(), 10e9* (10**18));
+        _mint(owner(), 1_000_000_000 * (10**18));
     }
+
+    address public LP_Token;  // Add with other state variables
+
+    /**
+ * @dev Implementation for distributing dividends for Cipher Zero Protocol
+ * Add this to your CipherZeroToken contract
+ */
+
+uint256 private constant MAGNITUDE = 2**128;
+uint256 private magnifiedDividendPerShare;
+mapping(address => int256) private magnifiedDividendCorrections;
+mapping(address => uint256) private withdrawnDividends;
+uint256 public totalDividendsDistributed;
+
+
+/**
+ * @notice Update merkle tree with new commitment
+ */
+function updateMerkleTree(
+    uint256 denomination,
+    bytes32 commitment
+) private {
+    // Add commitment to list
+    poolCommitmentsList[denomination].push(commitment);
+    
+    // Get current tree elements
+    bytes32[] memory elements = poolCommitmentsList[denomination];
+    
+    // Recalculate merkle root
+    bytes32 newRoot = calculateMerkleRoot(elements);
+    
+    // Update pool's merkle root
+    privacyPools[denomination].merkleRoot = newRoot;
+}
+
+
+
+/**
+ * @dev Internal function to distribute dividends
+ * @param amount Amount of dividends to distribute
+ */
+function _distributeDividends(uint256 amount) internal {
+    require(totalSupply() > 0, "No supply for dividend distribution");
+
+    if (amount > 0) {
+        magnifiedDividendPerShare = magnifiedDividendPerShare + 
+            ((amount * MAGNITUDE) / totalSupply());
+        emit DividendsDistributed(msg.sender, amount);
+
+        totalDividendsDistributed = totalDividendsDistributed + amount;
+    }
+}
+
+/**
+ * @notice View the amount of dividend in wei that an address can withdraw
+ * @param account The address of a token holder
+ * @return The amount of dividend in wei that `account` can withdraw
+ */
+
+
+/**
+ * @notice View the amount of dividend in wei that an address has withdrawn
+ * @param account The address of a token holder
+ * @return The amount of dividend in wei that `account` has withdrawn
+ */
+function withdrawnDividendOf(address account) public view returns(uint256) {
+    return withdrawnDividends[account];
+}
+
+/**
+ * @notice View the amount of dividend in wei that an address has earned in total
+ * @param account The address of a token holder
+ * @return The amount of dividend in wei that `account` has earned in total
+ */
+function accumulativeDividendOf(address account) public view returns(uint256) {
+    return uint256(int256(magnifiedDividendPerShare * balanceOf(account)) + 
+        magnifiedDividendCorrections[account]) / MAGNITUDE;
+}
+
+/**
+ * @dev Internal function to withdraw accumulated dividends
+ */
+function _withdrawDividendOfUser(address payable user) internal returns (uint256) {
+    uint256 _withdrawableDividend = withdrawableDividendOf(user);
+    if (_withdrawableDividend > 0) {
+        withdrawnDividends[user] = withdrawnDividends[user] + _withdrawableDividend;
+        emit DividendWithdrawn(user, _withdrawableDividend);
+        (bool success,) = user.call{value: _withdrawableDividend}("");
+        if(!success) {
+            withdrawnDividends[user] = withdrawnDividends[user] - _withdrawableDividend;
+            return 0;
+        }
+        return _withdrawableDividend;
+    }
+    return 0;
+}
+
+/**
+ * @dev Internal function to update dividend corrections when transferring tokens
+ */
+function _updateDividendCorrections(
+    address from,
+    address to,
+    uint256 amount
+) internal {
+    if (amount == 0) return;
+
+    int256 correctionAmount = int256(magnifiedDividendPerShare * amount);
+    magnifiedDividendCorrections[from] = magnifiedDividendCorrections[from] + correctionAmount;
+    magnifiedDividendCorrections[to] = magnifiedDividendCorrections[to] - correctionAmount;
+}
+
+// Add this event if not already defined
+event DividendsDistributed(
+    address indexed from,
+    uint256 amount
+);
+
+event DividendWithdrawn(
+    address indexed to,
+    uint256 amount
+);
+
+function updateLP_Token(address _lpToken) external onlyOwner {
+    LP_Token = _lpToken;
+}
+
+function distributeLPDividends(uint256 amount) external {
+    require(msg.sender == owner(), "Only owner");
+    _distributeDividends(amount);
+}
+
+    // Private transfer functionality
+    function privateTransfer(PrivateTransferData calldata data) external {
+        require(privacyEnabled, "Privacy features not enabled");
+        require(!usedNullifiers[data.nullifier], "Nullifier already used");
+        
+        // Verify ZK proof
+        require(
+            zkVerifier.verifyTransferProof(
+                data.nullifier,
+                data.commitment, 
+                data.amount,
+                msg.sender,
+                data.recipient,
+                data.proof
+            ),
+            "Invalid ZK proof"
+        );
+
+        usedNullifiers[data.nullifier] = true;
+        
+        _transfer(msg.sender, data.recipient, data.amount);
+        
+        emit PrivateTransfer(data.nullifier, data.commitment);
+    }
+
+    // Privacy pool functionality 
+    function createPrivacyPool(uint256 amount, bytes calldata proof) external {
+        require(amount >= PRIVACY_POOL_MIN, "Below minimum pool amount");
+        require(!isPrivacyPool[msg.sender], "Already a privacy pool");
+
+        // Verify pool creation proof
+        require(
+            zkVerifier.verifyPoolCreationProof(
+                amount,
+                msg.sender,
+                proof
+            ),
+            "Invalid pool proof"
+        );
+
+        isPrivacyPool[msg.sender] = true;
+        _transfer(msg.sender, address(this), amount);
+        
+        emit PrivacyPoolCreated(msg.sender, amount);
+    }
+
+    
+
+    // Fee distribution with privacy pool support
+    function swapAndDistribute(uint256 amount) private {
+        Taxes memory taxes = automatedMarketMakerPairs[address(0)] ? sellTaxes : buyTaxes;
+        
+        uint256 privacyAmount = amount * taxes.privacy / 100;
+        uint256 treasuryAmount = amount * taxes.treasury / 100;
+        uint256 devAmount = amount * taxes.dev / 100;
+        uint256 rewardsAmount = amount * taxes.rewards / 100;
+
+        // Handle privacy pool funds
+        if(privacyAmount > 0) {
+            addToPrivacyPool(privacyAmount);
+        }
+
+        // Convert and distribute other fees
+        swapTokensForETH(treasuryAmount + devAmount + rewardsAmount);
+        
+        uint256 ethBalance = address(this).balance;
+        uint256 totalTax = taxes.treasury + taxes.dev + taxes.rewards;
+        
+        if(ethBalance > 0) {
+            payable(treasuryWallet).sendValue(ethBalance * taxes.treasury / totalTax);
+            payable(devWallet).sendValue(ethBalance * taxes.dev / totalTax);
+            dividendTracker.distributeDividends{value: address(this).balance}();
+        }
+    }
+
+    /**
+ * @notice Add tokens to privacy pool with ZK commitment
+ * @param amount The amount of tokens to add to privacy pool
+ * @dev Manages deposit into appropriate denomination pool with privacy protections
+ */
+/**
+ * @notice Add tokens to privacy pool with ZK commitment
+ * @param amount The amount of tokens to add to privacy pool
+ * @dev Manages deposit into appropriate denomination pool with privacy protections
+ */
+function addToPrivacyPool(uint256 amount) private {
+    require(amount > 0, "Invalid amount");
+    
+    // Find appropriate denomination pool
+    uint256 denomination = findPoolDenomination(amount);
+    require(denomination > 0, "Invalid denomination");
+
+    PrivacyPool storage pool = privacyPools[denomination];
+
+    // Generate commitment using ZK proof
+    bytes32 commitment = generateCommitment(
+        amount,
+        msg.sender,
+        block.timestamp
+    );
+    
+    // Use separate mapping instead of struct mapping
+    require(!poolCommitments[denomination][commitment], "Commitment exists");
+
+    // Update pool state
+    pool.balance += amount;
+    pool.participantCount++;
+    
+    // Store commitment in separate mapping
+    poolCommitments[denomination][commitment] = true;
+    poolCommitmentsList[denomination].push(commitment);
+
+    // Update merkle tree
+    updateMerkleTree(denomination, commitment);
+
+    // Check if pool is ready for mixing
+    if (shouldMixPool(pool)) {
+        mixPool(denomination);
+    }
+
+    emit PrivacyPoolDeposit(denomination, commitment);
+}
+
+/**
+ * @notice Generate commitment for privacy pool deposit
+ */
+function generateCommitment(
+    uint256 amount,
+    address depositor,
+    uint256 timestamp
+) private view returns (bytes32) {
+    return keccak256(
+        abi.encodePacked(
+            amount,
+            depositor,
+            timestamp,
+            blockhash(block.number - 1)
+        )
+    );
+}
+
+/**
+ * @notice Find appropriate denomination pool for amount
+ */
+function findPoolDenomination(uint256 amount) private view returns (uint256) {
+    for (uint256 i = 0; i < supportedDenominations.length; i++) {
+        if (amount >= supportedDenominations[i]) {
+            return supportedDenominations[i];
+        }
+    }
+    return 0; // No valid denomination found
+}
+/**
+ * @notice Get merkle tree elements from pool
+ */
+function getMerkleElements(PrivacyPool storage pool) private view returns (bytes32[] memory) {
+    bytes32[] memory elements = new bytes32[](pool.participantCount);
+    uint256 index = 0;
+    
+    // Note: This is a simplified implementation - you'll need to add actual logic
+    // to retrieve elements from your storage structure
+    return elements;
+}
+
+/**
+ * @notice Append element to array
+ */
+function appendElement(bytes32[] memory elements, bytes32 element) private pure returns (bytes32[] memory) {
+    bytes32[] memory newElements = new bytes32[](elements.length + 1);
+    for (uint256 i = 0; i < elements.length; i++) {
+        newElements[i] = elements[i];
+    }
+    newElements[elements.length] = element;
+    return newElements;
+}
+
+/**
+ * @notice Calculate merkle root from elements
+ */
+function calculateMerkleRoot(bytes32[] memory elements) private pure returns (bytes32) {
+    require(elements.length > 0, "Empty elements");
+    
+    while (elements.length > 1) {
+        bytes32[] memory newElements = new bytes32[]((elements.length + 1) / 2);
+        
+        for (uint256 i = 0; i < elements.length; i += 2) {
+            if (i + 1 < elements.length) {
+                newElements[i / 2] = keccak256(abi.encodePacked(elements[i], elements[i + 1]));
+            } else {
+                newElements[i / 2] = elements[i];
+            }
+        }
+        
+        elements = newElements;
+    }
+    
+    return elements[0];
+}
+/**
+ * @notice Update merkle tree with new commitment
+ */
+function updateMerkleTree(
+    PrivacyPool storage pool,
+    bytes32 commitment
+) private {
+    // Get current tree elements
+    bytes32[] memory elements = getMerkleElements(pool);
+    
+    // Add new commitment
+    elements = appendElement(elements, commitment);
+    
+    // Recalculate merkle root
+    pool.merkleRoot = calculateMerkleRoot(elements);
+}
+
+/**
+ * @notice Check if pool should be mixed
+ */
+function shouldMixPool(PrivacyPool storage pool) private view returns (bool) {
+    return (
+        pool.participantCount >= MIN_PARTICIPANTS &&
+        block.timestamp >= pool.lastMixTime + MIX_COOLDOWN
+    );
+}
+
+/**
+ * @notice Mix privacy pool funds
+ */
+function mixPool(uint256 denomination) private {
+    PrivacyPool storage pool = privacyPools[denomination];
+    require(pool.balance > 0, "Empty pool");
+
+    // Generate ZK proof for mixing
+    bytes memory mixProof = zkVerifier.generateMixProof(
+        pool.merkleRoot,
+        pool.participantCount,
+        denomination
+    );
+
+    require(
+        zkVerifier.verifyMixProof(
+            mixProof,
+            pool.merkleRoot,
+            pool.participantCount,
+            denomination
+        ),
+        "Invalid mix proof"
+    );
+
+    // Reset pool state while maintaining privacy
+    bytes32 oldMerkleRoot = pool.merkleRoot;
+    pool.merkleRoot = bytes32(0);
+    pool.lastMixTime = block.timestamp;
+    pool.participantCount = 0;
+
+    emit PrivacyPoolMix(denomination, oldMerkleRoot);
+}
+
+/**
+ * @notice Withdraw from privacy pool using ZK proof
+ * @param denomination Pool denomination
+ * @param nullifier Unique nullifier to prevent double spending
+ * @param proof ZK proof of valid withdrawal
+ */
+function withdrawFromPrivacyPool(
+    uint256 denomination,
+    bytes32 nullifier,
+    bytes calldata proof
+) external {
+    PrivacyPool storage pool = privacyPools[denomination];
+    require(!poolCommitmentsList[denomination].length == 0 || poolCommitmentsList[denomination][poolCommitmentsList[denomination].length - 1] != commitment, "Invalid commitment"); 
+    
+    require(
+        zkVerifier.verifyWithdrawalProof(
+            proof,
+            nullifier,
+            pool.merkleRoot,
+            denomination,
+            msg.sender
+        ),
+        "Invalid withdrawal proof"
+    );
+
+    // Mark nullifier as used
+    pool.nullifiers[nullifier] = true;
+    
+    // Process withdrawal
+    pool.balance -= denomination;
+    _transfer(address(this), msg.sender, denomination);
+
+    emit PrivacyPoolWithdraw(denomination, nullifier);
+}
+
+/**
+ * @notice Initialize supported pool denominations
+ * @dev Called by owner to set up initial denomination pools
+ */
+function initializePrivacyPools(uint256[] calldata denominations) external onlyOwner {
+    require(supportedDenominations.length == 0, "Already initialized");
+    
+    for (uint256 i = 0; i < denominations.length; i++) {
+        require(denominations[i] > 0, "Invalid denomination");
+        supportedDenominations.push(denominations[i]);
+        
+        privacyPools[denominations[i]] = PrivacyPool({
+            balance: 0,
+            lastMixTime: 0,
+            participantCount: 0,
+            merkleRoot: bytes32(0)
+        });
+    }
+}
+
+    // Standard utility functions...
+    //receive() external payable {}
+
+    // Admin functions
+    function setPrivacyEnabled(bool enabled) external onlyOwner {
+        privacyEnabled = enabled;
+    }
+
+    function updateZKVerifier(address newVerifier) external onlyOwner {
+        require(newVerifier != address(0), "Invalid verifier");
+        zkVerifier = IZKVerifier(newVerifier);
+    }
+
 
     receive() external payable {}
     function updateDividendTracker(address newAddress) public onlyOwner {

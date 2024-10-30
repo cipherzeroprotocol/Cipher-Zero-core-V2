@@ -9,7 +9,7 @@ import "../interfaces/IZKVerifier.sol";
 import "./CipherDividendTracker.sol";
 import "./Address.sol";
 import "../interfaces/IZKVerifier.sol";
-
+import "../interfaces/ICipherDividendTracker.sol";
 
 /**
  * @title CipherZeroToken
@@ -21,16 +21,18 @@ contract CipherZeroToken is ERC20, Ownable {
     IRouter public router;
     address public pair;
     IZKVerifier public zkVerifier;
-
+    CipherDividendTracker public dividendTracker;
     bool private swapping;
     bool public swapEnabled = true;
     bool public privacyEnabled;
     bool public tradingEnabled;
+
     
-    CipherDividendTracker public dividendTracker;
+    //CipherDividendTracker public dividendTracker;
 
     address public treasuryWallet;
     address public devWallet;
+    address public lpToken;
 
     uint256 public constant PRIVACY_POOL_MIN = 1000 * 10**18;
     uint256 public swapTokensAtAmount = 500_000 * 10**18;
@@ -38,11 +40,12 @@ contract CipherZeroToken is ERC20, Ownable {
     uint256 public maxSellAmount = 1_000_000 * 10**18;
 
     struct Taxes {
-        uint256 rewards;
-        uint256 treasury;
-        uint256 privacy;
-        uint256 dev;
-    }
+    uint256 rewards;
+    uint256 treasury;
+    uint256 privacy;
+    uint256 dev;
+    uint256 liquidity;  // Added liquidity field
+}
     
     struct ExcludeMultipleAccountsFromFeesData{
         address[] accounts;
@@ -56,8 +59,8 @@ contract CipherZeroToken is ERC20, Ownable {
     bytes32 merkleRoot;
     }
 
-    Taxes public buyTaxes = Taxes(2,2,2,2);
-    Taxes public sellTaxes = Taxes(3,3,3,1);
+    Taxes public buyTaxes = Taxes(2,2,2,2,2);  // Added liquidity value
+Taxes public sellTaxes = Taxes(3,3,3,1,3);  // Added liquidity value
 
     uint256 public totalBuyTax = 8;
     uint256 public totalSellTax = 10;
@@ -77,6 +80,7 @@ uint256 public constant MIX_COOLDOWN = 1 hours; // Time between mixes
 event SetAutomatedMarketMakerPair(address indexed pair, bool indexed value);
 event SendDividends(uint256 tokensSwapped, uint256 amount);
 event ExcludeMultipleAccountsFromFees(address[] accounts, bool excluded);
+event LPTokenUpdated(address indexed oldLPToken, address indexed newLPToken);
 
 // Add with other state variables
 bool public claimEnabled;
@@ -139,6 +143,42 @@ uint256 private magnifiedDividendPerShare;
 mapping(address => int256) private magnifiedDividendCorrections;
 mapping(address => uint256) private withdrawnDividends;
 uint256 public totalDividendsDistributed;
+
+
+  mapping(address => bool) public excludedFromDividends;
+    mapping(address => uint256) public lastClaimTimes;
+    mapping(bytes32 => bool) public usedProofs;
+
+    event ExcludeFromDividends(address indexed account, bool value);
+    event Claim(address indexed account, uint256 amount);
+    event DividendProcessed(address indexed account, uint256 amount);
+
+    // Events
+    event DividendDistributed(address indexed from, uint256 amount);
+    event PrivacyPoolCreated(uint256 denomination);
+  // Added liquidity value to Taxes struct for zk-SNARK integration of privacy features.
+
+
+ /**
+     * @notice Process account for dividend distribution
+     * @param account The account to process
+     * @return bool True if processing was successful
+     */
+    function processAccount(address payable account) external onlyOwner returns (bool) {
+        require(account != address(0), "Invalid address");
+        require(!excludedFromDividends[account], "Account excluded from dividends");
+        
+        uint256 amount = _withdrawDividendOfUser(account);
+        
+        if (amount > 0) {
+            lastClaimTimes[account] = block.timestamp;
+            emit Claim(account, amount);
+            emit DividendProcessed(account, amount);
+            return true;
+        }
+        
+        return false;
+    }
 
 
 /**
@@ -522,14 +562,26 @@ function mixPool(uint256 denomination) private {
  * @param nullifier Unique nullifier to prevent double spending
  * @param proof ZK proof of valid withdrawal
  */
+/**
+ * @notice Withdraw from privacy pool using ZK proof
+ * @param denomination Pool denomination
+ * @param nullifier Unique nullifier to prevent double spending
+ * @param proof ZK proof of valid withdrawal
+ */
 function withdrawFromPrivacyPool(
     uint256 denomination,
     bytes32 nullifier,
     bytes calldata proof
 ) external {
     PrivacyPool storage pool = privacyPools[denomination];
-    require(!poolCommitmentsList[denomination].length == 0 || poolCommitmentsList[denomination][poolCommitmentsList[denomination].length - 1] != commitment, "Invalid commitment"); 
     
+    // Check if pool has commitments
+    require(poolCommitmentsList[denomination].length > 0, "Empty pool");
+    
+    // Check if nullifier has been used
+    require(!poolNullifiers[denomination][nullifier], "Nullifier used");
+
+    // Verify withdrawal proof
     require(
         zkVerifier.verifyWithdrawalProof(
             proof,
@@ -541,8 +593,8 @@ function withdrawFromPrivacyPool(
         "Invalid withdrawal proof"
     );
 
-    // Mark nullifier as used
-    pool.nullifiers[nullifier] = true;
+    // Mark nullifier as used in separate mapping
+    poolNullifiers[denomination][nullifier] = true;
     
     // Process withdrawal
     pool.balance -= denomination;
@@ -586,48 +638,138 @@ function initializePrivacyPools(uint256[] calldata denominations) external onlyO
 
 
     receive() external payable {}
-    function updateDividendTracker(address newAddress) public onlyOwner {
-        VIRALDividendTracker newDividendTracker = VIRALDividendTracker(payable(newAddress));
+    // Change VIRALDividendTracker to CipherDividendTracker
+    /**
+ * @notice Update dividend tracker contract
+ * @param newAddress Address of new dividend tracker
+ */
+function updateDividendTracker(address newAddress) public onlyOwner {
+    require(newAddress != address(0), "Zero address");
+    require(newAddress != address(dividendTracker), "Same address");
+    
+    CipherDividendTracker newDividendTracker = CipherDividendTracker(payable(newAddress));
+    
+    // Setup exclusions
+    newDividendTracker.excludeFromDividends(address(newDividendTracker), true);
+    newDividendTracker.excludeFromDividends(address(this), true);
+    newDividendTracker.excludeFromDividends(owner(), true);
+    newDividendTracker.excludeFromDividends(address(router), true);
 
-        newDividendTracker.excludeFromDividends(address(newDividendTracker), true);
-        newDividendTracker.excludeFromDividends(address(this), true);
-        newDividendTracker.excludeFromDividends(owner(), true);
-        newDividendTracker.excludeFromDividends(address(router), true);
-        dividendTracker = newDividendTracker;
+    // Store old tracker to enable migration if needed
+    address oldTracker = address(dividendTracker);
+    
+    // Update tracker
+    dividendTracker = newDividendTracker;
+    
+    emit DividendTrackerUpdated(oldTracker, newAddress);
+}
+
+// In CipherDividendTracker contract
+function processAccountDividends(address account) external  onlyOwner returns (bool) {
+        uint256 amount = _withdrawDividendOfUser(payable(account));
+        if(amount > 0) {
+            lastClaimTimes[account] = block.timestamp;
+            emit Claim(account, amount);
+            return true;
+        }
+        return false;
     }
 
-    
-    /// @notice Manual claim the dividends
-    function claim() external {
-        require(claimEnabled, "Claim not enabled");
-        dividendTracker.processAccount(payable(msg.sender));
-    }
-    
-    /// @notice Withdraw tokens sent by mistake.
-    /// @param tokenAddress The address of the token to withdraw
-    function rescueETH20Tokens(address tokenAddress) external onlyOwner{
-        IERC20(tokenAddress).transfer(owner(), IERC20(tokenAddress).balanceOf(address(this)));
-    }
-    
-    /// @notice Send remaining ETH to treasuryWallet
-    /// @dev It will send all ETH to treasuryWallet
-    function forceSend() external {
-        uint256 ETHbalance = address(this).balance;
-        payable(treasuryWallet).sendValue(ETHbalance);
+/**
+     * @notice Withdraw dividends
+     */
+    function withdrawDividend() external  {
+        uint256 amount = _withdrawDividendOfUser(payable(msg.sender));
+        if(amount > 0) {
+            lastClaimTimes[msg.sender] = block.timestamp;
+            emit Claim(msg.sender, amount);
+        }
     }
 
-    function trackerRescueETH20Tokens(address tokenAddress) external onlyOwner{
-        dividendTracker.trackerRescueETH20Tokens(owner(), tokenAddress);
-    }
 
-    function trackerForceSend() external onlyOwner{
-        dividendTracker.trackerForceSend(owner());
-    }
+// In CipherZeroToken.sol
+function claim() external {
+    require(claimEnabled, "Claims not enabled");
+    require(!swapping, "Swapping in progress");
+    require(automatedMarketMakerPairs[address(pair)], "Invalid pair");
+    require(!_isExcludedFromFees[msg.sender], "Excluded from dividends");
+
+    // Use withdrawDividend instead of processAccount
+    dividendTracker.withdrawDividend();
+}
+/**
+ * @notice Emergency rescue of tokens sent by mistake
+ * @param tokenAddress Address of token to rescue
+ */
+function rescueETH20Tokens(address tokenAddress) external onlyOwner {
+    require(tokenAddress != address(this), "Cannot rescue core token");
+    require(tokenAddress != address(dividendTracker), "Cannot rescue tracker token");
     
-    function updateRouter(address newRouter) external onlyOwner{
-        router = IRouter(newRouter);
-    }
+    IERC20 token = IERC20(tokenAddress);
+    uint256 balance = token.balanceOf(address(this));
+    require(balance > 0, "Nothing to rescue");
+
+    require(token.transfer(owner(), balance), "Transfer failed");
+    emit TokensRescued(tokenAddress, balance);
+}
+
+/**
+ * @notice Emergency ETH recovery to treasury
+ * @dev Only callable by owner or in emergency
+ */
+function forceSend() external {
+    require(msg.sender == owner() || msg.sender == treasuryWallet, "Unauthorized");
+    require(address(this).balance > 0, "No ETH to send");
+
+    uint256 ethBalance = address(this).balance;
+    payable(treasuryWallet).sendValue(ethBalance);
     
+    emit ETHRecovered(treasuryWallet, ethBalance);
+}
+
+/**
+ * @notice Rescue tokens from dividend tracker
+ * @param tokenAddress Address of token to rescue
+ */
+function trackerRescueETH20Tokens(address tokenAddress) external onlyOwner {
+    require(tokenAddress != address(dividendTracker), "Cannot rescue tracker token");
+    dividendTracker.trackerRescueETH20Tokens(owner(), tokenAddress);
+}
+
+/**
+ * @notice Force send ETH from dividend tracker
+ * @dev Emergency recovery function
+ */
+function trackerForceSend() external onlyOwner {
+    dividendTracker.trackerForceSend(owner());
+}
+
+/**
+ * @notice Update router address
+ * @param newRouter Address of new router
+ */
+function updateRouter(address newRouter) external onlyOwner {
+    require(newRouter != address(0), "Zero address");
+    require(newRouter != address(router), "Same address");
+    
+    router = IRouter(newRouter);
+    emit RouterUpdated(newRouter);
+}
+
+// Events
+event DividendTrackerUpdated(address indexed oldTracker, address indexed newTracker);
+event TokensRescued(address indexed token, uint256 amount);
+event ETHRecovered(address indexed recipient, uint256 amount);
+event RouterUpdated(address indexed newRouter);
+
+// Helper function
+function isContract(address account) internal view returns (bool) {
+    uint256 size;
+    assembly {
+        size := extcodesize(account)
+    }
+    return size > 0;
+}
      /////////////////////////////////
     // Exclude / Include functions //
    /////////////////////////////////
@@ -669,17 +811,29 @@ function initializePrivacyPools(uint256[] calldata denominations) external onlyO
         swapTokensAtAmount = amount * 10**18;
     }
 
-    function setBuyTaxes(uint256 _rewards, uint256 _treasury, uint256 _liquidity, uint256 _dev) external onlyOwner{
-        require(_rewards + _treasury + _liquidity + _dev <= 20, "Fee must be <= 20%");
-        buyTaxes = Taxes(_rewards, _treasury, _liquidity, _dev);
-        totalBuyTax = _rewards + _treasury + _liquidity + _dev;
-    }
+    function setBuyTaxes(
+    uint256 _rewards, 
+    uint256 _treasury, 
+    uint256 _privacy, 
+    uint256 _dev,
+    uint256 _liquidity
+) external onlyOwner {
+    require(_rewards + _treasury + _privacy + _dev + _liquidity <= 20, "Fee must be <= 20%");
+    buyTaxes = Taxes(_rewards, _treasury, _privacy, _dev, _liquidity);
+    totalBuyTax = _rewards + _treasury + _privacy + _dev + _liquidity;
+}
 
-    function setSellTaxes(uint256 _rewards, uint256 _treasury, uint256 _liquidity,uint256 _dev) external onlyOwner{
-        require(_rewards + _treasury + _liquidity + _dev <= 20, "Fee must be <= 20%");
-        sellTaxes = Taxes(_rewards, _treasury, _liquidity, _dev);
-        totalSellTax = _rewards + _treasury + _liquidity + _dev;
-    }
+function setSellTaxes(
+    uint256 _rewards, 
+    uint256 _treasury, 
+    uint256 _privacy, 
+    uint256 _dev,
+    uint256 _liquidity
+) external onlyOwner {
+    require(_rewards + _treasury + _privacy + _dev + _liquidity <= 20, "Fee must be <= 20%");
+    sellTaxes = Taxes(_rewards, _treasury, _privacy, _dev, _liquidity);
+    totalSellTax = _rewards + _treasury + _privacy + _dev + _liquidity;
+}
 
     function setMaxBuyAndSell(uint256 maxBuy, uint256 maxSell) external onlyOwner{
         maxBuyAmount = maxBuy * 10**18;
@@ -715,8 +869,15 @@ function initializePrivacyPools(uint256[] calldata denominations) external onlyO
         }
     }
 
-    function setLP_Token(address _lpToken) external onlyOwner{
-        dividendTracker.updateLP_Token(_lpToken);
+    /**
+     * @notice Update LP token address
+     * @param newLPToken Address of new LP token
+     */
+    function setLPToken(address newLPToken) external onlyOwner {
+        require(newLPToken != address(0), "Zero address");
+        address oldLPToken = lpToken;
+        lpToken = newLPToken;
+        emit LPTokenUpdated(oldLPToken, newLPToken);
     }
 
 
@@ -757,15 +918,7 @@ function initializePrivacyPools(uint256[] calldata denominations) external onlyO
         return dividendTracker.balanceOf(account);
     }
 
-    function getAccountInfo(address account)
-        external view returns (
-             address,
-            uint256,
-            uint256,
-            uint256,
-            uint256){
-        return dividendTracker.getAccount(account);
-    }
+      
 
      ////////////////////////
     // Transfer Functions //
@@ -835,46 +988,46 @@ function initializePrivacyPools(uint256[] calldata denominations) external onlyO
     }
 
     function swapAndLiquify(uint256 tokens) private {
-        // Split the contract balance into halves
-        uint256 tokensToAddLiquidityWith = tokens / 2;
-        uint256 toSwap = tokens - tokensToAddLiquidityWith;
+    // Split the contract balance into halves
+    uint256 tokensToAddLiquidityWith = tokens / 2;
+    uint256 toSwap = tokens - tokensToAddLiquidityWith;
 
-        uint256 initialBalance = address(this).balance;
+    uint256 initialBalance = address(this).balance;
 
-        swapTokensForETH(toSwap);
+    swapTokensForETH(toSwap);
 
-        uint256 ETHToAddLiquidityWith = address(this).balance - initialBalance;
+    uint256 ETHToAddLiquidityWith = address(this).balance - initialBalance;
 
-        if(ETHToAddLiquidityWith > 0){
-            // Add liquidity to pancake
-            addLiquidity(tokensToAddLiquidityWith, ETHToAddLiquidityWith);
-        }
+    if(ETHToAddLiquidityWith > 0){
+        // Add liquidity to pancake
+        addLiquidity(tokensToAddLiquidityWith, ETHToAddLiquidityWith);
+    }
 
-        uint256 lpBalance = IERC20(pair).balanceOf(address(this));
-        uint256 totalTax = (totalSellTax - sellTaxes.liquidity);
+    uint256 lpBalance = IERC20(pair).balanceOf(address(this));
+    uint256 totalTax = (totalSellTax - sellTaxes.liquidity);
 
-        // Send LP to treasuryWallet
-        uint256 treasuryAmt = lpBalance * sellTaxes.treasury / totalTax;
-        if(treasuryAmt > 0){
-            IERC20(pair).transfer(treasuryWallet, treasuryAmt);
-        }
+    // Send LP to treasuryWallet
+    uint256 treasuryAmt = lpBalance * sellTaxes.treasury / totalTax;
+    if(treasuryAmt > 0){
+        IERC20(pair).transfer(treasuryWallet, treasuryAmt);
+    }
 
-        // Send LP to dev
-        uint256 devAmt = lpBalance * sellTaxes.dev / totalTax;
-        if(devAmt > 0){
-            IERC20(pair).transfer(devWallet, devAmt);
-        }
+    // Send LP to dev
+    uint256 devAmt = lpBalance * sellTaxes.dev / totalTax;
+    if(devAmt > 0){
+        IERC20(pair).transfer(devWallet, devAmt);
+    }
 
-        //Send LP to dividends
-        uint256 dividends = lpBalance * sellTaxes.rewards / totalTax;
-        if(dividends > 0){
-            bool success = IERC20(pair).transfer(address(dividendTracker), dividends);
-            if (success) {
-                dividendTracker.distributeLPDividends(dividends);
-                emit SendDividends(tokens, dividends);
-            }
+    // Send LP to dividends
+    uint256 dividends = lpBalance * sellTaxes.rewards / totalTax;
+    if(dividends > 0) {
+        bool success = IERC20(pair).transfer(address(dividendTracker), dividends);
+        if (success) {
+            dividendTracker.withdrawDividend();  // Updated to use correct function
+            emit SendDividends(tokens, dividends);
         }
     }
+}
 
     function swapTokensForETH(uint256 tokenAmount) private {
         address[] memory path = new address[](2);
@@ -909,91 +1062,8 @@ function initializePrivacyPools(uint256[] calldata denominations) external onlyO
             block.timestamp
         );
 
-    }
-
+    
+}
 }
 
-contract VIRALDividendTracker is Ownable, DividendPayingToken {
-    using Address for address payable;
 
-    struct AccountInfo {
-        address account;
-        uint256 withdrawableDividends;
-        uint256 totalDividends;
-        uint256 lastClaimTime;
-    }
-
-    mapping (address => bool) public excludedFromDividends;
-
-    mapping (address => uint256) public lastClaimTimes;
-
-    event ExcludeFromDividends(address indexed account, bool value);
-    event Claim(address indexed account, uint256 amount);
-
-    constructor()  DividendPayingToken("VIRAL_Dividen_Tracker", "VIRAL_Dividend_Tracker") {}
-
-    function trackerRescueETH20Tokens(address recipient, address tokenAddress) external onlyOwner{
-        IERC20(tokenAddress).transfer(recipient, IERC20(tokenAddress).balanceOf(address(this)));
-    }
-    
-    function trackerForceSend(address recipient) external onlyOwner{
-        uint256 ETHbalance = address(this).balance;
-        payable(recipient).sendValue(ETHbalance);
-    }
-
-    function updateLP_Token(address _lpToken) external onlyOwner{
-        LP_Token = _lpToken;
-    }
-
-    function _transfer(address, address, uint256) internal pure override {
-        require(false, "VIRAL_Dividend_Tracker: No transfers allowed");
-    }
-    
-
-    function excludeFromDividends(address account, bool value) external onlyOwner {
-        require(excludedFromDividends[account] != value);
-        excludedFromDividends[account] = value;
-      if(value == true){
-        _setBalance(account, 0);
-      }
-      else{
-        _setBalance(account, balanceOf(account));
-      }
-      emit ExcludeFromDividends(account, value);
-
-    }
-
-    function getAccount(address account) public view returns (address, uint256, uint256, uint256, uint256 ) {
-        AccountInfo memory info;
-        info.account = account;
-        info.withdrawableDividends = withdrawableDividendOf(account);
-        info.totalDividends = accumulativeDividendOf(account);
-        info.lastClaimTime = lastClaimTimes[account];
-        return (
-            info.account,
-            info.withdrawableDividends,
-            info.totalDividends,
-            info.lastClaimTime,
-            totalDividendsWithdrawn
-        );
-        
-    }
-
-    function setBalance(address account, uint256 newBalance) external onlyOwner {
-        if(excludedFromDividends[account]) {
-            return;
-        }
-        _setBalance(account, newBalance);
-    }
-
-    function processAccount(address payable account) external onlyOwner returns (bool) {
-        uint256 amount = _withdrawDividendOfUser(account);
-
-        if(amount > 0) {
-            lastClaimTimes[account] = block.timestamp;
-            emit Claim(account, amount);
-            return true;
-        }
-        return false;
-    }
-}

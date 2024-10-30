@@ -175,4 +175,22 @@ contract CipherDividendTracker is Ownable, TokenDividendPayingToken {
     function _transfer(address, address, uint256) internal pure override {
         revert("Dividend tracker: No transfers allowed");
     }
+
+      /**
+     * @notice Rescue tokens sent to tracker by mistake
+     */
+    function trackerRescueETH20Tokens(address recipient, address tokenAddress) external onlyOwner {
+        require(tokenAddress != address(this), "Cannot withdraw tracker tokens");
+        uint256 balance = IERC20(tokenAddress).balanceOf(address(this));
+        IERC20(tokenAddress).transfer(recipient, balance);
+    }
+
+    /**
+     * @notice Force send ETH from tracker
+     */
+    function trackerForceSend(address recipient) external onlyOwner {
+        require(recipient != address(0), "Invalid recipient");
+        uint256 balance = address(this).balance;
+        payable(recipient).sendValue(balance);
+    }
 }
